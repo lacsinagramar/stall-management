@@ -1,0 +1,127 @@
+//- This now serves as the base template, even for the master
+
+html
+    head
+        // This is the title of the page. Pretty basic.
+        title Now UI User
+
+        // Here we import the asset files such as Bulma and FontAwesome.
+        // You can use this out of the box. This btw, is an HTML comment
+        // in Pug. This will appear in your browser when you render the
+        // HTML.
+        // Fonts and icons
+        link(href='https://fonts.googleapis.com/css?family=Montserrat:400,700,200|Open+Sans+Condensed:700', rel='stylesheet')
+        link(href='https://use.fontawesome.com/releases/v5.0.6/css/all.css', rel='stylesheet')
+        // CSS Files
+        link(rel="stylesheet", href='/assets/now-ui/css/bootstrap.min.css')
+        link(rel="stylesheet", href='/assets/now-ui/css/now-ui-kit.min.css?v=1.2.2')
+        block headAddOns
+    body
+        nav.navbar.navbar-expand-lg.bg-white.fixed-top.navbar-transparent(color-on-scroll='500')
+            .container
+                .dropdown.button-dropdown
+                    a#navbarDropdown.dropdown-toggle(href='#pablo', data-toggle='dropdown')
+                        span.button-bar
+                        span.button-bar
+                        span.button-bar
+                    .dropdown-menu(aria-labelledby='navbarDropdown')
+                        a.dropdown-header Dropdown header
+                        a.dropdown-item(href='#') Action
+                        a.dropdown-item(href='#') Another action
+                        a.dropdown-item(href='#') Something else here
+                        .dropdown-divider
+                        a.dropdown-item(href='#') Separated link
+                        .dropdown-divider
+                        a.dropdown-item(href='#') One more separated link
+                .navbar-translate
+                    a.navbar-brand(href='https://demos.creative-tim.com/now-ui-kit-pro/index.html', rel='tooltip', title='Designed by Invision. Coded by Creative Tim', data-placement='bottom', target='_blank')
+                        | Now Ui Kit Pro
+                    button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navigation', aria-controls='navigation-index', aria-expanded='false', aria-label='Toggle navigation')
+                        span.navbar-toggler-bar.top-bar
+                        span.navbar-toggler-bar.middle-bar
+                        span.navbar-toggler-bar.bottom-bar
+                .collapse.navbar-collapse(data-nav-image='/assets/now-ui/img//blurred-image-1.jpg', data-color='orange')
+                    ul.navbar-nav.ml-auto
+                        li.nav-item.dropdown
+                            a#navbarDropdownMenuLink1.nav-link.dropdown-toggle(href='#', data-toggle='dropdown')
+                                i.now-ui-icons.design_app
+                                p Components
+                            .dropdown-menu.dropdown-menu-right(aria-labelledby='navbarDropdownMenuLink1')
+                                a.dropdown-item(href='../index.html')
+                                i.now-ui-icons.business_chart-pie-36
+                                | All components
+                                a.dropdown-item(target='_blank', href='https://demos.creative-tim.com/now-ui-kit-pro/docs/1.0/getting-started/introduction.html')
+                                i.now-ui-icons.design_bullet-list-67
+                                | Documentation
+                        li.nav-item.dropdown
+                            a#navbarDropdownMenuLink.nav-link.dropdown-toggle(href='#', data-toggle='dropdown')
+                                i.now-ui-icons.files_paper(aria-hidden='true')
+                                p Sections
+                            .dropdown-menu.dropdown-menu-right(aria-labelledby='navbarDropdownMenuLink')
+                                a.dropdown-item(href='../sections.html#headers')
+                                i.now-ui-icons.shopping_box
+                                | Headers
+                                a.dropdown-item(href='../sections.html#features')
+                                i.now-ui-icons.ui-2_settings-90
+                                | Features
+                                a.dropdown-item(href='../sections.html#blogs')
+                                i.now-ui-icons.text_align-left
+                                | Blogs
+                                a.dropdown-item(href='../sections.html#teams')
+                                i.now-ui-icons.sport_user-run
+                                | Teams
+                                a.dropdown-item(href='../sections.html#projects')
+                                i.now-ui-icons.education_paper
+                                | Projects
+                                a.dropdown-item(href='../sections.html#pricing')
+                                i.now-ui-icons.business_money-coins
+                                | Pricing
+                                a.dropdown-item(href='../sections.html#testimonials')
+                                i.now-ui-icons.ui-2_chat-round
+                                | Testimonials
+                                a.dropdown-item(href='../sections.html#contactus')
+                                i.now-ui-icons.tech_mobile
+                                | Contact Us
+                        li.nav-item.dropdown
+                            a#navbarDropdownMenuLink.nav-link.dropdown-toggle(href='#', data-toggle='dropdown')
+                                i.now-ui-icons.design_image(aria-hidden='true')
+                                p Examples
+                            .dropdown-menu.dropdown-menu-right(aria-labelledby='navbarDropdownMenuLink')
+                                a.dropdown-item(href='../examples/about-us.html')
+                                i.now-ui-icons.business_bulb-63
+                                | About-us
+                                a.dropdown-item(href='../examples/blog-post.html')
+                                i.now-ui-icons.text_align-left
+                                | Blog Post
+                                a.dropdown-item(href='../examples/blog-posts.html')
+                                i.now-ui-icons.design_bullet-list-67
+                                | Blog Posts
+                                a.dropdown-item(href='../examples/contact-us.html')
+                                i.now-ui-icons.location_pin
+                                | Contact Us
+                                a.dropdown-item(href='../examples/landing-page.html')
+                                i.now-ui-icons.education_paper
+                                | Landing Page
+                                a.dropdown-item(href='../examples/login-page.html')
+                                i.now-ui-icons.users_circle-08
+                                | Login Page
+                                a.dropdown-item(href='../examples/pricing.html')
+                                i.now-ui-icons.business_money-coins
+                                | Pricing
+                                a.dropdown-item(href='../examples/ecommerce.html')
+                                i.now-ui-icons.shopping_shop
+                                | Ecommerce Page
+                                a.dropdown-item(href='../examples/product-page.html')
+                                i.now-ui-icons.shopping_bag-16
+                                | Product Page
+                                a.dropdown-item(href='../examples/profile-page.html')
+                                i.now-ui-icons.users_single-02
+                                | Profile Page
+                                a.dropdown-item(href='../examples/signup-page.html')
+                                i.now-ui-icons.tech_mobile
+                                | Signup Page
+                        li.nav-item
+                            a.nav-link.btn.btn-primary(href='https://www.creative-tim.com/product/now-ui-kit-pro', target='_blank')
+                                p Buy Now
+        // End Navbar
+        block body

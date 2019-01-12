@@ -1,0 +1,197 @@
+CREATE TABLE `stallv1`.`tbl_lessee` (
+  `strId` VARCHAR(20) NOT NULL,
+  `strFirstName` VARCHAR(45) NOT NULL,
+  `strMiddleName` VARCHAR(45) NULL,
+  `strLastName` VARCHAR(45) NOT NULL,
+  `strAddress` LONGTEXT NOT NULL,
+  `strValidId1` LONGTEXT NOT NULL,
+  `strValidId2` LONGTEXT NOT NULL,
+  `strBaranggayPermit` LONGTEXT NOT NULL,
+  `strEmail` VARCHAR(45) NOT NULL,
+  `strPhoneNumber` VARCHAR(45) NOT NULL,
+  `strUsername` VARCHAR(45) NOT NULL,
+  `strPassword` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`strId`),
+  UNIQUE INDEX `strEmail_UNIQUE` (`strEmail` ASC),
+  UNIQUE INDEX `strUsername_UNIQUE` (`strUsername` ASC));
+
+CREATE TABLE `stallv1`.`tbl_stall` (
+  `strId` VARCHAR(10) NOT NULL,
+  `booStallType` TINYINT NOT NULL,
+  `booIsAvailable` TINYINT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`strId`));
+
+CREATE TABLE `stallv1`.`tbl_contract` (
+  `intId` INT NOT NULL AUTO_INCREMENT,
+  `strLesseeId` VARCHAR(20) NOT NULL,
+  `strStallId` VARCHAR(10) NOT NULL,
+  `intContractMonth` INT NOT NULL,
+  `intContractDay` INT NOT NULL,
+  `intContractYear` INT NOT NULL,
+  `intContractDuration` INT NOT NULL,
+  PRIMARY KEY (`intId`),
+  INDEX `contract to lessee_idx` (`strLesseeId` ASC),
+  INDEX `contract to stall_idx` (`strStallId` ASC),
+  CONSTRAINT `contract to lessee`
+    FOREIGN KEY (`strLesseeId`)
+    REFERENCES `stallv1`.`tbl_lessee` (`strId`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `contract to stall`
+    FOREIGN KEY (`strStallId`)
+    REFERENCES `stallv1`.`tbl_stall` (`strId`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE);
+
+CREATE TABLE `stallv1`.`tbl_staff` (
+  `intId` INT NOT NULL,
+  `strFirstName` VARCHAR(45) NOT NULL,
+  `strMiddleName` VARCHAR(45) NULL,
+  `strLastName` VARCHAR(45) NOT NULL,
+  `strEmail` VARCHAR(45) NOT NULL,
+  `strPhone` VARCHAR(45) NOT NULL,
+  `strUsername` VARCHAR(45) NOT NULL,
+  `strPassword` VARCHAR(45) NOT NULL,
+  `booStatus` TINYINT NOT NULL,
+  PRIMARY KEY (`intId`));
+
+ALTER TABLE `stallv1`.`tbl_staff` 
+CHANGE COLUMN `booStatus` `booStatus` TINYINT(4) NOT NULL DEFAULT 1 ;
+
+CREATE TABLE `stallv1`.`tbl_electric_main_bill` (
+  `intId` INT NOT NULL,
+  `dblTotalAmountDue` DOUBLE NOT NULL,
+  `intTotalKwhUsage` INT NOT NULL,
+  `intDueMonth` INT NOT NULL,
+  `intDueDay` INT NOT NULL,
+  `intDueYear` INT NOT NULL,
+  PRIMARY KEY (`intId`),
+  UNIQUE INDEX `dueConstraint` (`intDueMonth` ASC, `intDueYear` ASC));
+
+CREATE TABLE `stallv1`.`tbl_water_main_bill` (
+  `intId` INT NOT NULL,
+  `dblTotalAmountDue` DOUBLE NOT NULL,
+  `intTotalCubicMeterUsage` INT NOT NULL,
+  `intDueMonth` INT NOT NULL,
+  `intDueDay` INT NOT NULL,
+  `intDueYear` INT NOT NULL,
+  PRIMARY KEY (`intId`),
+  UNIQUE INDEX `dueConstraint` (`intDueMonth` ASC, `intDueYear` ASC));
+
+CREATE TABLE `stallv1`.`tbl_rental_bill` (
+  `intId` INT NOT NULL,
+  `intContractId` INT NOT NULL,
+  `datDueDate` DATE NOT NULL,
+  `strPaymentReferenceNo` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`intId`),
+  INDEX `rentalBill to contract_idx` (`intContractId` ASC),
+  CONSTRAINT `rentalBill to contract`
+    FOREIGN KEY (`intContractId`)
+    REFERENCES `stallv1`.`tbl_contract` (`intId`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE);
+
+CREATE TABLE `stallv1`.`tbl_payment` (
+  `strReferenceNo` VARCHAR(45) NOT NULL,
+  `dblAmountPaid` DOUBLE NOT NULL,
+  PRIMARY KEY (`strReferenceNo`));
+
+ALTER TABLE `stallv1`.`tbl_electric_main_bill` 
+CHANGE COLUMN `intId` `intId` INT(11) NOT NULL AUTO_INCREMENT ;
+
+ALTER TABLE `stallv1`.`tbl_rental_bill` 
+CHANGE COLUMN `intId` `intId` INT(11) NOT NULL AUTO_INCREMENT ;
+
+ALTER TABLE `stallv1`.`tbl_staff` 
+CHANGE COLUMN `intId` `intId` INT(11) NOT NULL AUTO_INCREMENT ;
+
+ALTER TABLE `stallv1`.`tbl_water_main_bill` 
+CHANGE COLUMN `intId` `intId` INT(11) NOT NULL AUTO_INCREMENT ;
+
+CREATE TABLE `stallv1`.`tbl_electric_lessee_bill` (
+  `intId` INT NOT NULL AUTO_INCREMENT,
+  `intElectricMainBillId` INT NOT NULL,
+  `dblAmountDue` DOUBLE NOT NULL,
+  `intTotalKwhUsage` INT NOT NULL,
+  `datDueDate` DATE NOT NULL,
+  `strPaymentReferenceNo` VARCHAR(45) NULL,
+  PRIMARY KEY (`intId`),
+  INDEX `electricBill to payment_idx` (`strPaymentReferenceNo` ASC),
+  CONSTRAINT `electricBill to payment`
+    FOREIGN KEY (`strPaymentReferenceNo`)
+    REFERENCES `stallv1`.`tbl_payment` (`strReferenceNo`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE);
+
+ALTER TABLE `stallv1`.`tbl_rental_bill` 
+CHANGE COLUMN `strPaymentReferenceNo` `strPaymentReferenceNo` VARCHAR(45) NULL ,
+ADD INDEX `rentalBill to payment_idx` (`strPaymentReferenceNo` ASC);
+ALTER TABLE `stallv1`.`tbl_rental_bill` 
+ADD CONSTRAINT `rentalBill to payment`
+  FOREIGN KEY (`strPaymentReferenceNo`)
+  REFERENCES `stallv1`.`tbl_payment` (`strReferenceNo`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
+
+ALTER TABLE `stallv1`.`tbl_electric_lessee_bill` 
+ADD INDEX `electricBill to mainElectric_idx` (`intElectricMainBillId` ASC);
+ALTER TABLE `stallv1`.`tbl_electric_lessee_bill` 
+ADD CONSTRAINT `electricBill to mainElectric`
+  FOREIGN KEY (`intElectricMainBillId`)
+  REFERENCES `stallv1`.`tbl_electric_main_bill` (`intId`)
+  ON DELETE CASCADE
+  ON UPDATE CASCADE;
+
+CREATE TABLE `stallv1`.`tbl_water_lessee_bill` (
+  `intId` INT NOT NULL AUTO_INCREMENT,
+  `intWaterMainBillId` INT NOT NULL,
+  `dblAmountDue` DOUBLE NOT NULL,
+  `intTotalCubicMeterUsage` INT NOT NULL,
+  `datDueDate` DATE NOT NULL,
+  `strPaymentReferenceNo` VARCHAR(45) NULL,
+  PRIMARY KEY (`intId`),
+  INDEX `waterBill to mainWater_idx` (`intWaterMainBillId` ASC),
+  INDEX `waterBill to payment_idx` (`strPaymentReferenceNo` ASC),
+  CONSTRAINT `waterBill to mainWater`
+    FOREIGN KEY (`intWaterMainBillId`)
+    REFERENCES `stallv1`.`tbl_water_main_bill` (`intId`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `waterBill to payment`
+    FOREIGN KEY (`strPaymentReferenceNo`)
+    REFERENCES `stallv1`.`tbl_payment` (`strReferenceNo`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE);
+CREATE TABLE `stallv1`.`tbl_issue_report` (
+  `intId` INT NOT NULL AUTO_INCREMENT,
+  `intContractId` INT NOT NULL,
+  `strSubject` VARCHAR(45) NOT NULL,
+  `strMessage` LONGTEXT NULL,
+  `booStatus` TINYINT NOT NULL,
+  PRIMARY KEY (`intId`),
+  INDEX `issueReport to contract_idx` (`intContractId` ASC),
+  CONSTRAINT `issueReport to contract`
+    FOREIGN KEY (`intContractId`)
+    REFERENCES `stallv1`.`tbl_contract` (`intId`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE);
+
+CREATE TABLE `stallv1`.`tbl_ticket` (
+  `intId` INT NOT NULL AUTO_INCREMENT,
+  `intIssueId` INT NOT NULL,
+  `booStatus` TINYINT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`intId`),
+  INDEX `ticket to issueReport_idx` (`intIssueId` ASC),
+  CONSTRAINT `ticket to issueReport`
+    FOREIGN KEY (`intIssueId`)
+    REFERENCES `stallv1`.`tbl_issue_report` (`intId`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE);
+
+ALTER TABLE `stallv1`.`tbl_issue_report` 
+ADD COLUMN `tbl_issue_reportcol` VARCHAR(45) NULL DEFAULT 0 AFTER `booStatus`;
+
+ALTER TABLE `stallv1`.`tbl_issue_report` 
+DROP COLUMN `tbl_issue_reportcol`,
+CHANGE COLUMN `booStatus` `booStatus` TINYINT(4) NOT NULL DEFAULT 0 ;
+

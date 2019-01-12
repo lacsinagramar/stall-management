@@ -1,0 +1,74 @@
+extends ./template.pug
+
+block content
+	.row
+		.col-md-12
+			.card
+				.card-header
+					h4.card-title Stalls
+				.card-body
+					.toolbar
+						button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addStallModal') + Add Stall
+					br
+					table#stallTable.table.table-bordered.table-striped(cellspacing='0')
+						thead
+							tr
+								th Stall ID
+								th Stall Type
+								th Stall Status
+								th Actions
+						tbody
+							tr
+								td A1
+								td Food Stall
+								td.text-success Available
+								td
+									a.btn.btn-round.btn-warning.btn-icon(href='#')
+										i.now-ui-icons.design_scissors
+									a.btn.btn-round.btn-danger.btn-icon(href='#')
+										i.now-ui-icons.ui-1_simple-remove
+	#addStallModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+		.modal-dialog(role='document')
+			.modal-content
+				.modal-header
+					h5.modal-title Add Stall
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') ×
+				.modal-body
+					form#addStallForm(method='POST' action='/admin/addstall')
+						.form-group
+							label Stall ID
+								small.text-danger  *
+							input.form-control(type='text' name='stallId' placeholder='Enter Stall ID')
+						.form-group
+							label Stall Type
+								small.text-danger  *
+							.form-check.form-check-radio
+								label.form-check-label
+									input.form-check-input(type='radio', name='stallType', value='0' checked)
+									| Food Stall
+									span.form-check-sign
+							.form-check.form-check-radio
+								label.form-check-label
+									input.form-check-input(type='radio', name='stallType', value='1')
+									| Dry Goods Stall
+									span.form-check-sign
+						button#addStallSubmit(type='submit' style="display:none")
+				.modal-footer
+					button#addStallSave.btn.btn-primary(type='button') Save
+block contentScript
+	script.
+		$(document).ready(function(){
+			$('#stallTable').dataTable()
+			$('#addStallForm').validate({
+				rules:{
+					stallId:{
+						required: true,
+						minlength: 2,
+					}
+				}
+			})
+			$('#addStallSave').on('click', function(){
+				$('#addStallSubmit').click();
+			})
+		})

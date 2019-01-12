@@ -1,0 +1,35 @@
+extends ./template.pug
+
+block content
+	.row
+		.col-md-12
+			.card
+				.card-header
+					h4.card-title Lessee
+				.card-body
+					.toolbar
+						button.btn.btn-round.btn-success + Add Account
+					br
+					table#lesseeTable.table.table-bordered.table-striped(cellspacing='0')
+						thead
+							tr
+								th Stall ID
+								th Stall Type
+								th Stall Status
+								th Actions
+						tbody
+							tr
+								td A1
+								td Food Stall
+								td.text-success Available
+								td
+									a.btn.btn-round.btn-warning.btn-icon(href='#')
+										i.now-ui-icons.design_scissors
+									a.btn.btn-round.btn-danger.btn-icon(href='#')
+										i.now-ui-icons.ui-1_simple-remove
+
+block contentScript
+	script.
+		$(document).ready(function(){
+			$('#lesseeTable').dataTable()
+		})

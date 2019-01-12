@@ -1,19 +1,58 @@
 //- This now serves as the base template, even for the master
 
 html
-    head
-        // This is the title of the page. Pretty basic.
-        title Now UI Dashboard
+	head
+		// This is the title of the page. Pretty basic.
+		title Now UI Dashboard
 
-        // Here we import the asset files such as Bulma and FontAwesome.
-        // You can use this out of the box. This btw, is an HTML comment
-        // in Pug. This will appear in your browser when you render the
-        // HTML.
-        link(href='https://fonts.googleapis.com/css?family=Montserrat:400,700,200', rel='stylesheet')
-        link(href='https://use.fontawesome.com/releases/v5.0.6/css/all.css', rel='stylesheet')
-        link(rel="stylesheet", href='/assets/now-ui-admin/css/bootstrap.min.css')
-        link(rel="stylesheet", href='/assets/now-ui-admin/css/now-ui-dashboard.min.css')
-        block headAddOns
+		// Here we import the asset files such as Bulma and FontAwesome.
+		// You can use this out of the box. This btw, is an HTML comment
+		// in Pug. This will appear in your browser when you render the
+		// HTML.
+		link(href='https://fonts.googleapis.com/css?family=Montserrat:400,700,200', rel='stylesheet')
+		link(href='https://use.fontawesome.com/releases/v5.0.6/css/all.css', rel='stylesheet')
+		link(rel="stylesheet", href='/assets/now-ui-admin/css/bootstrap.min.css')
+		link(rel="stylesheet", href='/assets/now-ui-admin/css/now-ui-dashboard.min.css')
+		block headAddOns
 
-    body
-        block body
+	body
+		block body
+		// Core JS Files
+		script(src='/assets/now-ui-admin/js/core/jquery.min.js')
+		script(src='/assets/now-ui-admin/js/core/popper.min.js')
+		script(src='/assets/now-ui-admin/js/core/bootstrap.min.js')
+		script(src='/assets/now-ui-admin/js/plugins/perfect-scrollbar.jquery.min.js')
+		script(src='/assets/now-ui-admin/js/plugins/moment.min.js')
+		// Plugin for Switches, full documentation here: http://www.jque.re/plugins/version3/bootstrap.switch/
+		script(src='/assets/now-ui-admin/js/plugins/bootstrap-switch.js')
+		// Plugin for Sweet Alert
+		script(src='/assets/now-ui-admin/js/plugins/sweetalert2.min.js')
+		// Forms Validations Plugin
+		script(src='/assets/now-ui-admin/js/plugins/jquery.validate.min.js')
+		// Plugin for the Wizard, full documentation here: https://github.com/VinceG/twitter-bootstrap-wizard
+		script(src='/assets/now-ui-admin/js/plugins/jquery.bootstrap-wizard.js')
+		// Plugin for Select, full documentation here: http://silviomoreto.github.io/bootstrap-select
+		script(src='/assets/now-ui-admin/js/plugins/bootstrap-selectpicker.js')
+		// Plugin for the DateTimePicker, full documentation here: https://eonasdan.github.io/bootstrap-datetimepicker/
+		script(src='/assets/now-ui-admin/js/plugins/bootstrap-datetimepicker.js')
+		// DataTables.net Plugin, full documentation here: https://datatables.net/
+		script(src='/assets/now-ui-admin/js/plugins/jquery.dataTables.min.js')
+		// Plugin for Tags, full documentation here: https://github.com/bootstrap-tagsinput/bootstrap-tagsinputs
+		script(src='/assets/now-ui-admin/js/plugins/bootstrap-tagsinput.js')
+		// Plugin for Fileupload, full documentation here: http://www.jasny.net/bootstrap/javascript/#fileinput
+		script(src='/assets/now-ui-admin/js/plugins/jasny-bootstrap.min.js')
+		// Full Calendar Plugin, full documentation here: https://github.com/fullcalendar/fullcalendar
+		script(src='/assets/now-ui-admin/js/plugins/fullcalendar.min.js')
+		// Vector Map plugin, full documentation here: http://jvectormap.com/documentation/
+		script(src='/assets/now-ui-admin/js/plugins/jquery-jvectormap.js')
+		// Plugin for the Sliders, full documentation here: http://refreshless.com/nouislider/
+		script(src='/assets/now-ui-admin/js/plugins/nouislider.min.js')
+		// Chart JS
+		script(src='/assets/now-ui-admin/js/plugins/chartjs.min.js')
+		// Notifications Plugin
+		script(src='/assets/now-ui-admin/js/plugins/bootstrap-notify.js')
+		// Control Center for Now Ui Dashboard: parallax effects, scripts for the example pages etc
+		script(src='/assets/now-ui-admin/js/now-ui-dashboard.min.js', type='text/javascript')
+		// Sharrre libray
+		script(src='/assets/now-ui-admin/demo/jquery.sharrre.js')
+		block scriptAddOns

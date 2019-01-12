@@ -1,0 +1,45 @@
+extends ../../../templates/admin-template.pug
+
+block body
+	.login-page.sidebar-mini
+		.wrapper.wrapper-full-page
+			.full-page.login-page.section-image(filter-color='black', data-image='/assets/now-ui-admin/img/bg14.jpg')
+				// you can change the color of the filter page using: data-color="blue | purple | green | orange | red | rose "
+				.content
+					.container
+						.col-md-4.ml-auto.mr-auto
+							form.form(method='', action='')
+								.card.card-login.card-plain
+									.card-header
+										.logo-container
+											img(src='/assets/now-ui-admin/img/now-logo.png', alt='')
+									.card-body
+										.input-group.no-border.form-control-lg
+											span.input-group-prepend
+												.input-group-text
+													i.now-ui-icons.users_circle-08
+											input#username.form-control(type='text', placeholder='Username')
+										.input-group.no-border.form-control-lg
+											.input-group-prepend
+												.input-group-text
+													i.now-ui-icons.text_caps-small
+											input#password.form-control(type='password', placeholder='Password')
+									.card-footer
+										a#loginButton.btn.btn-primary.btn-round.btn-lg.btn-block.mb-3(href='javascript:void(0)') Login
+										//- .pull-left
+										//- 	h6
+										//- 		a.link.footer-link(href='#pablo') Create Account
+										//- .pull-right
+										//- 	h6
+										//- 		a.link.footer-link(href='#pablo') Need Help?
+	block scriptAddOns
+		script.
+			$(document).ready(function(){
+				$(document).on('click', '#loginButton', function(){
+					$.post('/admin/login', {user: $('#username').val(), pass: $('#password').val()}).done(function(data){
+						if(data.valid){
+							location.href = '/admin'
+						}
+					})
+				})
+			})

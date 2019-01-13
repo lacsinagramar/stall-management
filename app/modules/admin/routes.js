@@ -16,6 +16,27 @@ router.get('/stall', (req, res) => {
         return res.render('admin/views/stall', {url: req.url, stalls:results})
     })
 })
+router.get('/lessee', (req, res) => {
+    db.query('SELECT * FROM tbl_lessee', (err, results) => {
+        if(err) console.log(err)
+
+        if(results.length==0) return res.render('admin/views/lessee')
+
+        for(let a = 0; a<results.length; a++){
+            db.query('SELECT * tbl_company_lessee WHERE strLesseeId = ?', [results[i].strId], (err, results2) =>{
+                if(err) console.log(err)
+
+                if(results2.length>0){
+                    results[i].companyInfo = results2;
+                }
+            })
+            if(a == results.length - 1){
+                console.log(results);
+                return res.render('admin/views/lessee')
+            }
+        }    
+    })
+})
 
 //POST
 router.post('/login', (req, res) => {
@@ -57,5 +78,11 @@ router.post('/edit-stall', (req, res) => {
         return res.redirect('/admin/stall');
     })
 });
+router.post('/delete-stall', (req, res) => {
+    db.query('DELETE FROM tbl_stall WHERE strId = ? ', [req.body.id], (err, results) => {
+        if(err) console.log(err)
 
+        return res.send({valid:true});
+    })
+});
 exports.admin = router;

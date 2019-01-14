@@ -1,6 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../../lib/database')();
+const moment = require('moment');
+const multer = require('multer');
+
+// MULTER CONFIG
+const myStorage = multer.diskStorage({
+    destination: function(req, file, cb){
+        cb(null, 'public/uploads')
+    },
+    filename: function(req, file, cb){
+        cb(null, file.fieldname + '-' + Date.now() + '.jpg')
+    }
+});
+const upload = multer({storage: myStorage})
 
 //GET
 router.get('/', (req, res) => {
@@ -20,19 +33,19 @@ router.get('/lessee', (req, res) => {
     db.query('SELECT * FROM tbl_lessee', (err, results) => {
         if(err) console.log(err)
 
-        if(results.length==0) return res.render('admin/views/lessee')
+        if(results.length==0) return res.render('admin/views/lessee', {lessees: results, url: req.url})
 
         for(let a = 0; a<results.length; a++){
-            db.query('SELECT * tbl_company_lessee WHERE strLesseeId = ?', [results[i].strId], (err, results2) =>{
+            db.query('SELECT * FROM tbl_company_lessee WHERE strLesseeId = ?', [results[a].strId], (err, results2) =>{
                 if(err) console.log(err)
 
                 if(results2.length>0){
-                    results[i].companyInfo = results2;
+                    results[a].companyInfo = results2;
                 }
             })
             if(a == results.length - 1){
                 console.log(results);
-                return res.render('admin/views/lessee')
+                return res.render('admin/views/lessee', {lessees: results, url: req.url})
             }
         }    
     })
@@ -85,4 +98,24 @@ router.post('/delete-stall', (req, res) => {
         return res.send({valid:true});
     })
 });
+router.post('/addaccount', upload.any(), (req, res) => {
+    console.log(req.files)
+    console.log(req.body)
+    const queryString = `INSERT INTO tbl_lessee 
+    (strId, strFirstName, strMiddleName, strLastName, strAddress, strValid1, strValid2, strBaranggayPermit, strEmail, strPhoneNumber, strUsername, strPassword, booLesseeType)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    //GENERATE ID
+    db.query('SELECT COUNT(strId) AS bilang FROM tbl_lessee', (err, results) => {
+        if(err) console.log(err)
+
+        let stringId = `${results[0].bilang}`
+        let zeros = ''
+        for(let b=stringId.length; b < 5; b++){
+            zeros += '0'
+        }
+        const newId = `${moment().format('YYYY')}-${zeros}${eval(stringId+'+ 1')}-${req.body.accountType == 0 ? 'I': 'C'}`;
+        console.log('NEW ID: ',newId);
+        // db.query('')
+    })
+})
 exports.admin = router;

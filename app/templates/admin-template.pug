@@ -13,6 +13,17 @@ html
 		link(href='https://use.fontawesome.com/releases/v5.0.6/css/all.css', rel='stylesheet')
 		link(rel="stylesheet", href='/assets/now-ui-admin/css/bootstrap.min.css')
 		link(rel="stylesheet", href='/assets/now-ui-admin/css/now-ui-dashboard.min.css')
+		link(rel="stylesheet", href='/assets/plugins/css/dropify.min.css')
+		style.
+			.form-control.error{
+				border-color: #bf4141;
+			}
+			.form-control.valid{
+				border-color: #4fbf41;
+			}
+			.error{
+				color: #bf4141;
+			}
 		block headAddOns
 
 	body
@@ -56,4 +67,6 @@ html
 		// Sharrre libray
 		script(src='/assets/now-ui-admin/demo/jquery.sharrre.js')
 		script(src='/assets/plugins/js/jquery.mask.min.js')
+		script(src='/assets/plugins/js/jquery.form.js')
+		script(src='/assets/plugins/js/dropify.min.js')
 		block scriptAddOns

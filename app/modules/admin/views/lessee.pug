@@ -8,7 +8,7 @@ block content
 					h4.card-title Lessee
 				.card-body
 					.toolbar
-						button.btn.btn-round.btn-success + Add Account
+						button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addAccountModal') + Add Account
 					br
 					table#lesseeTable.table.table-bordered.table-striped(cellspacing='0')
 						thead
@@ -20,20 +20,219 @@ block content
 								th Lessee Type
 								th Action
 						tbody
-							tr
-								td 2019-00001-I
-								td Gramar Lacsina
-								td 2647 Road 6 corner Road 9 Sta.Ana, Manila
-								td 09080876482
-								td Individual
-								td
-									a.btn.btn-round.btn-warning.btn-icon(href='#')
-										i.now-ui-icons.design_scissors
-									a.btn.btn-round.btn-danger.btn-icon(href='#')
-										i.now-ui-icons.ui-1_simple-remove
-
+							each lessee in lessees
+								tr
+									td #{lessee.strId}
+									td #{lessee.strFirstName} #{lessee.strMiddleName} #{lessee.strLastName}
+									td #{lessee.strAddress}
+									td #{lessee.strPhoneNumber}
+									td #{`${lessee.booLesseeType == 0 ? 'Individual' : 'Company'}`}
+									td
+										a.btn.btn-round.btn-warning.btn-icon(href='#')
+											i.now-ui-icons.design_scissors
+										a.btn.btn-round.btn-danger.btn-icon(href='#')
+											i.now-ui-icons.ui-1_simple-remove
+	#addAccountModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+		.modal-dialog.modal-lg(role='document')
+			.modal-content
+				.modal-header
+					h5.modal-title Add Lessee Account
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') ×
+				form#addAccountForm(method='POST' action='/admin/addaccount' enctype="multipart/form-data")
+					.modal-body
+						.form-group
+							label Account Type
+								small.text-danger  *
+							.form-check.form-check-radio
+								label.form-check-label
+									input.form-check-input#individual(type='radio', name='accountType', value='0' checked)
+									| Individual
+									span.form-check-sign
+							.form-check.form-check-radio
+								label.form-check-label
+									input.form-check-input#company(type='radio', name='accountType', value='1')
+									| Company
+									span.form-check-sign
+							input#accountTypeToggle(type='hidden' value='0' disabled)
+						br
+						#companyFields(style='display:none')
+						br
+						h6 Lessee Details
+						.form-group
+							label First Name
+								small.text-danger  *
+							input.form-control(type='text' name='firstName' placeholder='Enter First Name')
+						.form-group
+							label Middle Name
+							input.form-control(type='text' name='middleName' placeholder='Enter Middle Name')
+						.form-group
+							label Last Name
+								small.text-danger  *
+							input.form-control(type='text' name='lastName' placeholder='Enter Last Name')
+						.form-group
+							label Address
+								small.text-danger  *
+							input.form-control(type='text' name='address' placeholder='Enter Address')
+						.form-group
+							label Email Address
+								small.text-danger  *
+							input.form-control(type='text' name='email' placeholder='Enter Email Address')
+						.form-group
+							label Phone Number
+								small.text-danger  *
+							input.form-control(type='text' name='phoneNumber' placeholder='Enter Phone Number')
+						br
+						h6 Lessee Validation Credentials
+						.form-group
+							.row
+								.col-md-6
+									label Valid ID 1
+										small.text-danger  *
+									input.form-control.dropify(type='file' name='validId1' accept='image/*' data-height='200' data-allowed-file-extensions="jpeg jpg png")
+								.col-md-6
+									label Valid ID 2
+										small.text-danger  *
+									input.form-control.dropify(type='file' name='validId2' accept='image/*' data-height='200' data-allowed-file-extensions="jpeg jpg png")
+						.form-group
+							label Baranggay Permit
+								small.text-danger  *
+							input.form-control.dropify(type='file' name='baranggayPermit' accept='image/*' data-height='200' data-allowed-file-extensions="jpeg jpg png")
+					.modal-footer
+						button#addAccountSave.btn.btn-primary(type='submit') Save
 block contentScript
 	script.
 		$(document).ready(function(){
+			$('.dropify').dropify({
+				allowedFiles: ['png', 'jpg', 'jpeg', 'gif', 'bmp'],
+				messages: {
+					'default': 'Drag and drop an image here or click',
+					'replace': 'Drag and drop or click to replace',
+					'remove': 'Remove',
+					'error': 'Ooops, you can only upload JPG, JPEG, and PNG files.'
+				},
+				error: {
+					'fileSize': 'The file size is too big (1M max).',
+					'fileFormat': 'The file format is not allowed ({{ value }} only).'
+				}
+			})
 			$('#lesseeTable').dataTable()
+			$('input[name="phoneNumber"]').mask('(+63) 900-000-0000',{
+				translation:{
+					'0':{
+						pattern: /[0-9]/
+					},
+					'9':{
+						pattern: /[9]/
+					}
+				}
+			})
+			$('#addAccountForm').validate({
+				rules:{
+					firstName:{
+						required:true
+					},
+					lastName:{
+						required:true
+					},
+					address:{
+						required:true
+					},
+					email:{
+						required:true,
+						email: true
+					},
+					phoneNumber:{
+						required:true,
+						minlength: 18
+					}
+				},
+				messages:{
+					phoneNumber:{
+						minlength: 'Please enter a valid Philippine mobile number'
+					}
+				}
+			})
+			$('#company').on('click', function(){
+				$('#companyFields').append(`<form id="companyForm">
+						<h6>Company Details</h6>
+						<div class="form-group">
+							<label>Company Name<small class="text-danger"> *</small></label>
+							<input class="form-control" type="text" name="companyName" placeholder="Enter Company Name" />
+						</div>
+						<div class="form-group">
+							<label>Company Address<small class="text-danger"> *</small></label>
+							<input class="form-control" type="text" name="companyAddress" placeholder="Enter Company Address" />
+						</div>
+						<div class="form-group">
+							<label>Representative Position<small class="text-danger"> *</small></label>
+							<input class="form-control" type="text" name="repPosition" placeholder="Enter Representative Position" />
+							<small class="text-danger">Lessee will act as the representative of the company</small>
+						</div>
+					</form>`
+				)
+				$('#companyFields').fadeIn(500).promise().done(function(){
+					$('#companyForm').validate({
+						rules:{
+							companyName:{
+								required: true
+							},
+							companyAddress:{
+								required: true
+							},
+							repPosition:{
+								required:true
+							}
+						}
+					})
+				});
+				$('#accountTypeToggle').val(1)
+			})
+			$('#individual').on('click', function(){
+				$('#companyFields').fadeOut(500).promise().done(function(){
+					$('#companyFields').empty()
+				});
+				$('#accountTypeToggle').val(0)
+			})
+			$('#addAccountSave').on('click', function(){
+				if($('#accountTypeToggle').val() == 1){
+					$('#companyForm').validate()
+					if($('#addAccountForm').valid() && $('#companyForm').valid()){
+						let formData = new FormData();
+						formData.append('validId1', $('#addAccountForm input[name="validId1"]')[0].files[0])
+						formData.append('validId2', $('#addAccountForm input[name="validId2"]')[0].files[0])
+						formData.append('baranggayPermit', $('#addAccountForm input[name="baranggayPermit"]')[0].files[0])
+						formData.append('accountType' ,$('#accountTypeToggle').val())
+						formData.append('firstName' ,$('#addAccountForm input[name="firstName"]').val())
+						formData.append('middleName' ,$('#addAccountForm input[name="middleName"]').val())
+						formData.append('lastName' ,$('#addAccountForm input[name="lastName"]').val())
+						formData.append('address' ,$('#addAccountForm input[name="address"]').val())
+						formData.append('email' ,$('#addAccountForm input[name="email"]').val())
+						formData.append('phoneNumber' ,$('#addAccountForm input[name="phoneNumber"]').val())
+						$.ajax({
+							type: 'POST',
+							url: '/addaccount',
+							data: formData,
+							processData: false,
+							contentType: false,
+							success: function(data){
+								console.log(data)
+							}
+						})
+					}
+				}
+				else{
+					if($('#addAccountForm').valid()){
+						$.post('/addaccount', {
+							accountType: $('#accountTypeToggle').val(),
+							firstName: $('#addAccountForm input[name="firstName"]').val(),
+							middleName: $('#addAccountForm input[name="middleName"]').val(),
+							lastName: $('#addAccountForm input[name="lastName"]').val(),
+							address: $('#addAccountForm input[name="address"]').val(),
+							email: $('#addAccountForm input[name="email"]').val(),
+							phoneNumber: $('#addAccountForm input[name="phoneNumber"]').val()
+						})
+					}
+				}
+			})
 		})

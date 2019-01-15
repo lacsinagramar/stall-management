@@ -50,6 +50,9 @@ router.get('/lessee', (req, res) => {
         }    
     })
 })
+router.get('/rental', (req, res) => {
+    res.render('admin/views/leasing', {stalls: [], url: req.url})
+})
 
 //POST
 router.post('/login', (req, res) => {
@@ -99,10 +102,30 @@ router.post('/delete-stall', (req, res) => {
     })
 });
 router.post('/addaccount', upload.any(), (req, res) => {
-    console.log(req.files)
-    console.log(req.body)
+    //Functions
+
+    function findFilename(fieldName){
+        const found = req.files.find(file => {
+            if(file.fieldname == fieldName) return file
+        })
+        return found.filename;
+    }
+
+    function generateUsername(){
+        const username = `${req.body.lastName[0].toLowerCase()}${req.body.firstName.toLowerCase()}${Math.floor(Math.random() * Math.floor(10))}${Math.floor(Math.random() * Math.floor(10))}`
+        return username;
+    }
+    
+    function generatePassword(){
+        const choice = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
+        let password = '';
+        for(let i=0; i<=8; i++){
+            password += `${choice[Math.floor(Math.random() * Math.floor(choice.length))]}`
+        }
+        return password;
+    }
     const queryString = `INSERT INTO tbl_lessee 
-    (strId, strFirstName, strMiddleName, strLastName, strAddress, strValid1, strValid2, strBaranggayPermit, strEmail, strPhoneNumber, strUsername, strPassword, booLesseeType)
+    (strId, strFirstName, strMiddleName, strLastName, strAddress, strValidId1, strValidId2, strBaranggayPermit, strEmail, strPhoneNumber, strUsername, strPassword, booLesseeType)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     //GENERATE ID
     db.query('SELECT COUNT(strId) AS bilang FROM tbl_lessee', (err, results) => {
@@ -115,7 +138,22 @@ router.post('/addaccount', upload.any(), (req, res) => {
         }
         const newId = `${moment().format('YYYY')}-${zeros}${eval(stringId+'+ 1')}-${req.body.accountType == 0 ? 'I': 'C'}`;
         console.log('NEW ID: ',newId);
-        // db.query('')
+        const newUser = generateUsername();
+        const newPass = generatePassword();
+        db.query(queryString, [newId, req.body.firstName, req.body.middleName, req.body.lastName, req.body.address, findFilename('validId1'), findFilename('validId2'), findFilename('baranggayPermit'), req.body.email, req.body.phoneNumber, newUser, newPass, req.body.accountType], (err, results) => {
+            if(err) console.log(err)
+
+            return res.send({user: newUser, pass: newPass, id: newId});
+        })
     })
 })
+router.post('/add-company', (req, res) => {
+    console.log(req.body)
+    const queryString = `INSERT INTO tbl_company_lessee VALUES(?, ?, ?, ?)`;
+    db.query(queryString, [req.body.id, req.body.companyName, req.body.companyAddress, req.body.repPosition], (err, results) => {
+        if(err) console.log(err)
+
+        return res.send({valid:true});
+    })
+});
 exports.admin = router;

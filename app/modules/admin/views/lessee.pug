@@ -39,7 +39,7 @@ block content
 					h5.modal-title Add Lessee Account
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
-				form#addAccountForm(method='POST' action='/admin/addaccount' enctype="multipart/form-data")
+				form#addAccountForm(enctype="multipart/form-data")
 					.modal-body
 						.form-group
 							label Account Type
@@ -167,7 +167,7 @@ block contentScript
 						<div class="form-group">
 							<label>Representative Position<small class="text-danger"> *</small></label>
 							<input class="form-control" type="text" name="repPosition" placeholder="Enter Representative Position" />
-							<small class="text-danger">Lessee will act as the representative of the company</small>
+							<small style="font-style: italic">NOTE: Lessee will act as the representative of the company</small>
 						</div>
 					</form>`
 				)
@@ -194,7 +194,8 @@ block contentScript
 				});
 				$('#accountTypeToggle').val(0)
 			})
-			$('#addAccountSave').on('click', function(){
+			$('#addAccountSave').on('click', function(e){
+				e.preventDefault()
 				if($('#accountTypeToggle').val() == 1){
 					$('#companyForm').validate()
 					if($('#addAccountForm').valid() && $('#companyForm').valid()){
@@ -211,26 +212,58 @@ block contentScript
 						formData.append('phoneNumber' ,$('#addAccountForm input[name="phoneNumber"]').val())
 						$.ajax({
 							type: 'POST',
-							url: '/addaccount',
+							url: '/admin/addaccount',
 							data: formData,
 							processData: false,
 							contentType: false,
 							success: function(data){
-								console.log(data)
+								const saveData = data;
+								$.post('/admin/add-company', {
+									companyName: $('#companyForm input[name="companyName"]').val(),
+									companyAddress: $('#companyForm input[name="companyAddress"]').val(),
+									repPosition: $('#companyForm input[name="repPosition"]').val(),
+									id: data.id
+								}).done(function(data){
+									swal({
+										title: `You have successfully created an account`,
+										text: `Account username is ${saveData.user} and password is ${saveData.pass}`,
+										type: 'success'
+									}).then(()=>{
+										location.href='/admin/lessee'
+									})
+								})
 							}
 						})
 					}
 				}
 				else{
 					if($('#addAccountForm').valid()){
-						$.post('/addaccount', {
-							accountType: $('#accountTypeToggle').val(),
-							firstName: $('#addAccountForm input[name="firstName"]').val(),
-							middleName: $('#addAccountForm input[name="middleName"]').val(),
-							lastName: $('#addAccountForm input[name="lastName"]').val(),
-							address: $('#addAccountForm input[name="address"]').val(),
-							email: $('#addAccountForm input[name="email"]').val(),
-							phoneNumber: $('#addAccountForm input[name="phoneNumber"]').val()
+						let formData = new FormData();
+						formData.append('validId1', $('#addAccountForm input[name="validId1"]')[0].files[0])
+						formData.append('validId2', $('#addAccountForm input[name="validId2"]')[0].files[0])
+						formData.append('baranggayPermit', $('#addAccountForm input[name="baranggayPermit"]')[0].files[0])
+						formData.append('accountType' ,$('#accountTypeToggle').val())
+						formData.append('firstName' ,$('#addAccountForm input[name="firstName"]').val())
+						formData.append('middleName' ,$('#addAccountForm input[name="middleName"]').val())
+						formData.append('lastName' ,$('#addAccountForm input[name="lastName"]').val())
+						formData.append('address' ,$('#addAccountForm input[name="address"]').val())
+						formData.append('email' ,$('#addAccountForm input[name="email"]').val())
+						formData.append('phoneNumber' ,$('#addAccountForm input[name="phoneNumber"]').val())
+						$.ajax({
+							type: 'POST',
+							url: '/admin/addaccount',
+							data: formData,
+							processData: false,
+							contentType: false,
+							success: function(data){
+								swal({
+									title: `You have successfully created an account`,
+									text: `Account username is ${data.user} and password is ${data.pass}`,
+									type: 'success'
+								}).then(()=>{
+									location.href='/admin/lessee'
+								})
+							}
 						})
 					}
 				}

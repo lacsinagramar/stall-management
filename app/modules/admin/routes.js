@@ -82,8 +82,15 @@ router.post('/stall-id-check', (req, res) => {
     db.query('SELECT strId FROM tbl_stall WHERE strId = ? AND strId!= ?', [req.body.stallId, originalStall], (err, results) => {
         if(err) console.log(err)
 
-        if(results.length>0) return res.send('false')
-        else return res.send('true')
+        if(req.body.leasing){
+            console.log('hi')
+            if(results.length>0) return res.send('true')
+            else return res.send('false')
+        }
+        else{
+            if(results.length>0) return res.send('false')
+            else return res.send('true')
+        }
     })
 })
 router.post('/edit-stall', (req, res) => {
@@ -156,4 +163,14 @@ router.post('/add-company', (req, res) => {
         return res.send({valid:true});
     })
 });
+router.post('/lessee-user-check', (req, res) => {
+    db.query('SELECT * FROM tbl_lessee WHERE strUsername = ?', [req.body.lesseeUsername], (err, results) => {
+        if(err) console.log(err)
+
+        if(req.body.leasing){
+            if(results.length>0) return res.send('true');
+            else return res.send('false')
+        }
+    })
+})
 exports.admin = router;

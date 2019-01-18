@@ -40,7 +40,7 @@ block content
 		.modal-dialog(role='document')
 			.modal-content
 				.modal-header
-					h5.modal-title Add Rental
+					h5.modal-title Add Leasing
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
 				form#addLeasingForm(method='POST' action='/admin/addLeasing')
@@ -54,7 +54,7 @@ block content
 									small.text-danger  *
 								input.form-control(type='text' name='lesseeUsername' placeholder='Enter Username')
 					.modal-footer
-						button#addLeasingSave.btn.btn-primary(type='submit') Save
+						button#addLeasingSave.btn.btn-primary(type='submit') Create
 block contentScript
 	script.
 		$(document).ready(function(){
@@ -76,85 +76,42 @@ block contentScript
 				rules:{
 					stallId:{
 						required: true,
-						minlength: 3,
 						remote: {
 							url: '/admin/stall-id-check',
 							type: 'POST',
 							data: {
 								stallId: function(){
 									return $('#addLeasingForm input[name="stallId"]').val()
-								}
+								},
+								leasing: true
 							},
 						}
-					}
-				},
-				messages:{
-					stallId:{
-						remote: function(){
-							return `${$('#addLeasingForm input[name="stallId"]').val()} already exists on the database`
-						}
-					}
-				}
-			})
-			$(document).on('click', '.edit', function(){
-				$('#editStallStallId').val($(this).attr('stallId'))
-				if($(this).attr('stallType') == 0){
-					$('#editStallFood').prop('checked',true)
-				}
-				else if($(this).attr('stallType') == 1){
-					$('#editStallDry').prop('checked',true)
-				}
-				$('#editStallForm').prop('action', `/admin/edit-stall?stallId=${$(this).attr('stallId')}`)
-				$('#editStallForm').attr('stallId', `${$(this).attr('stallId')}`)
-				$('#editStallModal').modal('show');
-			})
-			$('#editStallForm').validate({
-				rules:{
-					stallId:{
+					},
+					lesseeUsername:{
 						required: true,
-						minlength: 3,
 						remote: {
-							url: '/admin/stall-id-check',
+							url: '/admin/lessee-user-check',
 							type: 'POST',
 							data: {
-								stallId: function(){
-									return $('#editStallForm input[name="stallId"]').val()
+								lesseeUsername: function(){
+									return $('#addLeasingForm input[name="lesseeUsername"]').val()
 								},
-								originalStallId: function(){
-									return $('#editStallForm').attr('stallId')
-								}
-							},
+								leasing: true
+							}
 						}
 					}
 				},
 				messages:{
 					stallId:{
 						remote: function(){
-							return `${$('#editStallForm input[name="stallId"]').val()} already exists on the database`
+							return `Stall ${$('#addLeasingForm input[name="stallId"]').val()} does not exist on the database`
+						}
+					},
+					lesseeUsername:{
+						remote: function(){
+							return `Cannot find user "${$('#addLeasingForm input[name="lesseeUsername"]').val()}"`
 						}
 					}
 				}
-			})
-			$('#editStallModal').on('bs.modal.hidden', function(){
-				$('#editStallFood').prop('checked',false)
-				$('#editStallDry').prop('checked',false)
-			})
-			$(document).on('click', '.remove', function(){
-				const clicked = $(this).attr('stallId')
-				swal({
-					title: 'Are you sure?',
-					type: 'question',
-					showCancelButton: true,
-					confirmButtonText: 'Yes',
-					cancelButtonText: 'No',
-					confirmButtonColor: '#4fbf41',
-					cancelButtonColor: '#bf4141'
-				}).then(value => {
-					if(value){
-						$.post('/admin/delete-stall', {id: clicked}).done(function(){
-							location.href='/admin/stall'
-						})
-					}
-				})
 			})
 		})

@@ -128,7 +128,7 @@ block contentScript
 				messages:{
 					stallId:{
 						remote: function(){
-							return `${$('#addStallForm input[name="stallId"]').val()} already exists on the database`
+							return `Stall ${$('#addStallForm input[name="stallId"]').val()} already exists on the database`
 						}
 					}
 				}
@@ -167,7 +167,7 @@ block contentScript
 				messages:{
 					stallId:{
 						remote: function(){
-							return `${$('#editStallForm input[name="stallId"]').val()} already exists on the database`
+							return `Stall ${$('#editStallForm input[name="stallId"]').val()} already exists on the database`
 						}
 					}
 				}

@@ -56,9 +56,57 @@ block content
 					.modal-footer
 						button#addLeasingSave.btn.btn-primary(type='submit') Create
 block contentScript
+	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
+	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
 	script.
 		$(document).ready(function(){
 			$('#leasingTable').dataTable()
+			$('#addLeasingSave').on('click', function(e){
+				e.preventDefault()
+				//- if($('#addLeasingForm').valid()){
+				//- 	$.post('/admin/stall-id-check', {stallId: $('#addLeasingForm input[name="stallId"]').val(), submit: true}).done(function(data){
+				//- 		swal({
+				//- 			title: `Genrating Leasing Contract`,
+				//- 			text: `Please print the contract and sign it.`,
+				//- 			type: 'info',
+				//- 			confirmButtonText: 'Okay',
+				//- 		}).then((value)=>{
+				//- 			if(value){
+				//- 				alert('contract')
+				//- 			}
+				//- 		})
+				//- 	});
+				//- }
+				const receipt = {
+					content: [
+						{
+							text: 'Receipt',
+							style: 'header'
+						},
+					],
+					styles: {
+						paragraph: {
+							fontSize: 14,
+						},
+						header: {
+							fontSize: 18,
+							bold: true
+						}
+					}
+				}
+				pdfMake.fonts = {
+					Roboto: {
+						normal: 'Roboto-Regular.ttf',
+						bold: 'Roboto-Medium.ttf',
+						italic: 'Roboto-Italic.ttf',
+						bolditalics: 'Roboto-MediumItalic.ttf',
+					},
+					TimesNewRoman: {
+						normal: 'Times-new-roman-Regular.ttf'
+					}
+				}
+				pdfMake.createPdf(receipt).open();
+			})
 			$('input[name="stallId"]').mask('A-Z000',{
 				translation:{
 					'A':{
@@ -113,5 +161,5 @@ block contentScript
 						}
 					}
 				}
-			})
+			});
 		})

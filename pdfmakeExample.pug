@@ -1,0 +1,1248 @@
+extends ../../../../templates/guests
+block main
+	style.
+		@media screen and (max-width: 576px) {
+			.col-md-4, .col-md-6, .col-md-9 {
+				padding-left: 0;
+				padding-right: 0;
+			}
+			.form-wizard-step {
+				padding-bottom: 10px !important;
+			}
+		}
+		#header-style-1 {
+			background-image: url(/imgchurch/baptism.jpg)
+		}
+		.fc-content {
+			font-family: sans-serif !important;
+		}
+	#headers
+		#header-style-1
+			.container
+				.header-caption
+					.row
+						.col-md-12.header-content
+							h3.header-title.animated.fadeInDown.invisible
+							h6.header-text.animated.fadeIn.invisible
+	#raised-section.main.main-raised
+		section.form-box
+			.container
+				.row
+					.col-md-12.form-wizard.shadow3
+							h3 Baptism Application
+							p Fill all form required field to proceed
+							// Form progress
+							.form-wizard-steps.form-wizard-tolal-steps-3
+								.form-wizard-progress
+									.form-wizard-progress-line(data-now-value='12.25' data-number-of-steps='3' style='width: 12.25%;')
+								// Step 1
+								.form-wizard-step.active
+									.form-wizard-step-icon
+										i.fa.fa-info(aria-hidden='true')
+									p.d-none.d-sm-block Baptism Details
+								// Step 1
+								// Step 2
+								.form-wizard-step
+									.form-wizard-step-icon
+										i.fa.fa-user(aria-hidden='true')
+									p.d-none.d-sm-block Personal Information
+								// Step 2
+								// Step 3
+								.form-wizard-step
+									.form-wizard-step-icon
+										i.fa.fa-briefcase(aria-hidden='true')
+									p.d-none.d-sm-block Sponsors Information
+								// Step 3
+							// Form progress
+							// Form Step 1
+							fieldset#f1
+								h4
+									.d-none.d-sm-inline.pull-left Baptism Details: 
+									span Step 1 - 3
+								.form-group
+									br
+									h6.label-control.ml-3.mb-0 Baptism Type & Date
+										.text-danger.d-inline  *
+									br
+									input.form-control#baptismtype(type='hidden' value=`${eventid}`)
+									.container
+										.row
+											.col-md-3.px-lg-3.px-md-0.px-sm-0
+												.form-group
+													.custom-control.custom-radio.mt-2
+														input#eventid(type='hidden' value=`${eventid}`)
+													//- 	input#radio1.custom-control-input(type='radio', name='baptismtype' value="Regular")
+													//- 	label.custom-control-label(for='radio1') 
+													//- 		h6 Regular
+													//- .custom-control.custom-radio
+													//- 	input#radio2.custom-control-input(type='radio', name='baptismtype' value="Special")
+													//- 	label.custom-control-label(for='radio2') 
+													//- 		h6 Special
+											.col-md-9.px-lg-3.px-md-3.px-sm-0
+												#regular
+													.col-md-12.px-lg-3.px-md-9.px-sm-0
+														label REGULAR
+													.form-group
+														h6.label-control Regular Baptism Date
+															.container
+																#calendarRegular
+												#special
+													.col-md-12.px-lg-3.px-md-9.px-sm-0
+															label SPECIAL BAPTISM
+													.form-group
+														h6.label-control Special Baptism Date
+															.container
+																#calendarSpecial
+											
+
+										.learn-more.pull-right
+											button#nextButton1.btn(type='button') Next
+							// Form Step 1
+							// Form Step 2
+							fieldset#f2
+								h4
+									.d-none.d-sm-inline Personal Information: 
+									span Step 2 - 3
+								.form-group
+									br
+									input.form-control(type='hidden' name='userID' value=`${user.int_userID}`)
+									.container
+										h6.label-control Name of the Child:
+											.text-danger.d-inline  *
+										.row
+											.col-md-4.px-lg-3.px-md-0.px-sm-0
+												.form-group.pt-0
+													input.form-control#lastname(type='text' placeholder="Last Name *" name='lastname' required=''  )
+													.help-block.with-errors
+											.col-md-4.p-lg-0.px-md-3.px-sm-0
+												.form-group.pt-0
+													input.form-control#firstname(type='text' placeholder="First Name *" name='firstname' required=''  )
+													.help-block.with-errors
+											.col-md-4.px-lg-3.px-md-0.px-sm-0
+												.form-group.pt-0
+													input.form-control#middlename(type='text' placeholder="Middle Name" name='middlename'  )
+													.help-block.with-errors
+										.row
+											.col-md-4.px-lg-3.px-md-0.px-sm-0
+												.form-group.m-0
+													h6.label-control Gender
+														.text-danger.d-inline  *
+													.custom-control.custom-radio
+														input#customRadio1.custom-control-input(type='radio', name='gender' value="Male")
+														label.custom-control-label(for='customRadio1') 
+															| Male
+													.custom-control.custom-radio
+														input#customRadio2.custom-control-input(type='radio', name='gender' value="Female")
+														label.custom-control-label(for='customRadio2') 
+															| Female
+
+											.col-md-4.p-lg-0.px-md-3.px-sm-0
+												.form-group
+													h6.label-control Birthday
+														.text-danger.d-inline  *
+													input#birthdate.birthday.form-control(type='date' name='birthday' required='')
+											.col-md-4.px-lg-3.px-md-0.px-sm-0
+												.form-group
+													h6.label-control Birthplace:
+														.text-danger.d-inline  *
+													input#birthplace.form-control(type='text' name='birthplace' placeholder="Ex. Payatas, Quezon City" required=''  ) 
+													.help-block.with-errors
+										.row
+											.col-md-6.px-lg-3.px-md-3.px-sm-0
+												.form-group
+													h6.label-control Relationship with the Child
+														.text-danger.d-inline  *
+													select#relation(type="text" name='relation' required='')
+														option(selected="" value="" disabled) Choose...
+														option Aunt/Uncle
+														option Parent
+														option Grandparent
+														option Sibling
+											.col-md-6.px-lg-3.px-md-3.px-sm-0
+												.form-group
+													h6.label-control Contact Number
+														.text-danger.d-inline  *
+													input#contactnumber.form-control(type='text' name='contactnumber' placeholder="Ex. 09123456789" required='' pattern="[0-9]{11}" )
+										.row
+											.col-md-6.px-lg-3.px-md-3.px-sm-0
+												.form-group
+													h6.label-control Father's Full Name:
+														.text-danger.d-inline  *
+													input#fatherfullname.form-control(type='text' name='fathername' placeholder="Ex. Juan Dela Cruz" required='' )
+													.help-block.with-errors
+											.col-md-6.px-lg-3.px-md-3.px-sm-0
+												.form-group
+													h6.label-control Father's Birthplace:
+														.text-danger.d-inline  *
+													input#fatherbirthplace.form-control(type='text' name='fatherbirthplace' placeholder="Ex. Caloocan, Quezon City" required='' )
+													.help-block.with-errors
+										.row
+											.col-md-6.px-lg-3.px-md-3.px-sm-0
+												.form-group
+													h6.label-control Mother's Full Name:
+														.text-danger.d-inline  *
+													input#motherfullname.form-control(type='text' name='mothername' placeholder="Ex. Maria Dela Cruz" required='' )
+													.help-block.with-errors
+											.col-md-6.px-lg-3.px-md-3.px-sm-0
+												.form-group
+													h6.label-control Mother's Birthplace:
+														.text-danger.d-inline  *
+													input#motherbirthplace.form-control(type='text' name='motherbirthplace' placeholder="Ex. San Isidro, Quezon City" required=''  )
+													.help-block.with-errors
+										//- .row
+										//- 	.col-md-6.px-lg-3.px-md-3.px-sm-0
+										//- 		.form-group
+										//- 			h6.label-control Relationship with the Child
+										//- 			select#relation(type="text" name='relation' required='')
+										//- 				option(selected="" value="" disabled) Choose...
+										//- 				option Aunt/Uncle
+										//- 				option Parent
+										//- 				option Grandparent
+										//- 				option Sibling
+										//- 	.col-md-6.px-lg-3.px-md-3.px-sm-0
+										//- 		.form-group
+										//- 			h6.label-control Family's Contact number
+										//- 			input#contactnumber.form-control(type='text' name='contactnumber' placeholder="Ex. 09123456789" required='' pattern="[0-9]{11}" )
+										.row
+											.col-md-6.px-lg-3.px-md-3.px-sm-0
+												.form-group
+													h6(for='exampleFormControlTextarea1') Address:
+														.text-danger.d-inline  *
+													textarea#exampleFormControlTextarea1.address.form-control(rows='2' name='address' placeholder="Ex. 75 P. Domingo Street, Carmona, Makati City" required='' )
+											.col-md-6.px-lg-3.px-md-3.px-sm-0
+												.form-group
+													h6(for='exampleFormControlTextarea1') Parents' Marriage Address:
+														.text-danger.d-inline  *
+													textarea#exampleFormControlTextarea1.parentsmarriage.form-control(rows='2' name='marriageaddress' placeholder="Ex. Urban, Bgy. Payatas B 1119 QC" required='' )
+										.row
+											.col-md-7.px-lg-3.px-md-3.px-sm-0.mx-auto
+												.form-group
+													h6.label-control Birth Certificate
+														.text-danger.d-inline  *
+													input#file-0b.file(type='file',accept='image/*',name="image")
+										.learn-more.pull-right
+											button#prevButton1.btn.std-btn.btn-secondary.btn-previous.m-0(type='button') Prev
+											button#nextButton2.btn(type='button') Next
+
+							// Form Step 2
+							// Form Step 3
+							fieldset#f3
+								h4
+									.d-none.d-sm-inline Sponsors Information:
+									span Step 3 - 3
+									h6.label-control Principal Sponsors
+										.text-danger.d-inline  *
+										.row#principalSponsor
+											.col-md-6.px-lg-3.px-md-3.px-sm-0
+												.form-group.m-0
+													input.sponsorname.form-control(type='text' name='sponsorname' placeholder="Enter Full Name *" required=''  )
+													.help-block.with-errors
+											.col-md-6.px-lg-3.px-md-3.px-sm-0
+												.form-group.m-0
+													input.sponsorname.form-control.balance(type='text' name='sponsorname' placeholder="Enter Full Name *" required=''  )
+										button#addAdditionalSponsor.btn.btn-sm-round.btn-common.btn-fab.btn-fab-mini.btn-round.ml-2.rounded-circle(type="button")
+											i.fa.fa-plus
+									h6.label-control Additional Sponsors
+										.row#additionalSponsor
+								br
+								.learn-more.pull-right
+									button#prevButton2.btn.std-btn.btn-secondary.btn-previous.m-0(type='button') Prev
+									// para lumabas yung modal pang check ng summary at iedit pa
+									button#presubmitButton.btn.btn-submit Submit
+	#viewModal.modal.fade(tabindex="-2" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true")
+			.modal-dialog.modal-lg(role="document")
+				.modal-content
+					.modal-header
+						h5.modal-title Application Request Completed
+						button.close(type='button', data-dismiss='modal', aria-label='Close')
+							span.p-3(aria-hidden='true') ×
+					.modal-body
+						.col-md-12.px-lg-3.px-md-3.px-sm-0
+							.form-group.m-0
+								input.toggle.form-control(type='hidden' name='userID' value='1')
+						.col-md-6.px-lg-3.px-md-3.px-sm-0
+							.form-group.m-0
+								label.label-control
+					.modal-footer
+						a.filter.btn.btn-common(href=`/guest/baptism/form/success`) OK
+						// Form Wizard
+	#summaryModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='exampleModalLabel', aria-hidden='true')
+		.modal-dialog.modal-lg(role='document')
+			.modal-content
+				.modal-header Confirm Summary 
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span.p-3(aria-hidden='true') ×
+				.modal-body#summaryAppend
+				.modal-footer
+					button.btn.std-btn.btn-common.m-0#cancelButton(type='button', data-dismiss='modal') Close
+					button.btn.std-btn.btn-common.btn-info.mb-0#proceedButton(type='button') Apply
+block addjs
+	script.
+		var baptismType1 = "";
+		var eventid =$("#eventid").val();
+		console.log($("#eventid").val())
+		$('#textarea1').hide();
+		$('#textarea2').hide();
+		$('#radioup').click(function() {
+			$('#textarea1').slideUp();
+			$('#textarea2').slideUp();
+		});
+		$('#exampleRadios1').click(function() {
+			$('#textarea1').slideDown();
+			$('#textarea2').slideUp();
+		});
+		$('#exampleRadios3').click(function() {
+			$('#textarea1').slideUp();
+			$('#textarea2').slideDown();
+		});
+		$('#regular').hide();
+		$('#special').hide();
+		
+		if(eventid == 3) {
+			
+			baptismType1 = "Regular";
+			console.log(baptismType1)
+			$('#regular').slideDown();
+			$('#special').slideUp();
+		}
+		if(eventid == 3){
+		$('#nextButton2').click(function(){
+		$.get('/guest/baptism/query').done(data=>{
+		console.log($("#baptismtype").val())
+		console.log(data.utilities[0].int_agemax)
+		console.log(baptismType1)
+			console.log($('#file-0b').val())
+			if ($("#customRadio1").prop("checked")) {
+			gender = $("#customRadio1").val();
+			}
+			else if($("#customRadio2").prop("checked")){
+			gender = $("#customRadio2").val();
+			}
+			console.log(gender)
+			var age = moment().diff($('#birthdate').val(),'years')
+			console.log(age)
+			if(
+			gender != undefined &&
+			$('#firstname').val() != ''  &&
+			$('#lastname').val() != ''  &&
+			$('#birthdate').val() != '' &&
+			$('#birthplace').val() != '' &&
+			$('#fatherfullname').val() != '' &&
+			$('#fatherbirthplace').val() != '' &&
+			$('#motherfullname').val() != '' &&
+			$('#motherbirthplace').val() != '' &&
+			$('#relation').val() != '' &&
+			$('#contactnumber').val() != '' &&
+			$('.marriageaddress').val() != '' &&
+			$('.address').val() != '' &&
+			$('#file-0b').val() != '' &&
+			$('#file-0b').val() != undefined
+			){
+			if(age >= data.utilities[0].int_agemax){
+				swal({
+					title: `Your relative ${$('#firstname').val()} ${$('#lastname').val()} exceeded the max limit of age, do you want to apply on special baptism or re-input age?`,
+					showCancelButton: true,
+					confirmButtonColor: '#3085d6',
+					cancelButtonColor: '#d33',
+					confirmButtonClass: 'btn btn-success',
+					cancelButtonClass: 'btn btn-danger',
+					buttonsStyling: true,
+				}).then(function(){
+					return
+				})
+			}
+			else{
+				$('#nextButton2').addClass('btn-next')
+				//- $('#nextButton2').click();
+			}
+			}
+			else{
+				swal({
+					title: "Form is not completed yet",
+					text: "Please fill out all the required fields",
+					type: 'warning',
+					confirmButtonColor: '#3085d6',
+					confirmButtonText: 'OK'
+				})
+			}
+		})
+		})
+		}
+
+		if(eventid == 9) {
+			baptismType1 = "Special"
+			console.log(baptismType1)
+			$('#calendarSpecial').fullCalendar('changeView', 'month')
+			$('#special').slideDown();
+			$('#regular').slideUp();	
+		$(document).on('click','#nextButton2',function(){
+			console.log($('#file-0b').val())
+			if ($("#customRadio1").prop("checked")) {
+			gender = $("#customRadio1").val();
+			}
+			else if($("#customRadio2").prop("checked")){
+			gender = $("#customRadio2").val();
+			}
+			console.log(gender)
+			if(
+			gender != undefined ||
+			$('#firstname').val() != ''  ||
+			$('#lastname').val() != ''  ||
+			$('#birthdate').val() != '' ||
+			$('#birthplace').val() != '' ||
+			$('#fatherfullname').val() != '' ||
+			$('#fatherbirthplace').val() != '' ||
+			$('#motherfullname').val() != '' ||
+			$('#motherbirthplace').val() != '' ||
+			$('#relation').val() != '' ||
+			$('#contactnumber').val() != '' ||
+			$('.marriageaddress').val() != '' ||
+			$('.address').val() != '' ||
+			$('#file-0b').val() != '' ||
+			$('#file-0b').val() != undefined){
+				$('#nextButton2').addClass('btn-next')
+				$('#nextButton2').click();
+				
+			}
+			else{
+				swal({
+					title: "Form is not completed yet",
+					text: "Please fill out all the required fields",
+					type: 'warning',
+					confirmButtonColor: '#3085d6',
+					confirmButtonText: 'OK'
+				})
+			}
+		})
+		
+		}
+		$('#presubmitButton').click(function() {
+			$("#summaryModal").modal('show');
+			var lastname = $('#lastname').val();
+			console.log(lastname)
+			$("#summaryAppend").append(`
+				<h6 class="label-control">Name of the Child:
+				<div class="row">
+					<div class="col-md-4 px-lg-3 px-md-0 px-sm-0">
+					<div class="form-group pt-0">
+					<h6 class="label-control">Last name
+						<label class="form-control" id="prelastname">
+							${$('#lastname').val()}
+						</label>
+					</h6>
+						<div class="help-block with-errors"></div>
+					</div>
+					</div>
+					<div class="col-md-4 p-lg-0 px-md-3 px-sm-0">
+					<div class="form-group pt-0">
+					<h6 class="label-control">First name
+						<label class="form-control" id="prefirstname">
+							${$('#firstname').val()}
+						</label>
+					</h6>
+						<div class="help-block with-errors"></div>
+					</div>
+					</div>
+					<div class="col-md-4 px-lg-3 px-md-0 px-sm-0">
+					<div class="form-group pt-0">
+					<h6 class="label-control">Middle Name
+						<label class="form-control" id="prelastname">
+							${$('#middlename').val()}
+						</label>
+					</h6>
+						<div class="help-block with-errors"></div>
+					</div>
+					</div>
+				</div>
+				</h6>
+				<div class="row">
+				<div class="col-md-4 px-lg-3 px-md-0 px-sm-0">
+					<div class="form-group m-0">
+					<h6 class="label-control">Gender
+						<label class="form-control" id="pregender">
+							${gender}
+						</label>
+					</h6>
+						<div class="help-block with-errors"></div>
+					</div>
+					</div>
+				<div class="col-md-4 px-lg-3 px-md-0 px-sm-0">
+					<div class="form-group m-0">
+					<h6 class="label-control">Relation
+						<label class="form-control" id="pregender">
+							${$("#relation").val()}
+						</label>
+					</h6>
+						<div class="help-block with-errors"></div>
+					</div>
+					</div>			
+				<div class="col-md-4 px-lg-3 px-md-0 px-sm-0">
+					<div class="form-group m-0">
+					<h6 class="label-control">Contact Number
+						<label class="form-control" id="pregender">
+							${$("#contactnumber").val()}
+						</label>
+					</h6>
+						<div class="help-block with-errors"></div>
+					</div>
+					</div>
+				</div>
+				<div class="row">
+				<div class="col-md-4 px-lg-3 px-md-0 px-sm-0">
+					<div class="form-group m-0">
+					<h6 class="label-control">Desired Date
+						<label class="form-control" id="pregender">
+							${eventDate}
+						</label>
+					</h6>
+						<div class="help-block with-errors"></div>
+					</div>
+					</div>
+				<div class="col-md-4 px-lg-3 px-md-0 px-sm-0">
+					<div class="form-group m-0">
+					<h6 class="label-control">Time 
+						<label class="form-control" id="pregender">
+							${moment(timeStart,'hh:mm:ss').format('hh:mm a')} - ${moment(timeEnd2,'hh:mm:ss').format('hh:mm a')}
+						</label>
+					</h6>
+						<div class="help-block with-errors"></div>
+					</div>
+					</div>	
+				<div class="col-md-4 px-lg-3 px-md-0 px-sm-0">
+					<div class="form-group m-0">
+					<h6 class="label-control">Birth Date 
+						<label class="form-control" id="pregender">
+							${$('#birthdate').val()}
+						</label>
+					</h6>
+						<div class="help-block with-errors"></div>
+					</div>
+					</div>	
+				</div>
+				<div class="row">
+				<div class="col-md-4 px-lg-3 px-md-0 px-sm-0">
+					<div class="form-group m-0">
+					<h6 class="label-control">Parent's Marriage Location
+						<label class="form-control" id="pregender">
+							${$('.parentsmarriage').val()}
+						</label>
+					</h6>
+						<div class="help-block with-errors"></div>
+					</div>
+					</div>
+				<div class="col-md-4 px-lg-3 px-md-0 px-sm-0">
+					<div class="form-group m-0">
+					<h6 class="label-control">Mother Full name
+						<label class="form-control" id="pregender">
+							${$('#motherfullname').val()}
+						</label>
+					</h6>
+						<div class="help-block with-errors"></div>
+					</div>
+					</div>	
+				<div class="col-md-4 px-lg-3 px-md-0 px-sm-0">
+					<div class="form-group m-0">
+					<h6 class="label-control">Father Full Name
+						<label class="form-control" id="pregender">
+							${$('#fatherfullname').val()}
+						</label>
+					</h6>
+						<div class="help-block with-errors"></div>
+					</div>
+					</div>	
+				</div>
+			`)
+
+
+			//- <label class="form-control" id="prelastname">
+			//- 	${$('#lastname').val()}
+			//- </label>
+		})
+		$('#summaryModal').on('hidden.bs.modal',function(){
+			$('#summaryAppend').empty()
+		})
+		$('#submitButton').click(function() {
+			var baptismtype;
+			if ($("#radio1").prop("checked")) {
+			baptismtype = $("#radio1").val();
+			}
+			else if($("#radio2").prop("checked")){
+			baptismtype = $("#radio2").val();
+			}
+			if($('.sponsorname').val() != ''){
+					var sponsors = $('.sponsorname')
+					var formData = new FormData();
+					formData.append('baptismtype', baptismtype)
+					formData.append('lastname', $('#lastname').val())
+					formData.append('firstname', $('#firstname').val())
+					formData.append('middlename', $('#middlename').val())
+					formData.append('relation', $('#relation').val())
+					formData.append('gender',gender)
+					formData.append('eventDate',eventDate)
+					formData.append('timeStart',timeStart)	
+					formData.append('address', $('.address').val())
+					formData.append('birthday', $('#birthdate').val()) 
+					formData.append('birthplace', $('#birthplace').val())
+					formData.append('marriageaddress', $('.parentsmarriage').val())
+					formData.append('fatherbirthplace', $('#fatherbirthplace').val())
+					formData.append('motherbirthplace', $('#motherbirthplace').val())
+					formData.append('fathername', $('#fatherfullname').val())
+					formData.append('mothername', $('#motherfullname').val())
+					formData.append('contactnumber', $('#contactnumber').val())
+					var sponsorname =[];
+					for(i=0;i<sponsors.length;i++){
+					sponsorname.push($(sponsors[i]).val())
+					console.log(sponsorname[i])
+					}
+					console.log(sponsorname)
+					formData.append('sponsorname',sponsorname);
+					formData.append('image', $('#file-0b')[0].files[0]);
+					$.ajax({
+							type:'POST',
+							url:'/guest/baptism/form',
+							data: formData,
+							processData:false,
+							contentType:false,
+							success: function(data){
+								console.log(formData)
+								$('#viewModal').modal('show');
+								console.log(data.int_voucherID)
+								$(document).on(	'click', '#voucherButton', function(){ // yung #voucherButton yung id nung button
+
+									$(document).off('click', '#voucherButton')
+									$.post('/guest/voucherEvents',{voucherId:data.int_voucherID}).done(data=>{
+										for(i=0;i<data.sponsors.length;i++){
+										console.log("sponsors"+data.sponsors[i])
+										}
+										console.log("info"+data.voucherinfo[0])
+										$(document).off('click', '#voucherButton')
+											function toDataURL(url, callback) {
+												var xhr = new XMLHttpRequest();
+												xhr.onload = function() {
+													var reader = new FileReader();
+													reader.onloadend = function() {
+													callback(reader.result);
+													}
+													reader.readAsDataURL(xhr.response);
+												};
+												xhr.open('GET', url);
+												xhr.responseType = 'blob';
+												xhr.send();
+											}
+											toDataURL('/document_templates/voucherTemplate3.png', function(dataUrl) {
+												toDataURL('/document_templates/logo.png', function(logo) {
+													var sponsorText = [];
+													var sponsorX = [65,393,507];
+													var sponsorY = 243;
+													console.log(`${data.sponsors}`)
+													for(i=0;i<data.sponsors[i].length;i++){
+														sponsorText.push({
+															text: `${data.sponsor[i].var_sponsorname}`,
+															style: 'styleLabelEvent',
+															absolutePosition: {x:sponsorX[0], y:sponsorY},
+														})
+													}
+													var docDefinition = {
+														pageMargins: [ 0, 35, 0, 0 ],
+														content: [
+															{
+																image: dataUrl,
+																width: 610,
+															},
+															{
+																image: logo,
+																width: 45,
+																height: 40,
+																absolutePosition: {x:13, y:60},
+															},
+															{
+																image: logo,
+																width: 45,
+																height: 40,
+																absolutePosition: {x:13, y:447},
+															},
+															{
+															text:'500-0239',
+															style: 'styleLabelTop',
+															absolutePosition: {x:350, y:45},
+															},
+															{
+															text:'churcheventapp@gmail.com',
+															style: 'styleLabelTop',
+															absolutePosition: {x:257, y:68},
+															},
+															{
+															text:'inanglupangpangako.com',
+															style: 'styleLabelTop',
+															absolutePosition: {x:269, y:90},
+															},
+															{
+															text:'Urban, Brgy. Payatas B. 1119',
+															style: 'styleLabelTop',
+															absolutePosition: {x:444, y:45},
+															},
+															{
+															text:'Quezon City, Manila',
+															style: 'styleLabelTop',
+															absolutePosition: {x:487, y:68},
+															},
+															//- {
+															//- text:`#${data.var_vouchercode}`,
+															//- style: 'styleLabelTop',
+															//- absolutePosition: {x:495, y:90},
+															//- },
+															//Middle part
+															{
+															text:`${data.voucherinfo[0].var_userfname} ${data.voucherinfo[0].var_userlname}`,
+															style: 'styleLabelMiddle',
+															absolutePosition: {x:51, y:127},
+															},
+															{
+															text:`${data.voucherinfo[0].var_useraddress}`,
+															style: 'styleLabelMiddle',
+															absolutePosition: {x:51, y:140},
+															},
+															{
+															text:`# ${data.voucherinfo[0].var_vouchercode}`,
+															style: 'styleLabelMiddle',
+															absolutePosition: {x:225, y:127},
+															},
+															{
+															text:`${moment(data.voucherinfo[0].date_due).format('MM/DD/YYYY')}`,
+															style: 'styleLabelMiddle',
+															absolutePosition: {x:225, y:140},
+															},
+															{
+															text:`${moment(data.voucherinfo[0].date_issued).format('MM/DD/YYYY')}`,
+															style: 'styleLabelMiddle',
+															absolutePosition: {x:225, y:153},
+															},
+															//table Contents
+															// .toUpperCase() yung event name before ilagay sa pdfmake
+															//ito yung ifoforeach mu rae
+															{ 
+															text: `${data.voucherinfo[0].var_eventname}`,
+															style: 'styleLabelEventName',
+															absolutePosition: {x:65, y:217},
+															},
+															{
+															text: `₱ ${data.voucherinfo[0].dbl_amount.toFixed(2)}`,
+															style: 'styleLabelEvent',
+															absolutePosition: {x:393, y:217},
+															},
+															{
+															text:`₱ ${data.voucherinfo[0].dbl_amount.toFixed(2)}`,
+															style: 'styleLabelEvent',
+															absolutePosition: {x:507, y:217},
+															},
+															// second row para malaman kung ilan idadagdag per ikot sa y-axis pag nagforeach 26 added
+															{
+															text: `Number of Sponsors : ${data.sponsors.length}`,
+															style: 'styleLabelEventName',
+															absolutePosition: {x:65, y:243},
+															},
+															{
+															text: '₱ 50/head',
+															style: 'styleLabelEvent',
+															absolutePosition: {x:393, y:243},
+															},
+															{
+															text: `₱ ${(data.sponsors.length*50).toFixed(2)}`,
+															style: 'styleLabelEvent',
+															absolutePosition: {x:506, y:243},
+															},
+															//total amount
+															{
+															text: `₱ ${((data.sponsors.length*50) + data.voucherinfo[0].dbl_amount).toFixed(2)}`,
+															style: 'styleLabelTA',
+															absolutePosition: {x:476, y:354},
+															},
+															//remaining days
+															{
+															text: '14',
+															style: 'styleLabelRemaining',
+															absolutePosition: {x:338, y:389},
+															},
+															//IBABANG VOUCHER 387 sa y-axis dinagdag
+															{
+															text:'500-0239',
+															style: 'styleLabelTop',
+															absolutePosition: {x:350, y:432},
+															},
+															{
+															text:'churcheventapp@gmail.com',
+															style: 'styleLabelTop',
+															absolutePosition: {x:257, y:455},
+															},
+															{
+															text:'inanglupangpangako.com',
+															style: 'styleLabelTop',
+															absolutePosition: {x:269, y:477},
+															},
+															{
+															text:'Urban, Brgy. Payatas B. 1119',
+															style: 'styleLabelTop',
+															absolutePosition: {x:444, y:432},
+															},
+															{
+															text:'Quezon City, Manila',
+															style: 'styleLabelTop',
+															absolutePosition: {x:487, y:455},
+															},
+															{
+															text:'Voucher ID 42352',
+															style: 'styleLabelTop',
+															absolutePosition: {x:495, y:477},
+															},
+															//Middle part
+															{
+															text:`${data.voucherinfo[0].var_userfname} ${data.voucherinfo[0].var_userlname}`,
+															style: 'styleLabelMiddle',
+															absolutePosition: {x:51, y:514},
+															},
+															{
+															text:`${data.voucherinfo[0].var_useraddress}`,
+															style: 'styleLabelMiddle',
+															absolutePosition: {x:51, y:527},
+															},
+															{
+															text:`# ${data.voucherinfo[0].var_vouchercode}`,
+															style: 'styleLabelMiddle',
+															absolutePosition: {x:225, y:514},
+															},
+															{
+															text:`${moment(data.voucherinfo[0].date_due).format('MM/DD/YYYY')}`,
+															style: 'styleLabelMiddle',
+															absolutePosition: {x:225, y:527},
+															},
+															{
+															text:`${moment(data.voucherinfo[0].date_issued).format('MM/DD/YYYY')}`,
+															style: 'styleLabelMiddle',
+															absolutePosition: {x:225, y:540},
+															},
+															//table Contents
+															// .toUpperCase() yung event name before ilagay sa pdfmake
+															//ito yung ifoforeach mu rae
+															{
+															text: `${data.voucherinfo[0].var_eventname}`,
+															style: 'styleLabelEventName',
+															absolutePosition: {x:65, y:604},
+															},
+															{
+															text:  `₱ ${data.voucherinfo[0].dbl_amount.toFixed(2)}`,
+															style: 'styleLabelEvent',
+															absolutePosition: {x:393, y:604},
+															},
+															{
+															text: `₱ ${data.voucherinfo[0].dbl_amount.toFixed(2)}`,
+															style: 'styleLabelEvent',
+															absolutePosition: {x:507, y:604},
+															},
+															// second row para malaman kung ilan idadagdag per ikot sa y-axis pag nagforeach 26 added
+															{
+															text: `Number of Sponsors : ${data.sponsors.length}`,
+															style: 'styleLabelEventName',
+															absolutePosition: {x:65, y:630},
+															},
+															{
+															text: '₱ 50/head',
+															style: 'styleLabelEvent',
+															absolutePosition: {x:393, y:630},
+															},
+															{
+															text: `₱ ${(data.sponsors.length*50).toFixed(2)}`,
+															style: 'styleLabelEvent',
+															absolutePosition: {x:506, y:630},
+															},
+															//total amount
+															{
+															text: `₱ ${((data.sponsors.length*50) + data.voucherinfo[0].dbl_amount).toFixed(2)}`,
+															style: 'styleLabelTA',
+															absolutePosition: {x:476, y:741},
+															},
+															//remaining days
+															{
+															text: '14',
+															style: 'styleLabelRemaining',
+															absolutePosition: {x:338, y:776},
+															},
+															//- {
+															//- text:`${data[0].int_voucherID}` + `${data.int_userID}` + `${data.int_eventinfoID}`,
+															//- style: 'styleLabelFill',
+															//- absolutePosition: {x:520, y:28},
+															//- text: 'Date: ' + dateRequested,
+															//- },
+														],
+														styles: {
+															styleLabel: {
+																font: 'EdwardianScript',
+																fontSize:85,
+															},
+															styleHeader: {
+																font: 'OldEnglishText',
+																fontSize: 45,
+																alignment: 'center',
+																margin: [0, 15, 0, 0],
+															},
+															styleHeader2: {
+																font: 'EdwardianScript',
+																fontSize: 33,
+																alignment: 'center',
+																margin: [0, 5, 0, 5],
+															},
+															styleLabel: {
+																font: 'EdwardianScript',
+																fontSize: 26,
+															},
+															styleLabelTop: {
+																font: 'Roboto',
+																fontSize: 11,
+																color: 'white',
+															},
+															styleLabelMiddle: {
+																font: 'Roboto',
+																fontSize: 9,
+															},
+															styleLabelMiddleTA: {
+																font: 'Roboto',
+																fontSize: 18,
+															},
+															styleLabelEventName: {
+																font: 'Roboto',
+																fontSize: 10,
+																bold: true,
+															},
+															styleLabelEvent: {
+																font: 'Roboto',
+																fontSize: 10,
+															},
+															styleLabelFill: {
+																font: 'Roboto',
+																fontSize: 20,
+															},
+															styleLabelTA: {
+																font: 'Roboto',
+																fontSize: 15,
+																color: 'white',
+																bold: true,
+															},
+															styleLabelRemaining: {
+																font: 'Roboto',
+																fontSize: 9,
+																italic: true,
+															},
+														},
+													}
+													pdfMake.fonts = {
+														Roboto: {
+															normal: 'Roboto-Regular.ttf',
+															bold: 'Roboto-Medium.ttf',
+															italic: 'Roboto-Italic.ttf',
+															bolditalics: 'Roboto-MediumItalic.ttf',
+														},
+														EdwardianScript: {
+															normal: 'Edwardian-script-itc-Regular.TTF'
+														},
+														OldEnglishText: {
+															normal: 'Old-english-text-mt-Regular.ttf'
+														},
+														TimesNewRoman: {
+															normal: 'Times-new-roman-Regular.ttf'
+														}
+													}
+													pdfMake.createPdf(docDefinition).open();
+													pdfMake.createPdf(docDefinition).download();
+												});
+											})
+									})
+							})
+							}
+					})
+			}
+			$('#viewModal').modal('show');
+			
+		});
+		$("#addPrincipalSponsor").click(function(event){
+				var principal = "<div class='col-md-6 mb-4 pb-3'><div class='input-group'><input type='text' name='sponsorname' class='form-control' required /><div class='input-group-prepend'><span class='btnDelete p-1 input-group-text rounded'><i class='fa fa-trash'></i></span></div></div></div>"
+				$(principal).hide().appendTo("#principalSponsor").fadeIn(500);
+		});
+		$("#principalSponsor").on("click", ".btnDelete", function(event){
+			$(this).parent().parent().parent().fadeOut(500, function(){
+				$(this).remove();
+			});
+			event.stopPropagation();
+		});
+		$("#addAdditionalSponsor").click(function(event){
+				var item2 = `
+				<div class="col-md-6 px-lg-3 px-md-3 px-sm-0 mt-3">
+					<div class="input-group m-0">
+						<input class="form-control" type="text" name="sponsorname" placeholder="Enter Full Name"/>
+						<div class="input-group-prepend">
+							<span class="btnDelete p-1 input-group-text rounded">
+								<i class="fa fa-trash"></i>
+							</span>
+						</div>
+					</div>
+				</div>`
+				$(item2).hide().appendTo("#additionalSponsor").fadeIn(500);
+		});
+		$("#additionalSponsor").on("click", ".btnDelete", function(event){
+			$(this).parent().parent().parent().fadeOut(500, function(){
+				$(this).remove();
+			});
+			event.stopPropagation();
+		});
+		// for Regular Baptism Date
+		var dateNow2
+		var eventDate ='';
+		var timeStart ='';
+		var timeEnd2 ='';
+		var dateNow = new Date()
+		var dateNow2;
+		var gender;
+		$('#nextButton1').click(function(){
+			if(eventDate == '' && timeStart == ''){
+				swal({
+					title: "Please schedule your date",
+					text: "You haven't chosen your desired schedule yet",
+					type: 'warning',
+					confirmButtonColor: '#3085d6',
+					confirmButtonText: 'OK'
+				})
+			}
+			else{
+				$('#nextButton1').addClass('btn-next')
+			}
+		})
+		$('#prevButton1').click(function(){
+			//- $('#nextButton1').removeClass('btn-next')
+			//- $('#nextButton1').click(false)
+		})
+		$('#prevButton2').click(function(){
+			//- $('#nextButton2').removeClass('btn-next')
+			//- $('#nextButton2').click(false);
+		})
+		//- dateNow2 = moment(dateNow,'YYYY-MM-DD hh:mm a').add(7,'days').format('YYYY-MM-DD')
+		$.get('/guest/baptism/query').done(data=>{
+		console.log(data.utilities[0].int_agemax)
+		console.log(baptismType1)
+
+		dateNow2 = moment(dateNow,'YYYY-MM-DD hh:mm a').add(data.utilities[0].int_reservationmindays,'days').format('YYYY-MM-DD')
+			console.log(dateNow2)
+			console.log(data.utilities[0].int_reservationmindays)
+			$('#calendarSpecial').fullCalendar({
+			header: {
+				left: 'title',
+				center: 'agendaDay,month',
+				right: 'prev,next today'
+			},
+			editable: false,
+			firstDay: 0,
+			selectable: true,
+			defaultView: 'month',
+			allDaySlot: false,
+			selectHelper: true,
+			minTime:'8:00:00',
+			maxTime:'17:00:00',
+			validRange: {
+				start: dateNow2
+			},
+			businessHours: { dow: [1,2,3,4,5,6] },
+			selectConstraint: "businessHours",
+			select: function(date, jsEvent, view) {
+				
+				var view = $('#calendarSpecial').fullCalendar('getView');
+				console.log(view.name)
+				if(view.name == 'agendaDay'){
+					eventDate = date.format('YYYY-MM-DD')
+					timeStart = date.format('hh:mm a')
+					timeEnd1 = date.add(1,'hour').format('YYYY-MM-DD hh:mm a')
+					timeEnd2 = moment(timeEnd1).format('hh:mm a')
+					console.log(eventDate)
+					console.log(timeStart)
+					console.log(timeEnd2)
+					swal({
+						title: 'You have selected this date, are you sure?',
+						html: `Date: ${eventDate}  <br>` +
+						`Time Start: ${timeStart} <br>` +
+						`Time End: ${timeEnd2} <br>`,
+						showCancelButton: true,
+						confirmButtonColor: '#3085d6',
+						cancelButtonColor: '#d33',
+						confirmButtonClass: 'btn btn-success',
+						cancelButtonClass: 'btn btn-danger',
+						buttonsStyling: true,   
+					}).then((value) => {
+						if(value.value) {
+							$('#nextButton1').addClass('btn-next')
+							$("#calendarRegular").fullCalendar('removeEvents',[1])
+							$("#calendarSpecial").fullCalendar('removeEvents',[1])
+							swal(
+								'Sucess!',
+								'Event Date has been set.',
+								'success'
+							).then((value)=>{
+							console.log('DESIRED TIME')
+							$('#calendarSpecial').fullCalendar('renderEvent', {
+								title: 'DESIRED TIME',
+								start: `${moment(eventDate,'YYYY-MM-DD').format('MM/DD/YYYY')} ${timeStart}`,
+								end: `${moment(eventDate,'YYYY-MM-DD').format('MM/DD/YYYY')} ${timeEnd2}`,
+								allDay: false,
+								id:1,
+								overlap: false,
+								droppable:true
+							});
+							return value
+							console.log(eventDate)
+							})
+						} else if (
+							value.dismiss === swal.DismissReason.cancel
+						) {
+							eventDate = '';
+							timeStart = '';
+							timeEnd2 = '';
+						}
+					})
+				}
+				else if(view.name == 'month'){
+					$('#calendarSpecial').fullCalendar('changeView', 'agendaDay')
+					$('#calendarSpecial').fullCalendar('gotoDate', date);
+				}
+				else{
+					return  
+				}
+			},
+			droppable: false,
+		});
+		
+			var limit = data.utilities[0].int_maxcount
+			console.log(limit)
+			var calendar =  $('#calendarRegular').fullCalendar({
+			header: {
+				left: 'title',
+				center: 'agendaDay,month',
+				right: 'prev,next today'
+			},
+			editable: false,
+			firstDay: 0,
+			selectable: true,
+			defaultView: 'month',
+			allDaySlot: false,
+			validRange: {
+				start: dateNow2,
+			},
+			businessHours: { dow: [0] },
+			selectConstraint: "businessHours",
+			select: function(date, jsEvent, view) {
+				eventDate = date.format('YYYY-MM-DD')
+				$.post('/guest/baptism/query/regular/bilang',{eventdate:eventDate}).done(data=>{
+					console.log(data[0].bilang >= limit)
+					console.log(data[0].bilang  + "is greater than" + limit + "?")
+					if(data[0].bilang >= limit){
+						swal({
+							title: 'Sorry but there are no slots available for this day',
+							showCancelButton: true,
+							confirmButtonColor: '#3085d6',
+							cancelButtonColor: '#d33',
+							confirmButtonClass: 'btn btn-success',
+							cancelButtonClass: 'btn btn-danger',
+							buttonsStyling: true,   
+						})
+					}
+				})
+				eventDate = date.format('YYYY-MM-DD')
+				timeStart = data.utilities[0].time_availablestart
+				timeEnd2 = data.utilities[0].time_availableend
+				console.log(eventDate)
+				swal({
+						title: 'You have selected this date, are you sure?',
+						html: `Date: ${eventDate}  <br>`,
+						showCancelButton: true,
+						confirmButtonColor: '#3085d6',
+						cancelButtonColor: '#d33',
+						confirmButtonClass: 'btn btn-success',
+						cancelButtonClass: 'btn btn-danger',
+						buttonsStyling: true,   
+					}).then((value) => {
+						if (value.value) {
+							$('#nextButton1').addClass('btn-next')
+							$("#calendarSpecial").fullCalendar('removeEvents',[1])
+							$("#calendarRegular").fullCalendar('removeEvents',[1])
+							swal(
+								'Sucess!',
+								'Event Date has been set.',
+								'success'
+							).then((value)=>{
+							console.log('DESIRED TIME')
+							$('#calendarRegular').fullCalendar('renderEvent', {
+								title: '',
+								start: `${moment(eventDate,'YYYY-MM-DD').format('MM/DD/YYYY')} ${timeStart}`,
+								end: `${moment(eventDate,'YYYY-MM-DD').format('MM/DD/YYYY')} ${timeEnd2}`,
+								allDay: false,
+								id:1,
+								overlap: false,
+								droppable:true
+							});
+							return value
+							})
+						} else if (
+							value.dismiss === swal.DismissReason.cancel
+						) {
+							eventDate = '';
+							timeStart = '';
+							timeEnd2 = '';
+							console.log(eventDate)
+							console.log(timeStart)
+							console.log(timeEnd2)
+						}
+					})
+			}
+			});
+			
+			for(i=0;i<data.queries.length;i++){
+			var dateEvent = moment(data.queries[i].date_eventdate).format('MM/DD/YYYY');
+			var time_start = data.queries[i].time_eventstart = moment(data.queries[i].time_eventstart,'hh:mm:ss').format('hh:mm a');
+			var time_end = moment(data.queries[i].time_eventstart,'hh:mm:ss').add(1,'hour').format('hh:mm a');
+			//- console.log(time_end)
+			//- console.log(dateEvent)
+			//- console.log(data.queries[i].time_eventstart)
+			//- console.log(data.queries[i].char_approvalstatus)
+				$('#calendarSpecial').fullCalendar('renderEvent', {
+				title: 'OCCUPIED EVENT',
+				start: `${dateEvent} ${time_start}`,
+				end: `${dateEvent} ${time_end}`,
+				allDay: false,
+				color:'#4c2508',
+				textColor: "white",
+				});
+			}
+			$.get('/guest/baptism/query/regular').done(data=>{
+				
+				for(i=0;i<data.length;i++){
+					var dateEvent = moment(data.date_eventdate).format('MM/DD/YYYY');
+					var time_start = data.time_eventstart = moment(data.time_eventstart,'hh:mm:ss').format('hh:mm a');
+					var time_end = moment(data.time_eventstart,'hh:mm:ss').add(1,'hour').format('hh:mm a');
+					console.log(data[i].date_eventdate)
+					 $.post('/guest/baptism/query/regular/bilang',{eventdate:data[i].date_eventdate}).done(data=>{
+						console.log(data[1])
+						console.log(data[0].bilang)
+					 	var dateEvent1 = moment(data[1]).format('MM/DD/YYYY')
+						 if(data[0].bilang >= limit){
+							 $('#calendarRegular').fullCalendar('renderEvent',{
+								title: ' NO SLOTS AVAILABLE',
+								start: `${dateEvent1}`,
+								end: `${dateEvent1}`,
+								allDay:true,
+								color:'#4c2508',
+								textColor: "white",
+							 })
+							 console.log("narender na pota")
+
+						 }
+						 else{
+
+						 }
+					 })
+				}
+			})
+		})

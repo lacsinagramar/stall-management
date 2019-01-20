@@ -28,15 +28,13 @@ block content
 									td #{lessee.strPhoneNumber}
 									td #{`${lessee.booLesseeType == 0 ? 'Individual' : 'Company'}`}
 									td
-										a.btn.btn-round.btn-warning.btn-icon(href='#')
-											i.now-ui-icons.design_scissors
-										a.btn.btn-round.btn-danger.btn-icon(href='#')
+										a.btn.btn-round.btn-danger.btn-icon.deleteLessee(href='javascript:void(0)' lesseeId=`${lessee.strId}`)
 											i.now-ui-icons.ui-1_simple-remove
 	#addAccountModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog.modal-lg(role='document')
 			.modal-content
 				.modal-header
-					h5.modal-title Add Lessee Account
+					h5.modal-title Register Account
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
 				form#addAccountForm(enctype="multipart/form-data")
@@ -100,9 +98,34 @@ block content
 							input.form-control.dropify(type='file' name='baranggayPermit' accept='image/*' data-height='200' data-allowed-file-extensions="jpeg jpg png")
 					.modal-footer
 						button#addAccountSave.btn.btn-primary(type='submit') Save
+	#editAccountModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+		.modal-dialog.modal-lg(role='document')
+			.modal-content
+				.modal-header
+					h5.modal-title Edit Information
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') ×
+				form#editAccountForm(enctype="multipart/form-data")
+					.modal-body
+						.form-group
+							label Address
+							input.form-control(type='text' name='address' placeholder='Enter Address')
+						.form-group
+							label Email Address
+							input.form-control(type='email' name='email' placeholder='Enter E-mail')
+						.form-group
+							label Phone Number
+							input.form-control(type='text' name='phoneNumber' placeholder='Enter Address')
+					.modal-footer
+						button#editAccountSave.btn.btn-primary(type='submit') Save
 block contentScript
 	script.
 		$(document).ready(function(){
+			$(document).on('click', '.deleteLessee', function(){
+				$.post('/admin/delete-lessee', {id: $(this).attr('lesseeId')}).done(function(){
+					location.href='/admin/lessee'
+				})
+			})
 			$('.dropify').dropify({
 				allowedFiles: ['png', 'jpg', 'jpeg', 'gif', 'bmp'],
 				messages: {

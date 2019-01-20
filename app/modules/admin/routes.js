@@ -30,7 +30,7 @@ router.get('/stall', (req, res) => {
     })
 })
 router.get('/lessee', (req, res) => {
-    db.query('SELECT * FROM tbl_lessee', (err, results) => {
+    db.query('SELECT * FROM tbl_lessee WHERE booIsDeleted = 0', (err, results) => {
         if(err) console.log(err)
 
         if(results.length==0) return res.render('admin/views/lessee', {lessees: results, url: req.url})
@@ -79,9 +79,12 @@ router.post('/stall-id-check', (req, res) => {
         originalStall = '';
     } 
     console.log('sent: ', originalStall)
-    db.query('SELECT strId FROM tbl_stall WHERE strId = ? AND strId!= ?', [req.body.stallId, originalStall], (err, results) => {
+    db.query('SELECT * FROM tbl_stall WHERE strId = ? AND strId!= ?', [req.body.stallId, originalStall], (err, results) => {
         if(err) console.log(err)
 
+        if(req.body.submit){
+            return res.send(results[0]);
+        }
         if(req.body.leasing){
             console.log('hi')
             if(results.length>0) return res.send('true')
@@ -172,5 +175,13 @@ router.post('/lessee-user-check', (req, res) => {
             else return res.send('false')
         }
     })
+});
+router.post('/delete-lessee', (req, res) => {
+    console.log(req.body)
+    db.query('UPDATE tbl_lessee SET booIsDeleted = 1 WHERE strId = ?',[req.body.id], (err, results) => {
+        if(err) console.log(err)
+
+        return res.send(true);
+    });
 })
 exports.admin = router;

@@ -18,24 +18,17 @@ block content
 								th Leasing Status
 								th Actions
 						tbody
-							each stall in stalls
+							each contract in contracts
 								tr
-									td #{stall.strId}
-									td #{`${stall.booStallType == 0 ? 'Food Stall' : 'Dry Goods Stall'}`}
-									if(stall.booIsAvailable == 0)
-										td.text-success Available
-										td
-											a.btn.btn-round.btn-warning.btn-icon.edit(href='javascript:void(0)' stallType=`${stall.booStallType}` stallId=`${stall.strId}`)
-												i.now-ui-icons.design_scissors
-											a.btn.btn-round.btn-danger.btn-icon.remove(href='javascript:void(0)' stallType=`${stall.booStallType}` stallId=`${stall.strId}`)
-												i.now-ui-icons.ui-1_simple-remove
+									td #{contract.strStallId}
+									td #{contract.strLesseeId}
+									if(contract.booContractStatus == 0)
+										td.text-success On-going
 									else
-										td.text-danger Occupied
-										td
-											a.btn.btn-round.btn-warning.btn-icon(href='javascript:void(0)' stallType=`${stall.booStallType}` stallId=`${stall.strId}` disabled)
-												i.now-ui-icons.design_scissors
-											a.btn.btn-round.btn-danger.btn-icon(href='javascript:void(0)' stallType=`${stall.booStallType}` stallId=`${stall.strId}` disabled)
-												i.now-ui-icons.ui-1_simple-remove
+										td.text-danger Done
+									td
+										a.btn.btn-round.btn-primary.btn-icon.view(href='javascript:void(0)' contractId=`${contract.intId}`)
+											i.now-ui-icons.ui-1_zoom-bold
 	#addLeasingModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
@@ -63,49 +56,256 @@ block contentScript
 			$('#leasingTable').dataTable()
 			$('#addLeasingSave').on('click', function(e){
 				e.preventDefault()
-				//- if($('#addLeasingForm').valid()){
-				//- 	$.post('/admin/stall-id-check', {stallId: $('#addLeasingForm input[name="stallId"]').val(), submit: true}).done(function(data){
-				//- 		swal({
-				//- 			title: `Genrating Leasing Contract`,
-				//- 			text: `Please print the contract and sign it.`,
-				//- 			type: 'info',
-				//- 			confirmButtonText: 'Okay',
-				//- 		}).then((value)=>{
-				//- 			if(value){
-				//- 				alert('contract')
-				//- 			}
-				//- 		})
-				//- 	});
-				//- }
-				const receipt = {
-					content: [
-						{
-							text: 'Receipt',
-							style: 'header'
-						},
-					],
-					styles: {
-						paragraph: {
-							fontSize: 14,
-						},
-						header: {
-							fontSize: 18,
-							bold: true
-						}
-					}
+				const dateNow = moment().format('MMMM Do YYYY');
+				if($('#addLeasingForm').valid()){
+					$.post('/admin/stall-id-check', {stallId: $('#addLeasingForm input[name="stallId"]').val(), getDetails: true}).done(function(stallData){
+						$.post('/admin//lessee-user-check', {lesseeUsername: $('#addLeasingForm input[name="lesseeUsername"]').val(), getDetails: true}).done(function(lesseeData){
+							const receipt = {
+								content: [
+									{
+										text: 'ACKNOWLEDGEMENT RECEIPT\n\n\n', bold:true, alignment: 'center'
+									},
+									{
+										text:[
+											{text:'Date:', alignment: 'right'},
+											{text:`${dateNow}\n\n\n`, alignment: 'right', decoration: 'underline'},
+										]
+									},
+									{
+										text:[
+											{text:'RECEIVED from: '},
+											{text:`${lesseeData.strFirstName} ${lesseeData.strMiddleName} ${lesseeData.strLastName}\n\n`, decoration: 'underline'},
+										]
+									},
+									{
+										text:[
+											{text:'the amount of: '},
+											{text:`${stallData.booStallType == 0 ? 'Eighteen Thousand Pesos Only Pesos ( P 18,000.00 )' : 'Fourteen Thousan Pesos Only ( P 14,000.00 )'}\n\n`, decoration: 'underline'},
+										]
+									},
+									{
+										text: [
+											{text:'as partial/full payment for '},
+											{text: `Advance payment for rental on stall ${stallData.strId}(${stallData.booStallType == 0 ? 'Food Stall' : 'Dry-Goods Stall'})\n\n`, decoration: 'underline'}
+										]
+									},
+									{
+										text:'__________________________\n\n', alignment: 'right'
+									},
+									{
+										text:'Authorized   Signature\n\n', alignment: 'right'
+									},
+								]
+							}
+							//START CONTRACT
+							const contract = {
+								content: [
+									{text: 'LEASE CONTRACT\n\n', bold:true, alignment:'center'},
+									{text: 'KNOWN ALL MEN BY THESE PRESENTS:\n\n', bold:true, alignment:'left'},
+									{text: [
+										{text: 'This contract of lease made and entered this '},
+										{text: `${moment().format('Do')}`, decoration: 'underline'},
+										{text: ' day of '},
+										{text: `${moment().format('MMMM')} ${moment().format('YYYY')}`, decoration: 'underline'},
+										{text: ' at Parañaque City, Philippines by and between:\n\n'}
+									],
+									alignment: 'left',
+									},
+									{text: [
+											{text: 'EXTRA-ORDINARY PROPERTY MANAGEMENT INC.', bold: true},
+											{text: 'a corporation duly organized and existing under and by virtue of the laws of the Philippines with office address at 6th Floor Queensway Commercial Center Bldg., 118 Amorsolo St., Legaspi Village, Makati City, herein presented by VP Finance and Admin, '},
+											{text: 'SHERRY V. YAMBAO ', bold: true},
+											{text: 'hereinafter referred to as the '},
+											{text: 'LESSOR;', bold: true},
+										],
+										margin: [50, 0],
+										alignment: 'justify'
+									},
+									{text: '-and-\n\n', alignment:'center'},
+									{text: [
+											{text: `${lesseeData.strFirstName.toUpperCase()} ${lesseeData.strMiddleName.toUpperCase()} ${lesseeData.strLastName.toUpperCase()}`, decoration: 'underline', bold:true},
+											{text: ' of legal age, resident of and with postal address at '},
+											{text: `${lesseeData.strAddress}`, bold: true, decoration:'underline'},
+											{text: ' hereinafter referred to as the '},
+											{text: 'LESSEE;\n\n', bold: true},
+										],
+										margin: [50, 0],
+										alignment: 'justify'
+									},
+									{text: 'WITNESSETH:\n\n', alignment:'center', bold: true},
+									{text: [
+											{text: 'The '},
+											{text: '"LESSOR" ', bold: true},
+											{text: 'hereby lets and lease unto the '},
+											{text: '"LESSEE" ', bold: true},
+											{text: 'and the latter accepts in lease of '},
+											{text: 'Stall No. ', bold: true},
+											{text: `${stallData.strId}`, bold: true, decoration: 'underline'},
+											{text: ', located at Extra-Ordinary Warehouse Mall,', bold: true},
+											{text: 'under the following terms and conditions:\n\n'},
+										],
+										alignment: 'justify',
+										margin: [0, 0, 50, 0]
+									},
+									{ul: [
+											{text: [
+													{text: 'The Lease shall be for a term of six (6) months commencing '},
+													{text: `${moment().format('MMMM DD YYYY')} to ${moment().add(6, 'months').format('MMMM DD YYYY')}`, decoration: 'underline'},
+													{text: ' renewable for another period of six (6) months upon mutual agreement of the parties.\n\n'},
+												]
+											},
+											{text: [
+													{text: 'The '},
+													{text: '"LESSEE" ', bold: true},
+													{text: `agrees to pay as rental amount of ( Php ${stallData.booStallType == 0 ? '9,000.00': '7,000.00'} ) per month. Failure to pay rental shall cause termination of this agreement.\n\n`},
+												]
+											},
+											{text: [
+													{text: 'Upon execution of this agreement, the '},
+													{text: '"LESSEE" ', bold: true},
+													{text: `shall deliver and pay the amount of Nine Thousand Pesos ( Php ${stallData.booStallType == 0 ? '9,000.00': '7,000.00'} ) as good will to reserve the space for him/her for six months. This amount is non-refundable and shall in no way be charged to unpaid rentals.\n\n`},
+												]
+											},
+											{text: [
+													{text: 'The '},
+													{text: '"LESSEE" ', bold: true},
+													{text: 'shall not sell any bottled water products other than Agua Avelina.\n\n'},
+												]
+											},
+											{text: [
+													{text: 'The '},
+													{text: '"LESSEE" ', bold: true},
+													{text: 'shall take good care of the leased premises and shall not store or keep any explosive of flammable materials in the leased premises which may increase the fire hazard of the same.\n\n'},
+												]
+											},
+											{text: [
+													{text: 'The '},
+													{text: '"LESSEE" ', bold: true},
+													{text: 'shall not sub-lease or encumber the stall assigned by virtue of this contract nor to allow anybody to use the same even temporary no matter how short time is.\n\n'},
+												]
+											},
+											{text: [
+													{text: 'That all ordinary repairs within the premises that may arise in the daily use of the facilities thereon shall be for sole account and expense of the '},
+													{text: '"LESSEE" WITHOUT THE RIGHT TO REIMBURSEMENT.\n\n', bold: true},
+												]
+											},
+											{text: [
+													{text: 'That the expenses for electricity and water assessed for the respective stalls shall be billed separately by the '},
+													{text: '"LESSOR". ', bold: true},
+													{text: 'A sub-meter will be placed or installed as to determine the utility consumption of the leased stall.\n\n'},
+												]
+											},
+											{text: [
+													{text: 'That the “LESSEE” agrees and binds himself to keep  the stalls  and  its surroundings in good sanitary condition and comply with all sanitary  and market existing rules and regulations or which may hereinafter be issued by the '},
+													{text: '"LESSOR".\n\n', bold: true},
+												]
+											},
+											{text: [
+													{text: 'That the '},
+													{text: '"LESSEE" ', bold: true},
+													{text: 'agrees and binds himself never to make any alterations and improvements or extensions (“excess”) of his/her stall without the written consent of the '},
+													{text: '"LESSOR" ', bold: true},
+													{text: 'and any such alterations, improvement or extension made thereon can be removed or demolished anytime by the '},
+													{text: '"LESSOR" ', bold: true},
+													{text: 'without obligation to reimburse to the '},
+													{text: '"LESSEE" ', bold: true},
+													{text: 'the cost of such improvement or extensions. The “LESSEE” shall be responsible to secure his/her goods being sold and/or displayed for sale, including his/her personal belongings against pilferage and/or thieves. Thus, the “LESSOR” and its employees and/or guard on duty shall not be held responsible or liable to any lost or damage items.\n\n'},
+												]
+											},
+											{text: [
+													{text: 'That any violation of the terms and conditions, herein stipulated rules and regulations promulgated by the “LESSOR” shall be valid cause for the cancellation or revocation of this Contract and automatically the stall affected shall revert to the '},
+													{text: '"LESSOR".\n\n', bold: true},
+												]
+											},
+											{text: [
+													{text: 'In the event of cancellation or revocation of the herein right to occupy stall, the '},
+													{text: '"LESSEE" ', bold: true},
+													{text: 'empowers the '},
+													{text: '"LESSOR" ', bold: true},
+													{text: 'upon due notice the right to padlock the stall affected and appoint the '},
+													{text: '"LESSOR" ', bold: true},
+													{text: 'as the attorney-in-fact to offer public auction the goods inside the stalls and the proceeds of the sale to be applied first to whatever obligation it owes to the '},
+													{text: '"LESSOR" ', bold: true},
+													{text: 'if after satisfying this, there still remains any, same shall be given to the '},
+													{text: '"LESSEE" ', bold: true},
+													{text: 'after deducting the cost of selling each items.\n\n'},
+												]
+											},
+											{text: [
+													{text: 'At the termination of this lease contract for any cause, the '},
+													{text: '"LESSEE" ', bold: true},
+													{text: 'hereby authorizes the '},
+													{text: '"LESSOR" ', bold: true},
+													{text: 'to remove all personal property of the '},
+													{text: '"LESSEE" ', bold: true},
+													{text: 'in the leased premises and to deposit the same in storage and the '},
+													{text: '"LESSEE" ', bold: true},
+													{text: 'further agrees to pay all cost of transfer and storage.\n\n'},
+												]
+											},
+										],
+										margin: [50,0],
+										alignment: 'justify'
+									},
+									{text: [
+											{text: 'IN WITNESS WHEREOF, ', bold: true},
+											{text: 'the parties hereto set their hands this '},
+											{text: `${moment().format('Do')}`, decoration: 'underline'},
+											{text: ' day of '},
+											{text: `${moment().format('MMMM')} ${moment().format('YYYY')}`, decoration: 'underline'},
+											{text: ' in Makati City, Philippines\n\n'}
+										],
+										margin: [0, 0, 50, 0]
+									},
+									{text: 'EXTRA-ORDINARY PROPERTY MANAGEMENT INC.	  LESSEE\n\n\n\n', bold:true},
+									{text: 'By: SHERRY V. YAMBAO\n\n\n\n'},
+									{text: 'Signed In the Presence of\n\n\n', alignment:'center'},
+									{text: '_____________________________________                                 _____________________________________'},
+								]
+							}
+							// END CONTRACT
+							pdfMake.fonts = {
+								Roboto: {
+									normal: 'Roboto-Regular.ttf',
+									bold: 'Roboto-Medium.ttf',
+									italic: 'Roboto-Italic.ttf',
+									bolditalics: 'Roboto-MediumItalic.ttf',
+								},
+								TimesNewRoman: {
+									normal: 'Times-new-roman-Regular.ttf'
+								}
+							}
+							swal({
+								title: `Documents Generated`,
+								text: `Receipt and Contract already generated please click okay`,
+								type: 'success',
+								confirmButtonText: 'Okay',
+							}).then((value)=>{
+								if(value){
+									pdfMake.createPdf(receipt).open();
+									pdfMake.createPdf(contract).open();
+									pdfMake.createPdf(receipt).download(`receipt-contract${Date.now()}.pdf`);
+									pdfMake.createPdf(contract).download(`contract-${Date.now()}.pdf`);
+									$.post('/admin/add-contract', 
+									{
+										stallData: stallData, 
+										lesseeData: lesseeData, 
+										dateNow:{
+											month: moment().format('MM'),
+											day: moment().format('DD'),
+											year: moment().format('YYYY'),
+										}
+									
+									}).done(function(){
+										setTimeout(function(){
+											location.href='/admin/rental'
+										}, 3000)
+									})
+								}
+							})
+						});
+					});
 				}
-				pdfMake.fonts = {
-					Roboto: {
-						normal: 'Roboto-Regular.ttf',
-						bold: 'Roboto-Medium.ttf',
-						italic: 'Roboto-Italic.ttf',
-						bolditalics: 'Roboto-MediumItalic.ttf',
-					},
-					TimesNewRoman: {
-						normal: 'Times-new-roman-Regular.ttf'
-					}
-				}
-				pdfMake.createPdf(receipt).open();
 			})
 			$('input[name="stallId"]').mask('A-Z000',{
 				translation:{

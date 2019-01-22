@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../../lib/database')();
 const moment = require('moment');
 const multer = require('multer');
+const middleware = require('../auth/middlewares/auth');
 
 // MULTER CONFIG
 const myStorage = multer.diskStorage({
@@ -16,20 +17,20 @@ const myStorage = multer.diskStorage({
 const upload = multer({storage: myStorage})
 
 //GET
-router.get('/', (req, res) => {
+router.get('/',middleware.hasAdmin, (req, res) => {
     res.render('admin/views/index', {url: req.url});
 });
 router.get('/login', (req, res) => {
     res.render('admin/views/login');
 });
-router.get('/stall', (req, res) => {
+router.get('/stall',middleware.hasAdmin, (req, res) => {
     db.query('SELECT * FROM tbl_stall', (err, results) =>{
         if(err) console.log(err)
 
         return res.render('admin/views/stall', {url: req.url, stalls:results})
     })
 })
-router.get('/lessee', (req, res) => {
+router.get('/lessee',middleware.hasAdmin, (req, res) => {
     db.query('SELECT * FROM tbl_lessee WHERE booIsDeleted = 0', (err, results) => {
         if(err) console.log(err)
 
@@ -50,8 +51,16 @@ router.get('/lessee', (req, res) => {
         }    
     })
 })
-router.get('/rental', (req, res) => {
-    res.render('admin/views/leasing', {stalls: [], url: req.url})
+router.get('/rental',middleware.hasAdmin, (req, res) => {
+    db.query('SELECT * FROM tbl_contract', (err, results) => {
+        if(err) console.log(err)
+
+        if(results.length>0) return res.render('admin/views/leasing', {contracts: results, url: req.url})
+        else return res.render('admin/views/leasing', {contracts: [], url: req.url})
+    })
+})
+router.get('/staff', (req, res) => {
+    res.render('admin/views/staff', {stalls: [], url: req.url})
 })
 
 //POST
@@ -82,7 +91,7 @@ router.post('/stall-id-check', (req, res) => {
     db.query('SELECT * FROM tbl_stall WHERE strId = ? AND strId!= ?', [req.body.stallId, originalStall], (err, results) => {
         if(err) console.log(err)
 
-        if(req.body.submit){
+        if(req.body.getDetails){
             return res.send(results[0]);
         }
         if(req.body.leasing){
@@ -170,6 +179,11 @@ router.post('/lessee-user-check', (req, res) => {
     db.query('SELECT * FROM tbl_lessee WHERE strUsername = ?', [req.body.lesseeUsername], (err, results) => {
         if(err) console.log(err)
 
+        if(req.body.getDetails){
+            console.log(results[0]);
+            return res.send(results[0])
+        }
+
         if(req.body.leasing){
             if(results.length>0) return res.send('true');
             else return res.send('false')
@@ -183,5 +197,16 @@ router.post('/delete-lessee', (req, res) => {
 
         return res.send(true);
     });
+})
+router.post('/add-contract', (req, res) => {
+    console.log("ADD CONTRACT ROUTE",req.body)
+    const queryString = `INSERT INTO tbl_contract 
+    (strLesseeId, strStallId, intContractMonth, intContractDay, intContractYear, intContractDuration)
+    VALUES (?, ?, ?, ?, ?, ?)`;
+    db.query(queryString, [req.body.lesseeData.strId, req.body.stallData.strId, req.body.dateNow.month, req.body.dateNow.day, req.body.dateNow.year, 6], (err, results) => {
+        if(err) console.log(err)
+
+        return res.send(true);
+    })
 })
 exports.admin = router;

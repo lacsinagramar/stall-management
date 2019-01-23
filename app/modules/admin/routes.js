@@ -59,9 +59,28 @@ router.get('/rental',middleware.hasAdmin, (req, res) => {
         else return res.render('admin/views/leasing', {contracts: [], url: req.url})
     })
 })
-router.get('/staff', (req, res) => {
-    res.render('admin/views/staff', {stalls: [], url: req.url})
+router.get('/staff', middleware.hasAdmin, (req, res) => {
+    db.query('SELECT * FROM tbl_staff WHERE booStatus = 1', (err, results) => {
+        if(err) console.log(err)
+
+        if(results.length>0) return res.render('admin/views/staff', {staffs: results, url: req.url})
+        else return res.render('admin/views/staff', {staffs: [], url: req.url})
+    })
 })
+router.get('/electric-bill', (req, res) => {
+    db.query('SELECT * FROM tbl_electric_main_bill', (err, results) => {
+        if(err) console.log(err)
+
+        let thisMonthBilled = false;
+        for(let i = 0; i< results.length; i++){
+            results[i].billDate = moment(`${results[i].intDueMonth}-${results[i].intDueYear}`, 'MM-YYYY').format('MMMM YYYY')
+            if(results[i].intDueYear == moment().format('YYYY') && results[i].intDueMonth == parseInt(moment().format('MM')) ) thisMonthBilled = true;
+        }
+
+        return res.render('admin/views/electric-bill', {electric: results, url: req.url, billed: thisMonthBilled})
+    })
+})
+//END GET
 
 //POST
 router.post('/login', (req, res) => {
@@ -209,4 +228,15 @@ router.post('/add-contract', (req, res) => {
         return res.send(true);
     })
 })
+router.post('/add-staff', (req, res) => {
+    const queryString = `INSERT INTO tbl_staff (strFirstName, strMiddleName, strLastName, strEmail, strPhone, strUsername, strPassword)
+    VALUES (?, ?, ?, ?, ?, ?, ?)`
+    db.query(queryString, [req.body.firstName, req.body.middleName, req.body.lastName, req.body.email, req.body.phoneNumber, req.body.username, req.body.password], (err, results) => {
+        if(err) console.log(err)
+
+        return res.redirect('/admin/staff');
+    })
+})
+//END POST
+
 exports.admin = router;

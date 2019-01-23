@@ -5,7 +5,7 @@ block content
 		.col-md-12
 			.card
 				.card-header
-					h4.card-title Stalls
+					h4.card-title Staffs
 				.card-body
 					.toolbar
 						button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addStaffModal') + Add Staff
@@ -13,29 +13,19 @@ block content
 					table#staffTable.table.table-bordered.table-striped(cellspacing='0')
 						thead
 							tr
-								th Stall ID
-								th Stall Type
-								th Stall Status
+								th Name
+								th Username
 								th Actions
 						tbody
-							each stall in stalls
+							each staff in staffs
 								tr
-									td #{stall.strId}
-									td #{`${stall.booStallType == 0 ? 'Food Stall' : 'Dry Goods Stall'}`}
-									if(stall.booIsAvailable == 0)
-										td.text-success Available
-										td
-											a.btn.btn-round.btn-warning.btn-icon.edit(href='javascript:void(0)' stallType=`${stall.booStallType}` stallId=`${stall.strId}`)
-												i.now-ui-icons.design_scissors
-											a.btn.btn-round.btn-danger.btn-icon.remove(href='javascript:void(0)' stallType=`${stall.booStallType}` stallId=`${stall.strId}`)
-												i.now-ui-icons.ui-1_simple-remove
-									else
-										td.text-danger Occupied
-										td
-											a.btn.btn-round.btn-warning.btn-icon(href='javascript:void(0)' stallType=`${stall.booStallType}` stallId=`${stall.strId}` disabled)
-												i.now-ui-icons.design_scissors
-											a.btn.btn-round.btn-danger.btn-icon(href='javascript:void(0)' stallType=`${stall.booStallType}` stallId=`${stall.strId}` disabled)
-												i.now-ui-icons.ui-1_simple-remove
+									td #{staff.strFirstName} #{staff.strMiddleName} #{staff.strLastName}
+									td #{staff.strUsername}
+									td
+										a.btn.btn-round.btn-warning.btn-icon.edit(href='javascript:void(0)' staffId=`${staff.intId}`)
+											i.now-ui-icons.design_scissors
+										a.btn.btn-round.btn-danger.btn-icon.remove(href='javascript:void(0)' staffId=`${staff.intId}`)
+											i.now-ui-icons.ui-1_simple-remove
 	#addStaffModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
@@ -43,7 +33,7 @@ block content
 					h5.modal-title Add Staff
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
-				form#addStaffForm(method='POST' action='/admin/addtaff')
+				form#addStaffForm(method='POST' action='/admin/add-staff')
 					.modal-body
 						h6 Staff Details
 						.form-group

@@ -5,12 +5,11 @@ block content
 		.col-md-12
 			.card
 				.card-header
-					h4.card-title Utilities Bills
+					h4.card-title Water Bills
 				.card-body
 					.toolbar
-						button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addStaffModal') + Add Bill for this Month
+						button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addWaterModal') + Add Water Bill
 					br
-					h5 Water Bills
 					table#waterTable.table.table-bordered.table-striped(cellspacing='0')
 						thead
 							tr
@@ -18,38 +17,83 @@ block content
 								th Amount Due
 								th Cubic Meter Used
 								th Due Date
+						tbody
+							each bill in water
+								tr
+									td #{bill.billDate}
+									td #{bill.dblTotalAmountDue}
+									td #{bill.intTotalCubicMeterUsage}
+									td #{bill.intDueMonth}/#{bill.intDueDay}/#{bill.intDueYear}
 	//MODALS
-	#addStallModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+	#addWaterModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
 				.modal-header
-					h5.modal-title Bill for this Month
+					h5.modal-title Add Water Bill
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
-				form#addStallForm(method='POST' action='/admin/addstall')
+				form#addWaterForm(method='POST' action='/admin/add-water')
 					.modal-body
 							.form-group
-								label Stall ID
+								label Total Amount Due
 									small.text-danger  *
-								input.form-control(type='text' name='stallId' placeholder='Enter Stall ID')
+								input.form-control(type='text' name='totalAmountDue' placeholder='Enter Total Amount Due')
 							.form-group
-								label Stall Type
+								label Total Cubic Meter Usage
 									small.text-danger  *
-								.form-check.form-check-radio
-									label.form-check-label
-										input.form-check-input(type='radio', name='stallType', value='0' checked)
-										| Food Stall
-										span.form-check-sign
-								.form-check.form-check-radio
-									label.form-check-label
-										input.form-check-input(type='radio', name='stallType', value='1')
-										| Dry Goods Stall
-										span.form-check-sign
+								input.form-control(type='text' name='totalCubicMeterUsage' placeholder='Enter Total Cubic Meter Usage')
+							.form-group
+								label Due Date
+									small.text-danger  *
+								input.form-control.datepicker(type='text' name='dueDate' placeholder='Enter Due Date')
 					.modal-footer
-						button#addStallSave.btn.btn-primary(type='submit') Save
+						button#addWaterSave.btn.btn-primary(type='submit') Save
 block contentScript
 	script.
 		$(document).ready(function(){
 			$('#waterTable').dataTable();
+			$('.datepicker').datetimepicker({
+				format: 'MM/DD/YYYY',
+			});
+			$('#addWaterForm').validate({
+				rules:{
+					totalAmountDue:{
+						required:true,
+						number:true
+					},
+					totalCubicMeterUsage:{
+						required:true,
+						number: true
+					},
+					dueDate:{
+						required:true
+					},
+				}
+			})
+			$('#addWaterForm').on('submit', function(e) {
+				e.preventDefault()
+				if($('#addWaterForm').valid())
+				$.post('/admin/validate-duedate', {
+					month: moment($('#addWaterForm input[name="dueDate"]').val()).format('MM'),
+					year: moment($('#addWaterForm input[name="dueDate"]').val()).format('YYYY'),
+					type: 'water'
+				}).done(function(data){
+					if(!data.valid){
+						swal({
+							title: `Invalid Input`,
+							text: `Bill for ${moment($('#addWaterForm input[name="dueDate"]').val()).format('MMMM YYYY')} already exists`,
+							type: 'error'
+						})
+					}
+					else{
+						$.post('/admin/add-water', {
+							totalAmountDue: $('#addWaterForm input[name="totalAmountDue"]').val() ,
+							totalCubicMeterUsage: $('#addWaterForm input[name="totalCubicMeterUsage"]').val() ,
+							dueDate: $('#addWaterForm input[name="dueDate"]').val()
+						}).done(function(){
+							location.href= '/admin/water-bill';
+						})
+					}
+				})
+			})
 		})
-			

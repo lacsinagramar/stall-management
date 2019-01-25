@@ -29,7 +29,7 @@ block content
 									td
 										a.btn.btn-round.btn-primary.btn-icon.view(href='javascript:void(0)' contractId=`${contract.intId}`)
 											i.now-ui-icons.ui-1_zoom-bold
-	#addLeasingModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+	#addLeasingModal.modal.fade(tabindex='false', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
 				.modal-header
@@ -41,7 +41,10 @@ block content
 							.form-group
 								label Stall ID
 									small.text-danger  *
-								input.form-control(type='text' name='stallId' placeholder='Enter Stall ID')
+								select.select2(name='stallId' style="width: 100%")
+									option(value='') Select a Stall
+									each stall in stalls
+										option(value=`${stall.strId}`) #{stall.strId}
 							.form-group
 								label Username of Lessee
 									small.text-danger  *
@@ -53,12 +56,13 @@ block contentScript
 	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
 	script.
 		$(document).ready(function(){
+			$('.select2').select2();
 			$('#leasingTable').dataTable()
 			$('#addLeasingSave').on('click', function(e){
 				e.preventDefault()
 				const dateNow = moment().format('MMMM Do YYYY');
 				if($('#addLeasingForm').valid()){
-					$.post('/admin/stall-id-check', {stallId: $('#addLeasingForm input[name="stallId"]').val(), getDetails: true}).done(function(stallData){
+					$.post('/admin/stall-id-check', {stallId: $('#addLeasingForm .select2[name="stallId"]').val(), getDetails: true}).done(function(stallData){
 						$.post('/admin//lessee-user-check', {lesseeUsername: $('#addLeasingForm input[name="lesseeUsername"]').val(), getDetails: true}).done(function(lesseeData){
 							const receipt = {
 								content: [
@@ -307,19 +311,6 @@ block contentScript
 					});
 				}
 			})
-			$('input[name="stallId"]').mask('A-Z000',{
-				translation:{
-					'A':{
-						pattern: /[A-Z]/
-					},
-					'0':{
-						pattern: /[0-9]/
-					},
-					'Z':{
-						pattern: /[1-9]/
-					}
-				}
-			})
 			$('#addLeasingForm').validate({
 				rules:{
 					stallId:{
@@ -329,7 +320,7 @@ block contentScript
 							type: 'POST',
 							data: {
 								stallId: function(){
-									return $('#addLeasingForm input[name="stallId"]').val()
+									return $('#addLeasingForm select[name="stallId"]').val()
 								},
 								leasing: true
 							},
@@ -352,7 +343,7 @@ block contentScript
 				messages:{
 					stallId:{
 						remote: function(){
-							return `Stall ${$('#addLeasingForm input[name="stallId"]').val()} does not exist on the database`
+							return `Stall ${$('#addLeasingForm select[name="stallId"]').val()} does not exist on the database`
 						}
 					},
 					lesseeUsername:{

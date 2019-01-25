@@ -5,15 +5,11 @@ block content
 		.col-md-12
 			.card
 				.card-header
-					h4.card-title Utilities Bills
+					h4.card-title Electric Bills
 				.card-body
 					.toolbar
-						if(billed)
-							button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addStaffModal' disabled) + Add Bill for this Month
-						else
-							button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addStaffModal') + Add Bill for this Month
+						button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addElectricModal') + Add Electric Bill
 					br
-					h5 Electric Bills
 					table#electricTable.table.table-bordered.table-striped(cellspacing='0')
 						thead
 							tr
@@ -29,38 +25,75 @@ block content
 									td #{bill.intTotalKwhUsage}
 									td #{bill.intDueMonth}/#{bill.intDueDay}/#{bill.intDueYear}
 	//MODALS
-	#addStallModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+	#addElectricModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
 				.modal-header
-					h5.modal-title Bill for this Month
+					h5.modal-title Add Electric Bill
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
-				form#addStallForm(method='POST' action='/admin/addstall')
+				form#addElectricForm(method='POST' action='/admin/add-electric')
 					.modal-body
 							.form-group
-								label Stall ID
+								label Total Amount Due
 									small.text-danger  *
-								input.form-control(type='text' name='stallId' placeholder='Enter Stall ID')
+								input.form-control(type='text' name='totalAmountDue' placeholder='Enter Total Amount Due')
 							.form-group
-								label Stall Type
+								label Total KwH Usage
 									small.text-danger  *
-								.form-check.form-check-radio
-									label.form-check-label
-										input.form-check-input(type='radio', name='stallType', value='0' checked)
-										| Food Stall
-										span.form-check-sign
-								.form-check.form-check-radio
-									label.form-check-label
-										input.form-check-input(type='radio', name='stallType', value='1')
-										| Dry Goods Stall
-										span.form-check-sign
+								input.form-control(type='text' name='totalKwHUsage' placeholder='Enter Total KwH Usage')
+							.form-group
+								label Due Date
+									small.text-danger  *
+								input.form-control.datepicker(type='text' name='dueDate' placeholder='Enter Due Date')
 					.modal-footer
-						button#addStallSave.btn.btn-primary(type='submit') Save
+						button#addElectricSave.btn.btn-primary(type='submit') Save
 block contentScript
 	script.
 		$(document).ready(function(){
-			$('#waterTable').dataTable();
 			$('#electricTable').dataTable();
+			$('.datepicker').datetimepicker({
+				format: 'MM/DD/YYYY',
+			});
+			$('#addElectricForm').validate({
+				rules:{
+					totalAmountDue:{
+						required:true,
+						number:true
+					},
+					totalKwHUsage:{
+						required:true,
+						number: true
+					},
+					dueDate:{
+						required:true
+					},
+				}
+			})
+			$('#addElectricForm').on('submit', function(e) {
+				e.preventDefault()
+				if($('#addElectricForm').valid())
+				$.post('/admin/validate-duedate', {
+					month: moment($('#addElectricForm input[name="dueDate"]').val()).format('MM'),
+					year: moment($('#addElectricForm input[name="dueDate"]').val()).format('YYYY'),
+					type: 'electric'
+				}).done(function(data){
+					if(!data.valid){
+						swal({
+							title: `Invalid Input`,
+							text: `Bill for ${moment($('#addElectricForm input[name="dueDate"]').val()).format('MMMM YYYY')} already exists`,
+							type: 'error'
+						})
+					}
+					else{
+						$.post('/admin/add-electric', {
+							totalAmountDue: $('#addElectricForm input[name="totalAmountDue"]').val() ,
+							totalKwHUsage: $('#addElectricForm input[name="totalKwHUsage"]').val() ,
+							dueDate: $('#addElectricForm input[name="dueDate"]').val()
+						}).done(function(){
+							location.href= '/admin/electric-bill';
+						})
+					}
+				})
+			})
 		})
-			

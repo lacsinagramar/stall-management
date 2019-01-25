@@ -36,10 +36,11 @@ block body
 	block scriptAddOns
 		script.
 			$(document).ready(function(){
+				var query = !{JSON.stringify(query)}
 				$(document).on('click', '#loginButton', function(){
 					$.post('/admin/login', {user: $('#username').val(), pass: $('#password').val()}).done(function(data){
 						if(data.valid){
-							location.href = '/admin'
+							location.href = `/admin${query.redirect}`
 						}
 					})
 				})

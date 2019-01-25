@@ -2,6 +2,14 @@ extends ../../../templates/admin-template.pug
 
 block headAddOns
 	link(rel="stylesheet", href='/assets/now-ui-admin/demo/demo.css')
+	style.
+		.select2-container--default .select2-selection--single{
+			background-color: #fff;
+			border: 1px solid #e3e3e3;
+			border-radius: 30px;
+			padding: 0px 8px;
+			height: 30px;
+		}
 
 block body
 	.sidebar-mini
@@ -46,7 +54,7 @@ block body
 								ul.nav
 									li
 										a(href='/admin/stall')
-											span.sidebar-mini-icon S
+											span.sidebar-mini-icon Stl
 											span.sidebar-normal  Stall
 									li
 										a(href='/admin/staff')

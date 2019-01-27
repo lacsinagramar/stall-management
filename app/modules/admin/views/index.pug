@@ -264,3 +264,15 @@ block content
 									td.td-price
 										small €
 										| 2,346
+block contentScript
+	script.
+		$(document).ready(function(){
+			var auth = !{JSON.stringify(query)}
+			if(typeof auth.unauthorized != 'undefined'){
+				swal({
+					title: `Unauthorized Access`,
+					text: `Sorry you cannot access that page`,
+					type: 'error'
+				})
+			}
+		})

@@ -17,12 +17,24 @@ const myStorage = multer.diskStorage({
 const upload = multer({storage: myStorage})
 
 //GET
-router.get('/',middleware.hasAdmin, (req, res) => {
-	res.render('admin/views/index', {url: req.url});
+router.get('/',middleware.hasAdminOrStaff, (req, res) => {
+	res.render('admin/views/index', {url: req.url, query: req.query});
 });
-router.get('/login',middleware.hasNoAdmin, (req, res) => {
+router.get('/login',middleware.hasNoAdminOrStaff, (req, res) => {
 	res.render('admin/views/login', {query: req.query});
 });
+router.get('/logout', (req, res) => {
+	if(req.session.admin){
+		delete req.session.admin
+		res.redirect('/admin/login');
+		console.log(req.session)
+	}
+	else{
+		delete req.session.staff
+		res.redirect('/admin/login');
+		console.log(req.session)
+	}
+})
 router.get('/stall',middleware.hasAdmin, (req, res) => {
 	db.query('SELECT * FROM tbl_stall', (err, results) =>{
 		if(err) console.log(err)
@@ -73,7 +85,7 @@ router.get('/staff', middleware.hasAdmin, (req, res) => {
 		else return res.render('admin/views/staff', {staffs: [], url: req.url})
 	})
 })
-router.get('/electric-bill', (req, res) => {
+router.get('/electric-bill', middleware.hasAdmin, (req, res) => {
 	db.query('SELECT * FROM tbl_electric_main_bill', (err, results) => {
 		if(err) console.log(err)
 
@@ -85,7 +97,7 @@ router.get('/electric-bill', (req, res) => {
 		return res.render('admin/views/electric-bill', {electric: results, url: req.url})
 	})
 })
-router.get('/water-bill', (req, res) => {
+router.get('/water-bill', middleware.hasAdmin, (req, res) => {
 	db.query('SELECT * FROM tbl_water_main_bill', (err, results) => {
 		if(err) console.log(err)
 
@@ -107,7 +119,22 @@ router.post('/login', (req, res) => {
 		return res.send({valid: true})
 	}
 	else{
-		return res.send({valid: false})
+		db.query('SELECT * FROM tbl_staff WHERE strUsername = ?', [req.body.user], (err, results) => {
+			if(err) console.log(err)
+
+			if(results.length>0){
+				if(results[0].strPassword == req.body.pass && results[0].booStatus == 1){
+					req.session.staff = results[0]
+					return res.send({valid: true})
+				}
+				else{
+					return res.send({valid: false})
+				}
+			}
+			else{
+				return res.send({valid: false})
+			}
+		})
 	}
 });
 router.post('/addstall', (req, res) => {

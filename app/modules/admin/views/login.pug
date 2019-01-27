@@ -40,7 +40,14 @@ block body
 				$(document).on('click', '#loginButton', function(){
 					$.post('/admin/login', {user: $('#username').val(), pass: $('#password').val()}).done(function(data){
 						if(data.valid){
-							location.href = `/admin${query.redirect}`
+							location.href = `/admin${query.redirect? `${query.redirect}`: ''}`
+						}
+						else{
+							swal({
+								title: `Error`,
+								text: `There seems to be a problem logging in your account. It's either your username and password is incorrect or your account is inactive.`,
+								type: 'error'
+							})
 						}
 					})
 				})

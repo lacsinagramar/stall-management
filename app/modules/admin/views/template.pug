@@ -30,11 +30,11 @@ block body
 						.photo
 							img(src='/assets/now-ui-admin/img/james.jpg')
 						.info
-							a.collapsed(data-toggle='collapse', href='#collapseExample')
+							a.collapsed(data-toggle='collapse', href='#account')
 								span Admin
 									b.caret
 							.clearfix
-							#collapseExample.collapse
+							#account.collapse
 								ul.nav
 									li
 										a(href='/admin/logout')
@@ -83,6 +83,14 @@ block body
 										a(href='/admin/rental')
 											span.sidebar-mini-icon L
 											span.sidebar-normal Leasing
+									li
+										a(href='/admin/electric-consumption')
+											span.sidebar-mini-icon EC
+											span.sidebar-normal Electric Consumption
+									li
+										a(href='/admin/water-consumption')
+											span.sidebar-mini-icon WC
+											span.sidebar-normal Water Consumption
 						li
 							a(href='../examples/calendar.html')
 								i.now-ui-icons.media-1_album

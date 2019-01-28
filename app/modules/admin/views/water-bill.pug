@@ -17,6 +17,7 @@ block content
 								th Amount Due
 								th Cubic Meter Used
 								th Due Date
+								th Status
 						tbody
 							each bill in water
 								tr
@@ -24,6 +25,14 @@ block content
 									td #{bill.dblTotalAmountDue}
 									td #{bill.intTotalCubicMeterUsage}
 									td #{bill.intDueMonth}/#{bill.intDueDay}/#{bill.intDueYear}
+									- if (bill.booStatus == 0)
+										td.text-warning Pending
+									- else if (bill.booStatus == 1)
+										td
+											button.btn.btn-info.btn-sm.btn-round Consumption Encoded
+									- else if (bill.booStatus == 2)
+										td
+											button.btn.btn-success.btn-sm.btn-round Consumption Validated
 	//MODALS
 	#addWaterModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')

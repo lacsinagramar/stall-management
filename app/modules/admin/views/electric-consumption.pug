@@ -1,0 +1,81 @@
+extends ./template.pug
+
+block content
+	.row
+		.col-md-12
+			.card
+				.card-header
+					h4.card-title Electric Bills
+				.card-body
+					table#electricTable.table.table-bordered.table-striped(cellspacing='0')
+						thead
+							tr
+								th Bill Date
+								th Amount Due
+								th KwH Used
+								th Actions
+						tbody
+							each bill in electric
+								tr
+									td #{bill.billDate}
+									td #{bill.dblTotalAmountDue}
+									td #{bill.intTotalKwhUsage}
+									td 
+										button.encodeElectricOpen.btn.btn-primary.btn-round(billId=`${bill.intId}` totalKwh=`${bill.intTotalKwhUsage}`) Encode Consumption
+	//MODALS
+	#encodeElectricModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+		.modal-dialog.modal-lg(role='document')
+			.modal-content
+				.modal-header
+					h5.modal-title Add Electric Bill
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') ×
+				form#encodeElectricForm(method='POST' action='/admin/add-electric')
+					.modal-body#encodeElectricModalBody
+					.modal-footer
+						button#encodeElectricSave.btn.btn-primary(type='submit') Save
+block contentScript
+	script.
+		$(document).ready(function(){
+			$('#electricTable').dataTable();
+			$('.encodeElectricOpen').on('click', function(){
+				$.post('/admin/get-readings', {billId: $(this).attr('billId'), type:'electric'})
+				.done(function (data){
+					for(let i = 0; i< data.length; i++){
+						$('#encodeElectricModalBody').append(`
+							<h6>Stall ${data[i].strStallId}</h6>
+							<div class="row">
+								<div class="col-md-6">
+									<div class="form-group">
+										<label>Last Month Reading<small class="text-danger"> *</small></label>
+										<input class="form-control" type="text" disabled="disabled" value="${data[i].intMeterReading}" />
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label>Current Month Reading<small class="text-danger"> *</small></label>
+										<input class="form-control input-kwh" type="text" name="kwHUsage" placeholder="Enter KwH Usage" />
+									</div>
+								</div>
+							</div><br/>`
+						)
+					}
+				})
+				$('#encodeElectricSave').attr('usage', $(this).attr('totalKwh'))
+				$('#encodeElectricModal').modal('show')
+			})
+			$('#encodeElectricModal').on('hidden.bs.modal', function(){
+				$('#encodeElectricModalBody').empty()
+			})
+			$('#encodeElectricSave').on('click', function(e){
+				e.preventDefault()
+				const inputs = $('.input-kwh')
+				let totalInputted = 0;
+				for(let c=0; c<inputs.length; c++){
+					totalInputted = eval(totalInputted+'+'+inputs.eq(c).val())
+				}
+				if(totalInputted == $(this).attr('usage')){
+					alert('Tru')
+				}
+			})
+		})

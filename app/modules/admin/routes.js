@@ -91,7 +91,6 @@ router.get('/electric-bill', middleware.hasAdmin, (req, res) => {
 
 		for(let i = 0; i< results.length; i++){
 			results[i].billDate = moment(`${results[i].intDueMonth}-${results[i].intDueYear}`, 'MM-YYYY').format('MMMM YYYY')
-			if(results[i].intDueYear == moment().format('YYYY') && results[i].intDueMonth == parseInt(moment().format('MM')) ) thisMonthBilled = true;
 		}
 
 		return res.render('admin/views/electric-bill', {electric: results, url: req.url})
@@ -103,10 +102,20 @@ router.get('/water-bill', middleware.hasAdmin, (req, res) => {
 
 		for(let i = 0; i< results.length; i++){
 			results[i].billDate = moment(`${results[i].intDueMonth}-${results[i].intDueYear}`, 'MM-YYYY').format('MMMM YYYY')
-			if(results[i].intDueYear == moment().format('YYYY') && results[i].intDueMonth == parseInt(moment().format('MM')) ) thisMonthBilled = true;
 		}
 
 		return res.render('admin/views/water-bill', {water: results, url: req.url})
+	})
+})
+router.get('/electric-consumption', (req, res) => {
+	db.query('SELECT * FROM tbl_electric_main_bill WHERE booStatus = 0', (err, results) => {
+		if(err) console.log(err)
+
+		for(let i = 0; i< results.length; i++){
+			results[i].billDate = moment(`${results[i].intDueMonth}-${results[i].intDueYear}`, 'MM-YYYY').format('MMMM YYYY')
+		}
+
+		return res.render('admin/views/electric-consumption', {electric: results, url: req.url})
 	})
 })
 //END GET
@@ -330,6 +339,38 @@ router.post('/add-water', (req, res) => {
 		if(err) console.log(err)
 
 		return res.send(true);
+	})
+})
+router.post('/get-readings', (req, res) => {
+	let finalResults = [];
+	if(req.body.type == 'electric'){
+		var queryString = `SELECT * FROM tbl_electric_lessee_bill WHERE intContractId = ? ORDER BY intMeterReading DESC LIMIT 1`
+	}
+	else if(req.body.type == 'water'){
+		var queryString = `SELECT * FROM tbl_water_lessee_bill WHERE intContractId = ? ORDER BY intMeterReading DESC LIMIT 1`
+	}
+	db.query('SELECT * FROM tbl_contract WHERE booContractStatus = 0', (err, results) => {
+		if(err) console.log(err)
+
+		for(let i = 0; i < results.length; i++){
+			const stallObject = results[i];
+			db.query(queryString, stallObject.intId, (err, results2) => {
+				if(err) console.log(err)
+
+				if(results2.length > 0){
+					stallObject.intMeterReading = results2[0].intMeterReading
+				}
+				else{
+					stallObject.intMeterReading = 0
+				}
+				console.log(stallObject)
+				finalResults.push(stallObject)
+				if(i == results.length - 1){
+					console.log(i)
+					return res.send(finalResults)
+				}
+			})
+		}
 	})
 })
 //END POST

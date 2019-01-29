@@ -118,6 +118,17 @@ router.get('/electric-consumption', (req, res) => {
 		return res.render('admin/views/electric-consumption', {electric: results, url: req.url})
 	})
 })
+router.get('/water-consumption', (req, res) => {
+	db.query('SELECT * FROM tbl_water_main_bill WHERE booStatus = 0', (err, results) => {
+		if(err) console.log(err)
+
+		for(let i = 0; i< results.length; i++){
+			results[i].billDate = moment(`${results[i].intDueMonth}-${results[i].intDueYear}`, 'MM-YYYY').format('MMMM YYYY')
+		}
+
+		return res.render('admin/views/water-consumption', {water: results, url: req.url})
+	})
+})
 //END GET
 
 //POST
@@ -371,6 +382,60 @@ router.post('/get-readings', (req, res) => {
 				}
 			})
 		}
+	})
+})
+router.post('/encode-electric-bill', (req, res) => {
+	const queryString = `INSERT INTO tbl_electric_lessee_bill 
+	(intElectricMainBillId, intContractId, intMeterReading, intTotalKwhUsage, dblAmountDue, datDueDate)
+	VALUES (?, ?, ?, ?, ?, ?)`
+
+	for(let e=0; e<req.body.lesseeBills.length; e++){
+		const billNow = req.body.lesseeBills[e];
+		db.query(queryString, [billNow.mainBillId, billNow.contractId, billNow.currentMeterReading, billNow.totalUsage, billNow.amountDue, billNow.dueDate], (err, results) => {
+			if(err) console.log(err)
+		})
+		if(e == req.body.lesseeBills.length - 1){
+			db.query('UPDATE tbl_electric_main_bill SET booStatus = 1 WHERE intId = ?', req.body.lesseeBills[0].mainBillId, (err, results) => {
+				if(err) console.log(err)
+
+				return res.send(true)
+			})
+		}
+	}
+})
+router.post('/encode-water-bill', (req, res) => {
+	const queryString = `INSERT INTO tbl_water_lessee_bill 
+	(intWaterMainBillId, intContractId, intMeterReading, intTotalCubicMeterUsage, dblAmountDue, datDueDate)
+	VALUES (?, ?, ?, ?, ?, ?)`
+
+	for(let e=0; e<req.body.lesseeBills.length; e++){
+		const billNow = req.body.lesseeBills[e];
+		db.query(queryString, [billNow.mainBillId, billNow.contractId, billNow.currentMeterReading, billNow.totalUsage, billNow.amountDue, billNow.dueDate], (err, results) => {
+			if(err) console.log(err)
+		})
+		if(e == req.body.lesseeBills.length - 1){
+			db.query('UPDATE tbl_water_main_bill SET booStatus = 1 WHERE intId = ?', req.body.lesseeBills[0].mainBillId, (err, results) => {
+				if(err) console.log(err)
+
+				return res.send(true)
+			})
+		}
+	}
+})
+router.post('/get-encoded', (req, res) => {
+	if(req.body.type == 'electric'){
+		var query = `SELECT * FROM tbl_electric_lessee_bill 
+		JOIN tbl_contract ON intContractId = tbl_contract.intId 
+		WHERE intElectricMainBillId = ?`
+	}
+	else if(req.body.type == 'water'){
+		var query = `SELECT * FROM tbl_water_lessee_bill 
+		JOIN tbl_contract ON intContractId = tbl_contract.intId
+		WHERE intWaterMainBillId = ?`
+	}
+	db.query(query, req.body.id, (err, results) => {
+		if(err) console.log(err)
+		res.send(results)
 	})
 })
 //END POST

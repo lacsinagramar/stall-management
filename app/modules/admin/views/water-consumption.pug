@@ -5,44 +5,44 @@ block content
 		.col-md-12
 			.card
 				.card-header
-					h4.card-title Electric Bills
+					h4.card-title Water Bills
 				.card-body
-					table#electricTable.table.table-bordered.table-striped(cellspacing='0')
+					table#waterTable.table.table-bordered.table-striped(cellspacing='0')
 						thead
 							tr
 								th Bill Date
 								th Amount Due
-								th KwH Used
+								th Cubic Meter Used
 								th Actions
 						tbody
-							each bill in electric
+							each bill in water
 								tr
 									td #{bill.billDate}
 									td #{bill.dblTotalAmountDue}
-									td #{bill.intTotalKwhUsage}
+									td #{bill.intTotalCubicMeterUsage}
 									td 
-										button.encodeElectricOpen.btn.btn-primary.btn-round(billId=`${bill.intId}` totalKwh=`${bill.intTotalKwhUsage}` amountDue=`${bill.dblTotalAmountDue}` dueDate=`${bill.intDueYear}-${bill.intDueMonth}-${bill.intDueDay}`) Encode Consumption
+										button.encodeWaterOpen.btn.btn-primary.btn-round(billId=`${bill.intId}` totalCubic=`${bill.intTotalCubicMeterUsage}` amountDue=`${bill.dblTotalAmountDue}` dueDate=`${bill.intDueYear}-${bill.intDueMonth}-${bill.intDueDay}`) Encode Consumption
 	//MODALS
-	#encodeElectricModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+	#encodeWaterModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog.modal-lg(role='document')
 			.modal-content
 				.modal-header
-					h5.modal-title Add Electric Bill
+					h5.modal-title Add Water Bill
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
-				form#encodeElectricForm
-					.modal-body#encodeElectricModalBody
+				form#encodeWaterForm
+					.modal-body#encodeWaterModalBody
 					.modal-footer
-						button#encodeElectricSave.btn.btn-primary(type='submit') Save
+						button#encodeWaterSave.btn.btn-primary(type='submit') Save
 block contentScript
 	script.
 		$(document).ready(function(){
-			$('#electricTable').dataTable();
-			$('.encodeElectricOpen').on('click', function(){
-				$.post('/admin/get-readings', {billId: $(this).attr('billId'), type:'electric'})
+			$('#waterTable').dataTable();
+			$('.encodeWaterOpen').on('click', function(){
+				$.post('/admin/get-readings', {billId: $(this).attr('billId'), type:'water'})
 				.done(function (data){
 					for(let i = 0; i< data.length; i++){
-						$('#encodeElectricModalBody').append(`
+						$('#encodeWaterModalBody').append(`
 							<h6>Stall ${data[i].strStallId}</h6>
 							<div class="row">
 								<div class="col-md-6">
@@ -54,25 +54,25 @@ block contentScript
 								<div class="col-md-6">
 									<div class="form-group">
 										<label>Current Month Reading<small class="text-danger"> *</small></label>
-										<input class="form-control input-kwh" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" type="text" placeholder="Enter Current Meter Usage" />
+										<input class="form-control input-cubic" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" type="text" placeholder="Enter Current Meter Reading" />
 									</div>
 								</div>
 							</div><br/>`
 						)
 					}
 				})
-				$('#encodeElectricSave').attr('usage', $(this).attr('totalKwh'))
-				$('#encodeElectricSave').attr('amountDue', $(this).attr('amountDue'))
-				$('#encodeElectricSave').attr('dueDate', $(this).attr('dueDate'))
-				$('#encodeElectricSave').attr('billId', $(this).attr('billId'))
-				$('#encodeElectricModal').modal('show')
+				$('#encodeWaterSave').attr('usage', $(this).attr('totalCubic'))
+				$('#encodeWaterSave').attr('amountDue', $(this).attr('amountDue'))
+				$('#encodeWaterSave').attr('dueDate', $(this).attr('dueDate'))
+				$('#encodeWaterSave').attr('billId', $(this).attr('billId'))
+				$('#encodeWaterModal').modal('show')
 			})
-			$('#encodeElectricModal').on('hidden.bs.modal', function(){
-				$('#encodeElectricModalBody').empty()
+			$('#encodeWaterModal').on('hidden.bs.modal', function(){
+				$('#encodeWaterModalBody').empty()
 			})
-			$('#encodeElectricSave').on('click', function(e){
+			$('#encodeWaterSave').on('click', function(e){
 				e.preventDefault()
-				const inputs = $('.input-kwh')
+				const inputs = $('.input-cubic')
 				let totalInputted = 0;
 				let bills = []
 				for(let c=0; c<inputs.length; c++){
@@ -91,9 +91,9 @@ block contentScript
 							mainBillId: $(this).attr('billId')
 						})
 						if(d == inputs.length-1){
-							$.post('/admin/encode-electric-bill', {lesseeBills: bills})
+							$.post('/admin/encode-water-bill', {lesseeBills: bills})
 							.done(function(){
-								location.href='/admin/electric-consumption'
+								location.href='/admin/water-consumption'
 							})
 						}
 					}
@@ -101,7 +101,7 @@ block contentScript
 				else{
 					swal({
 						title: `Inputs do not tally`,
-						text: `The needed total KwH usage to be inputted must be ${$(this).attr('usage')}`,
+						text: `The needed total cubic meter usage to be inputted must be ${$(this).attr('usage')}`,
 						type: 'error'
 					})
 				}

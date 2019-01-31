@@ -435,7 +435,19 @@ router.post('/get-encoded', (req, res) => {
 	}
 	db.query(query, req.body.id, (err, results) => {
 		if(err) console.log(err)
-		res.send(results)
+		return res.send(results)
+	})
+})
+router.post('/validate-bill', (req, res) => {
+	if(req.body.type == 'electric'){
+		var query = `UPDATE tbl_electric_main_bill SET booStatus = 2 WHERE intId = ?`
+	}
+	else if(req.body.type == 'water'){
+		var query = `UPDATE tbl_water_main_bill SET booStatus = 2 WHERE intId = ?`
+	}
+	db.query(query, req.body.id, (err, results) => {
+		if(err) console.log(err)
+		return res.send(true)
 	})
 })
 //END POST

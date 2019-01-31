@@ -65,6 +65,8 @@ block content
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
 				.modal-body#viewModalBody
+				.modal-footer
+					button#validate.btn.btn-primary Validate
 block contentScript
 	script.
 		$(document).ready(function(){
@@ -128,13 +130,23 @@ block contentScript
 									<strong>Amount Due: </strong>
 									<span>P ${data[f].dblAmountDue}</span>
 								</div>
-							</div><br />`
+							</div>`
 						)
+						if(f != data.length - 1){
+							$('#viewModalBody').append('<br/>')
+						}
 					}
 				})
 				$('#viewModal').modal('show')
+				$('#validate').attr('billId', $(this).attr('billId'))
 			})
 			$('#viewModal').on('hidden.bs.modal', function() {
 				$('#viewModalBody').empty()
+			})
+			$('#validate').on('click', function(){
+				$.post('/admin/validate-bill', {type: 'water', id: $(this).attr('billId')})
+				.done(function (){
+					location.href='/admin/water-bill'
+				})
 			})
 		})

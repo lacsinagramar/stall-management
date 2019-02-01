@@ -68,6 +68,8 @@ block content
 				.modal-footer
 					button#validate.btn.btn-primary Validate
 block contentScript
+	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
+	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
 	script.
 		$(document).ready(function(){
 			$('#electricTable').dataTable();

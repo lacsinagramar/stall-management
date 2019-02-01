@@ -129,6 +129,11 @@ router.get('/water-consumption', (req, res) => {
 		return res.render('admin/views/water-consumption', {water: results, url: req.url})
 	})
 })
+router.get('/payments', (req, res) => {
+	db.query('SELECT * FROM tbl_payment', (err, results) => {
+		if(err) console.log(err)
+	})
+})
 //END GET
 
 //POST

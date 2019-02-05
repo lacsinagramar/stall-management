@@ -20,8 +20,13 @@ block content
 									td #{bill.billDate}
 									td #{bill.dblTotalAmountDue}
 									td #{bill.intTotalCubicMeterUsage}
-									td 
-										button.encodeWaterOpen.btn.btn-primary.btn-round(billId=`${bill.intId}` totalCubic=`${bill.intTotalCubicMeterUsage}` amountDue=`${bill.dblTotalAmountDue}` dueDate=`${bill.intDueYear}-${bill.intDueMonth}-${bill.intDueDay}`) Encode Consumption
+									td
+										- if (bill.booStatus == 0)
+											button.encodeWaterOpen.btn.btn-primary.btn-round(billId=`${bill.intId}` totalCubic=`${bill.intTotalCubicMeterUsage}` amountDue=`${bill.dblTotalAmountDue}` dueDate=`${bill.intDueYear}-${bill.intDueMonth}-${bill.intDueDay}`) Encode Consumption
+										- else if (bill.booStatus == 1)
+											button.btn.btn-warning.btn-round Pending
+										- else if (bill.booStatus == 2)
+											button.btn.btn-info.btn-round.generate(billId=`${bill.intId}`) Generate Bills
 	//MODALS
 	#encodeWaterModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog.modal-lg(role='document')
@@ -34,7 +39,17 @@ block content
 					.modal-body#encodeWaterModalBody
 					.modal-footer
 						button#encodeWaterSave.btn.btn-primary(type='submit') Save
+	#generateModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+		.modal-dialog(role='document')
+			.modal-content
+				.modal-header
+					h5.modal-title Generate Bill of Tenants
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') ×
+				.modal-body#generateModalBody
 block contentScript
+	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
+	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
 	script.
 		$(document).ready(function(){
 			$('#waterTable').dataTable();
@@ -106,4 +121,80 @@ block contentScript
 					})
 				}
 			})
+			$('.generate').on('click', function (){
+				$.post('/admin/get-encoded',{id: $(this).attr('billId'), type:'water'})
+				.done(function(data){
+					for(let f=0; f < data.length; f++){
+						$('#generateModalBody').append(`
+							<div class="row">
+								<div class="col-md-12">
+									<h6 class="text-primary">Stall ${data[f].strStallId}</h6>
+									<strong>Meter Reading this Month: </strong>
+									<span>${data[f].intMeterReading}</span><br />
+									<strong>Usage this Month: </strong>
+									<span>${data[f].intTotalCubicMeterUsage}KwH</span><br />
+									<strong>Amount Due: </strong>
+									<span>P ${data[f].dblAmountDue}</span>
+									<br/>
+									<button class="btn btn-info btn-round generateBill" amountDue="${data[f].dblAmountDue}" cubicMeterUsage="${data[f].intTotalCubicMeterUsage}" meterReading="${data[f].intMeterReading}" lesseeName="${data[f].strFirstName} ${data[f].strMiddleName} ${data[f].strLastName}" stallId="${data[f].strStallId}" dueDate='${data[f].datDueDate}'>Generate</button>
+								</div>
+							</div>`
+						)
+						if(f != data.length - 1){
+							$('#generateModalBody').append('<hr/>')
+						}
+					}
+					$('#generateModal').modal('show')
+				})
+			})
+			$('#generateModal').on('hidden.bs.modal', function() {
+				$('#generateModalBody').empty()
+			})
+			$(document).on('click', '.generateBill', function(){
+				generateBill($(this).attr('lesseeName'), $(this).attr('stallId'), $(this).attr('meterReading'), $(this).attr('cubicMeterUsage'), $(this).attr('amountDue'), $(this).attr('dueDate'))
+			})
+
+			// FUNCTIONS
+			function generateBill(lesseeName, stallId, meterReading, cubicMeterUsage, amountDue, dueDate){
+				const billTemplate = {
+					content: [
+						{text: '\n\nEXTRAORDINARY PROPERTY MANAGEMENT CORPORATION', style: 'header', bold: true, alignment: 'center'},
+						{text: 'Amvel Business Park, Brgy. San Dionisio Sucat, Paranaque', style: 'subheader', alignment: 'center'},
+						{text: `\n\n\n\n\nName of Lessee:   ${lesseeName}`, alignment: 'left'},
+						{text: `\nStall Number:   ${stallId}`},
+						{text: '\n\n\nWater BILL\n\n', style: 'header', bold: true, alignment: 'center'},
+						{text: `Date: ${moment().format('MM-DD-YYYY')}\n\n`, alignment: 'right'},
+						{text: `Period Covered: ${moment(dueDate).subtract(1,'months').format('MMMM YYYY')} to ${moment(dueDate).format('MMMM YYYY')}\n\n`, alignment: 'left'},
+						{
+							table: {
+								widths: ['*', '*', '*', '*'],
+								body: [
+									[
+										{text:'METER READING', bold:true, alignment: 'center'},
+										{text:'TOTAL CUBIC METER USAGE', bold:true, alignment: 'center'},
+										{text:'AMOUNT DUE', bold:true, alignment: 'center'},
+										{text:'DUE DATE', bold:true, alignment: 'center'},
+									],
+									[
+										{text:`${meterReading}`, alignment: 'center'},
+										{text:`${cubicMeterUsage}`, alignment: 'center'},
+										{text:`${amountDue}`, alignment: 'center'},
+										{text:`${moment(dueDate).format('MM-DD-YYYY')}`, alignment: 'center'},
+									],
+								]
+							}
+						},
+						{text: '\n\n\n\n\n\nNote: Please prepare your check payable to:', alignment: 'left', style: 'header', bold: true},
+						{text: '\nExtraOrdinary Property Management Corporation', alignment: 'center', bold: true},
+						{text: '\nReminder:', alignment: 'left', style: 'header', bold: true},
+						{text: 'Failure of the LESSEE to pay the electricity charges, 7 days after due date of billing statement, shall automatically lead to the disconnection of the electricity supply. Reconnection of the electricity supply shall be made once balance has been fully settled.', alignment: 'justify'},
+						{text: '\n\nNote: PLEASE DISREGARD THE NOTICE IF PAYMENT HAS ALREADY BEEN MADE.', alignment: 'center', style: 'header', bold: true},
+						{text: '\n\nPrepared by:\t\t\t\t\t\t\t\t\Checked & Verified by:\t\t\t\t\t\t\tApproved by:',bold: true, alignment: 'center'},
+						{text: '\n\n\t\tJoel Boriol\t\t\t\t\t\t\t\t\t\t\tRowena Olan\t\t\t\t\t\t\t\tSherry V. Yambao',bold: true, alignment: 'center'},
+						{text: 'Staff\t\t\t\t\t\t\t\t\t\t\tAccounting Officer\t\t\t\t\t\t\t\tVP Finance',bold: true, alignment: 'center'},
+						{text: '\n\n\n\nReceived by:   _________________\t\t\t\t\t\t\t\t\t Date Received: _____________________'},	
+					]		
+				}
+				pdfMake.createPdf(billTemplate).open();
+			}
 		})

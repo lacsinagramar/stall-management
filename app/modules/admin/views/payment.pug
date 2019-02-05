@@ -8,7 +8,7 @@ block content
 					h4.card-title Payments
 				.card-body
 					.toolbar
-						button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addStallModal') + Add Stall
+						button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addPaymentModal') + Add Payment
 					br
 					table#stallTable.table.table-bordered.table-striped(cellspacing='0')
 						thead
@@ -18,180 +18,73 @@ block content
 								th Amount Paid
 								th Actions
 						tbody
-							each stall in stalls
-								tr
-									td #{stall.strId}
-									td #{`${stall.booStallType == 0 ? 'Food Stall' : 'Dry Goods Stall'}`}
-									if(stall.booIsAvailable == 0)
-										td.text-success Available
-										td
-											a.btn.btn-round.btn-warning.btn-icon.edit(href='javascript:void(0)' stallType=`${stall.booStallType}` stallId=`${stall.strId}`)
-												i.now-ui-icons.design_scissors
-											a.btn.btn-round.btn-danger.btn-icon.remove(href='javascript:void(0)' stallType=`${stall.booStallType}` stallId=`${stall.strId}`)
-												i.now-ui-icons.ui-1_simple-remove
-									else
-										td.text-danger Occupied
-										td
-											a.btn.btn-round.btn-warning.btn-icon(href='javascript:void(0)' stallType=`${stall.booStallType}` stallId=`${stall.strId}` disabled)
-												i.now-ui-icons.design_scissors
-											a.btn.btn-round.btn-danger.btn-icon(href='javascript:void(0)' stallType=`${stall.booStallType}` stallId=`${stall.strId}` disabled)
-												i.now-ui-icons.ui-1_simple-remove
-	#addStallModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+							tr
+								td hello
+								td hello
+								td hello
+								td hello
+	#addPaymentModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
 				.modal-header
-					h5.modal-title Add Stall
+					h5.modal-title Add Payment
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
-				form#addStallForm(method='POST' action='/admin/addstall')
-					.modal-body
-							.form-group
-								label Stall ID
-									small.text-danger  *
-								input.form-control(type='text' name='stallId' placeholder='Enter Stall ID')
-							.form-group
-								label Stall Type
-									small.text-danger  *
-								.form-check.form-check-radio
-									label.form-check-label
-										input.form-check-input(type='radio', name='stallType', value='0' checked)
-										| Food Stall
-										span.form-check-sign
-								.form-check.form-check-radio
-									label.form-check-label
-										input.form-check-input(type='radio', name='stallType', value='1')
-										| Dry Goods Stall
-										span.form-check-sign
+				form#addPaymentForm
+					.modal-body#addPaymentModalBody
+						.form-group
+							label Pay for:
+								small.text-danger  *
+							br
+							select.form-control.selectpicker.paymentFor(data-style='select-with-transition btn-primary btn-round' title='Select')
+								option(value='W') Water Bill
+								option(value='E') Electricity Bill
+								option(value='R') Rental Bill
+							label Bill Code
+								small.text-danger  *
+							input.form-control.billCode(type="text" placeholder="Enter Bill Code")
+							label Amount Paid
+								small.text-danger  *
+							input.form-control.amountPaid(type="number" placeholder="Enter Amount Paid")
 					.modal-footer
-						button#addStallSave.btn.btn-primary(type='submit') Save
-	#editStallModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
-		.modal-dialog(role='document')
-			.modal-content
-				.modal-header
-					h5.modal-title Edit Stall
-					button.close(type='button', data-dismiss='modal', aria-label='Close')
-						span(aria-hidden='true') ×
-				form#editStallForm(method='POST' action='')
-					.modal-body
-							.form-group
-								label Stall ID
-									small.text-danger  *
-								input#editStallStallId.form-control(type='text' name='stallId' placeholder='Enter Stall ID')
-							.form-group
-								label Stall Type
-									small.text-danger  *
-								.form-check.form-check-radio
-									label.form-check-label
-										input#editStallFood.form-check-input(type='radio', name='stallType', value='0')
-										| Food Stall
-										span.form-check-sign
-								.form-check.form-check-radio
-									label.form-check-label
-										input#editStallDry.form-check-input(type='radio', name='stallType', value='1')
-										| Dry Goods Stall
-										span.form-check-sign
-					.modal-footer
-						button#editStallSave.btn.btn-primary(type='submit') Edit
+						button#addPaymentSave.btn.btn-primary(type='submit') Save
+						button#addPaymentButton.btn.btn-success + Another Bill
 block contentScript
 	script.
 		$(document).ready(function(){
 			$('#stallTable').dataTable()
-			$('input[name="stallId"]').mask('A-Z000',{
-				translation:{
-					'A':{
-						pattern: /[A-Z]/
-					},
-					'0':{
-						pattern: /[0-9]/
-					},
-					'Z':{
-						pattern: /[1-9]/
-					}
-				}
+			$('#addPaymentButton').on('click', function(){
+				$('#addPaymentModalBody').append(`<div class="form-group">
+						<label>Pay for:<small class="text-danger"> *</small></label><br />
+						<select class="form-control selectpicker paymentFor" data-style="select-with-transition btn-primary btn-round" title="Select">
+							<option value="W">Water Bill
+							<option value="E">Electricity Bill</option>
+							<option value="R">Rental Bill</option>
+						</select>
+						<label>Bill Code<small class="text-danger"> *</small></label>
+						<input class="form-control billCode" type="text" placeholder="Enter Bill Code" />
+						<label>Amount Paid<small class="text-danger"> *</small></label>
+						<input class="form-control amountPaid" type="number" placeholder="Enter Amount Paid" />
+					</div>`
+				)
+				$('.selectpicker').selectpicker()
 			})
-			$('#addStallForm').validate({
-				rules:{
-					stallId:{
-						required: true,
-						minlength: 3,
-						remote: {
-							url: '/admin/stall-id-check',
-							type: 'POST',
-							data: {
-								stallId: function(){
-									return $('#addStallForm input[name="stallId"]').val()
-								}
-							},
-						}
-					}
-				},
-				messages:{
-					stallId:{
-						remote: function(){
-							return `Stall ${$('#addStallForm input[name="stallId"]').val()} already exists on the database`
-						}
-					}
-				}
+			$('#addPaymentForm').on('submit', function(e){
+				e.preventDefault()
 			})
-			$(document).on('click', '.edit', function(){
-				$('#editStallStallId').val($(this).attr('stallId'))
-				if($(this).attr('stallType') == 0){
-					$('#editStallFood').prop('checked',true)
+			$('#addPaymentSave').on('click', function(){
+				const bills = $('.selectpicker')
+				const billCodes = $('.billCode')
+				const amountPaids = $('.amountPaid')
+				const finalInfo = []
+
+				for(let i = 0; i<bills.length; i++){
+					finalInfo.push({
+						bill: bills.eq(i).val(),
+						billCode: billCodes.eq(i).val(),
+						amountPaid: amountPaids.eq(i).val()
+					})
 				}
-				else if($(this).attr('stallType') == 1){
-					$('#editStallDry').prop('checked',true)
-				}
-				$('#editStallForm').prop('action', `/admin/edit-stall?stallId=${$(this).attr('stallId')}`)
-				$('#editStallForm').attr('stallId', `${$(this).attr('stallId')}`)
-				$('#editStallModal').modal('show');
-			})
-			$('#editStallForm').validate({
-				rules:{
-					stallId:{
-						required: true,
-						minlength: 3,
-						remote: {
-							url: '/admin/stall-id-check',
-							type: 'POST',
-							data: {
-								stallId: function(){
-									return $('#editStallForm input[name="stallId"]').val()
-								},
-								originalStallId: function(){
-									return $('#editStallForm').attr('stallId')
-								}
-							},
-						}
-					}
-				},
-				messages:{
-					stallId:{
-						remote: function(){
-							return `Stall ${$('#editStallForm input[name="stallId"]').val()} already exists on the database`
-						}
-					}
-				}
-			})
-			$('#editStallModal').on('bs.modal.hidden', function(){
-				$('#editStallFood').prop('checked',false)
-				$('#editStallDry').prop('checked',false)
-			})
-			$(document).on('click', '.remove', function(){
-				const clicked = $(this).attr('stallId')
-				swal({
-					title: 'Are you sure?',
-					type: 'question',
-					showCancelButton: true,
-					confirmButtonText: 'Yes',
-					cancelButtonText: 'No',
-					confirmButtonColor: '#4fbf41',
-					cancelButtonColor: '#bf4141'
-				}).then(value => {
-					if(value){
-						$.post('/admin/delete-stall', {id: clicked}).done(function(){
-							location.href='/admin/stall'
-						})
-					}
-				})
+				console.log(finalInfo)
 			})
 		})

@@ -107,8 +107,8 @@ router.get('/water-bill', middleware.hasAdmin, (req, res) => {
 		return res.render('admin/views/water-bill', {water: results, url: req.url})
 	})
 })
-router.get('/electric-consumption', (req, res) => {
-	db.query('SELECT * FROM tbl_electric_main_bill WHERE booStatus = 0', (err, results) => {
+router.get('/electric-consumption', middleware.hasAdminOrStaff, (req, res) => {
+	db.query('SELECT * FROM tbl_electric_main_bill', (err, results) => {
 		if(err) console.log(err)
 
 		for(let i = 0; i< results.length; i++){
@@ -118,8 +118,8 @@ router.get('/electric-consumption', (req, res) => {
 		return res.render('admin/views/electric-consumption', {electric: results, url: req.url})
 	})
 })
-router.get('/water-consumption', (req, res) => {
-	db.query('SELECT * FROM tbl_water_main_bill WHERE booStatus = 0', (err, results) => {
+router.get('/water-consumption', middleware.hasAdminOrStaff, (req, res) => {
+	db.query('SELECT * FROM tbl_water_main_bill', (err, results) => {
 		if(err) console.log(err)
 
 		for(let i = 0; i< results.length; i++){
@@ -129,9 +129,11 @@ router.get('/water-consumption', (req, res) => {
 		return res.render('admin/views/water-consumption', {water: results, url: req.url})
 	})
 })
-router.get('/payments', (req, res) => {
+router.get('/payment', (req, res) => {
 	db.query('SELECT * FROM tbl_payment', (err, results) => {
 		if(err) console.log(err)
+
+		res.render('admin/views/payment', {url: req.url})
 	})
 })
 //END GET
@@ -430,12 +432,14 @@ router.post('/encode-water-bill', (req, res) => {
 router.post('/get-encoded', (req, res) => {
 	if(req.body.type == 'electric'){
 		var query = `SELECT * FROM tbl_electric_lessee_bill 
-		JOIN tbl_contract ON intContractId = tbl_contract.intId 
+		JOIN tbl_contract ON intContractId = tbl_contract.intId
+		JOIN tbl_lessee ON strLesseeId = strId
 		WHERE intElectricMainBillId = ?`
 	}
 	else if(req.body.type == 'water'){
 		var query = `SELECT * FROM tbl_water_lessee_bill 
 		JOIN tbl_contract ON intContractId = tbl_contract.intId
+		JOIN tbl_lessee ON strLesseeId = strId
 		WHERE intWaterMainBillId = ?`
 	}
 	db.query(query, req.body.id, (err, results) => {

@@ -136,7 +136,7 @@ block contentScript
 									<strong>Amount Due: </strong>
 									<span>P ${data[f].dblAmountDue}</span>
 									<br/>
-									<button class="btn btn-info btn-round generateBill" amountDue="${data[f].dblAmountDue}" kwhUsage="${data[f].intTotalKwhUsage}" meterReading="${data[f].intMeterReading}" lesseeName="${data[f].strFirstName} ${data[f].strMiddleName} ${data[f].strLastName}" stallId="${data[f].strStallId}" dueDate='${data[f].datDueDate}'>Generate</button>
+									<button class="btn btn-info btn-round generateBill" lesseeBillId="${data[f].lesseeBillId}" amountDue="${data[f].dblAmountDue}" kwhUsage="${data[f].intTotalKwhUsage}" meterReading="${data[f].intMeterReading}" lesseeName="${data[f].strFirstName} ${data[f].strMiddleName} ${data[f].strLastName}" stallId="${data[f].strStallId}" dueDate='${data[f].datDueDate}'>Generate</button>
 								</div>
 							</div>`
 						)
@@ -151,18 +151,18 @@ block contentScript
 				$('#generateModalBody').empty()
 			})
 			$(document).on('click', '.generateBill', function(){
-				generateBill($(this).attr('lesseeName'), $(this).attr('stallId'), $(this).attr('meterReading'), $(this).attr('kwhUsage'), $(this).attr('amountDue'), $(this).attr('dueDate'))
+				generateBill($(this).attr('lesseeName'), $(this).attr('stallId'), $(this).attr('meterReading'), $(this).attr('kwhUsage'), $(this).attr('amountDue'), $(this).attr('dueDate'), $(this).attr('lesseeBillId'))
 			})
 
 			// FUNCTIONS
-			function generateBill(lesseeName, stallId, meterReading, kwhUsage, amountDue, dueDate){
+			function generateBill(lesseeName, stallId, meterReading, cubicMeterUsage, amountDue, dueDate, lesseeBillId){
 				const billTemplate = {
 					content: [
 						{text: '\n\nEXTRAORDINARY PROPERTY MANAGEMENT CORPORATION', style: 'header', bold: true, alignment: 'center'},
 						{text: 'Amvel Business Park, Brgy. San Dionisio Sucat, Paranaque', style: 'subheader', alignment: 'center'},
 						{text: `\n\n\n\n\nName of Lessee:   ${lesseeName}`, alignment: 'left'},
 						{text: `\nStall Number:   ${stallId}`},
-						{text: '\n\n\nELECTRIC BILL\n\n', style: 'header', bold: true, alignment: 'center'},
+						{text: `\n\n\nELECTRIC BILL Reference Code(${lesseeBillId})\n\n`, style: 'header', bold: true, alignment: 'center'},
 						{text: `Date: ${moment().format('MM-DD-YYYY')}\n\n`, alignment: 'right'},
 						{text: `Period Covered: ${moment(dueDate).subtract(1,'months').format('MMMM YYYY')} to ${moment(dueDate).format('MMMM YYYY')}\n\n`, alignment: 'left'},
 						{

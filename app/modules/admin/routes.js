@@ -459,6 +459,30 @@ router.post('/validate-bill', (req, res) => {
 		return res.send(true)
 	})
 })
+router.post('/get-bill-amount', (req, res) => {
+
+	if(req.body.bill == 'E'){
+		var query = `SELECT * FROM tbl_electric_lessee_bill WHERE intId = ?`
+		var notFoundMessage = `Electric Bill with Ref. Code(${req.body.billCode}) doesn't exist on our database`
+	}
+	else if(req.body.bill == 'W'){
+		var query = `SELECT * FROM tbl_water_lessee_bill WHERE intId = ?`
+		var notFoundMessage = `Water Bill with Ref. Code(${req.body.billCode}) doesn't exist on our database`
+	}
+	db.query(query, req.body.billCode, (err, results) => {
+		if(err) console.log(err)
+		
+		if(results.length > 0){
+			if(results[0].strPaymentReferenceNo != null){
+				return res.send({valid: false, message: `This bill is already paid`})
+			}
+			return res.send({valid:true, amountDue: results[0].dblAmountDue})
+		}
+		else{
+			return res.send({valid: false, message: notFoundMessage})
+		}
+	})
+})
 //END POST
 
 exports.admin = router;

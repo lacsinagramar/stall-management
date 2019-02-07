@@ -1,5 +1,19 @@
 extends ./template.pug
 
+block contentStyle
+	style.
+		.remove-bill{
+			color: rgba(191, 65, 65, 0.7);
+			text-decoration: none;
+			text-transform: uppercase;
+			float: right;
+			font-weight: bold;
+		}
+		.remove-bill:hover{
+			color: #bf4141;
+			text-decoration: none;
+		}
+
 block content
 	.row
 		.col-md-12
@@ -30,61 +44,114 @@ block content
 					h5.modal-title Add Payment
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
-				form#addPaymentForm
-					.modal-body#addPaymentModalBody
-						.form-group
+				.modal-body
+					#addPaymentModalBody
+						.form-group.billInfo
 							label Pay for:
 								small.text-danger  *
 							br
 							select.form-control.selectpicker.paymentFor(data-style='select-with-transition btn-primary btn-round' title='Select')
-								option(value='W') Water Bill
+								option(value='W' selected) Water Bill
 								option(value='E') Electricity Bill
 								option(value='R') Rental Bill
 							label Bill Reference Code
 								small.text-danger  *
-							input.form-control.billCode(type="text" placeholder="Enter Bill Code")
-							label Amount Paid
+							input.form-control.billCode(type="text" placeholder="Enter Bill Code" valid='false')
+							label Bill Amount Due
 								small.text-danger  *
-							input.form-control.amountPaid(type="number" placeholder="Enter Amount Paid")
-					.modal-footer
-						button#addPaymentSave.btn.btn-primary(type='submit') Save
-						button#addPaymentButton.btn.btn-success + Another Bill
+							input.amountDue.form-control(type="number" placeholder="Bill Amount Due" value='0' readonly)
+					hr
+					.row
+						.col-md-6
+							label
+								h6 Total Amount Due
+							input#totalAmountDue.form-control(type="number" placeholder="Enter Amount Due" value='0' readonly)
+						.col-md-6
+							label
+								h6 Amount Paid
+							input#amountPaid.form-control(type="number" placeholder="Enter Amount Paid")
+				.modal-footer
+					button#addPaymentSave.btn.btn-primary(type='submit') Save
+					button#addPaymentButton.btn.btn-success + Another Bill
 block contentScript
 	script.
 		$(document).ready(function(){
 			$('#stallTable').dataTable()
 			$('#addPaymentButton').on('click', function(){
 				$('#addPaymentModalBody').append(`<div class="form-group">
+						<br />
+						<a class="remove-bill" href="javascript:">Remove</a>
 						<label>Pay for:<small class="text-danger"> *</small></label><br />
 						<select class="form-control selectpicker paymentFor" data-style="select-with-transition btn-primary btn-round" title="Select">
-							<option value="W">Water Bill
+							<option selected value="W">Water Bill
 							<option value="E">Electricity Bill</option>
 							<option value="R">Rental Bill</option>
 						</select>
 						<label>Bill Reference Code<small class="text-danger"> *</small></label>
-						<input class="form-control billCode" type="text" placeholder="Enter Bill Code" />
-						<label>Amount Paid<small class="text-danger"> *</small></label>
-						<input class="form-control amountPaid" type="number" placeholder="Enter Amount Paid" />
+						<input class="form-control billCode" type="text" placeholder="Enter Bill Code" valid='false'/>
+						<label>Bill Amount Due<small class="text-danger"> *</small></label>
+						<input class="form-control amountDue" type="number" placeholder="Enter Amount Due" value='0' readonly/>
 					</div>`
 				)
 				$('.selectpicker').selectpicker()
 			})
-			$('#addPaymentForm').on('submit', function(e){
-				e.preventDefault()
+			$(document).on('change', '.billCode', function(){
+				let billInput = $(this)
+				if(billInput.val() == ''){
+					return;
+				}
+				$.post('/admin/get-bill-amount', {
+					bill: $(this).siblings('.paymentFor').children('select').val(),
+					billCode: $(this).val()
+				}).done(function(data){
+					if(data.valid){
+						billInput.siblings('.amountDue').val(data.amountDue)
+						billInput.attr('valid', 'true')
+						billInput.siblings('.amountDue').trigger('change')
+					}
+					else{
+						swal({
+							title: `Invalid Input`,
+							text: `${data.message}`,
+							type: 'error'
+						})
+						billInput.siblings('.amountDue').val('0')
+						billInput.attr('valid', 'false')
+						billInput.siblings('.amountDue').trigger('change')
+					}
+				})
+			})
+			$(document).on('change', '.paymentFor', function(){
+				$(this).siblings('.billCode').val('')
+			})
+			$(document).on('change', '.amountDue', function(){
+				let amounts = $('.amountDue')
+				let totalAmount = 0;
+				for(let i=0; i< amounts.length; i++){
+					totalAmount = eval(`${totalAmount}+${amounts.eq(i).val()}`)
+				}
+				$('#totalAmountDue').val(totalAmount)
+			})
+			$(document).on('click', '.remove-bill', function (){
+				$(this).parents('.form-group').remove()
+				$('.amountDue').trigger('change')
 			})
 			$('#addPaymentSave').on('click', function(){
-				const bills = $('.selectpicker')
-				const billCodes = $('.billCode')
-				const amountPaids = $('.amountPaid')
+				const billInfos = $('.billInfo')
 				const finalInfo = []
 
-				for(let i = 0; i<bills.length; i++){
-					finalInfo.push({
-						bill: bills.eq(i).val(),
-						billCode: billCodes.eq(i).val(),
-						amountPaid: amountPaids.eq(i).val()
-					})
+				for(let i = 0; i<billInfos.length; i++){
+					if(billInfos.eq(i).find('.billCode').attr('valid') == true){
+						console.log('true')
+					}
+					//- finalInfo.push({
+					//- 	bill: billInfos.eq(i).val(),
+					//- 	billCode: billCodes.eq(i).val(),
+					//- })
+					//- if(i == billInfos.length - 1){
+					//- 	$.post('/admin/get-total-amount', {finalInfo})
+					//- 	console.log(finalInfo)
+					//- }
 				}
-				console.log(finalInfo)
 			})
 		})

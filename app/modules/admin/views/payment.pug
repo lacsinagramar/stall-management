@@ -78,7 +78,7 @@ block contentScript
 		$(document).ready(function(){
 			$('#stallTable').dataTable()
 			$('#addPaymentButton').on('click', function(){
-				$('#addPaymentModalBody').append(`<div class="form-group">
+				$('#addPaymentModalBody').append(`<div class="form-group billInfo">
 						<br />
 						<a class="remove-bill" href="javascript:">Remove</a>
 						<label>Pay for:<small class="text-danger"> *</small></label><br />
@@ -141,8 +141,11 @@ block contentScript
 				const finalInfo = []
 
 				for(let i = 0; i<billInfos.length; i++){
-					if(billInfos.eq(i).find('.billCode').attr('valid') == true){
+					if(billInfos.eq(i).find('.billCode').attr('valid') == 'true'){
 						console.log('true')
+					}
+					else{
+						console.log('false')
 					}
 					//- finalInfo.push({
 					//- 	bill: billInfos.eq(i).val(),

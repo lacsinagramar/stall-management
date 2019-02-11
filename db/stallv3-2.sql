@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.15, for Linux (x86_64)
 --
--- Host: localhost    Database: stallv2
+-- Host: localhost    Database: stallv3
 -- ------------------------------------------------------
 -- Server version	8.0.15
 
@@ -16,10 +16,10 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Current Database: `stallv2`
+-- Current Database: `stallv3`
 --
 
-CREATE DATABASE `stallv3`;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `stallv3`;
 
 USE `stallv3`;
 
@@ -61,7 +61,7 @@ CREATE TABLE `tbl_contract` (
   KEY `contract to stall_idx` (`strStallId`),
   CONSTRAINT `contract to lessee` FOREIGN KEY (`strLesseeId`) REFERENCES `tbl_lessee` (`strid`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `contract to stall` FOREIGN KEY (`strStallId`) REFERENCES `tbl_stall` (`strid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -81,13 +81,11 @@ CREATE TABLE `tbl_electric_lessee_bill` (
   `datDueDate` date NOT NULL,
   `strPaymentReferenceNo` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`intId`),
-  KEY `electricBill to payment_idx` (`strPaymentReferenceNo`),
   KEY `electricBill to mainElectric_idx` (`intElectricMainBillId`),
   KEY `electricBill to contract_idx` (`intContractId`),
   CONSTRAINT `electricBill to contract` FOREIGN KEY (`intContractId`) REFERENCES `tbl_contract` (`intId`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `electricBill to mainElectric` FOREIGN KEY (`intElectricMainBillId`) REFERENCES `tbl_electric_main_bill` (`intid`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `electricBill to payment` FOREIGN KEY (`strPaymentReferenceNo`) REFERENCES `tbl_payment` (`strreferenceno`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+  CONSTRAINT `electricBill to mainElectric` FOREIGN KEY (`intElectricMainBillId`) REFERENCES `tbl_electric_main_bill` (`intid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -107,7 +105,7 @@ CREATE TABLE `tbl_electric_main_bill` (
   `booStatus` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`intId`),
   UNIQUE KEY `dueConstraint` (`intDueMonth`,`intDueYear`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -181,10 +179,12 @@ DROP TABLE IF EXISTS `tbl_payment_child`;
  SET character_set_client = utf8mb4 ;
 CREATE TABLE `tbl_payment_child` (
   `intId` int(11) NOT NULL AUTO_INCREMENT,
-  `strPaymentReferenceNo` varchar(45) DEFAULT NULL,
+  `strPaymentReferenceNo` varchar(45) NOT NULL,
+  `intBillId` int(11) NOT NULL,
+  `strBillType` varchar(5) NOT NULL,
   PRIMARY KEY (`intId`),
   KEY `child to payment_idx` (`strPaymentReferenceNo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -225,7 +225,7 @@ CREATE TABLE `tbl_staff` (
   `strPassword` varchar(45) NOT NULL,
   `booStatus` tinyint(4) NOT NULL DEFAULT '1',
   PRIMARY KEY (`intId`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -278,11 +278,9 @@ CREATE TABLE `tbl_water_lessee_bill` (
   `strPaymentReferenceNo` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`intId`),
   KEY `waterBill to mainWater_idx` (`intWaterMainBillId`),
-  KEY `waterBill to payment_idx` (`strPaymentReferenceNo`),
   KEY `waterBill to contract_idx` (`intContractId`),
   CONSTRAINT `waterBill to contract` FOREIGN KEY (`intContractId`) REFERENCES `tbl_contract` (`intId`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `waterBill to mainWater` FOREIGN KEY (`intWaterMainBillId`) REFERENCES `tbl_water_main_bill` (`intid`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `waterBill to payment` FOREIGN KEY (`strPaymentReferenceNo`) REFERENCES `tbl_payment` (`strReferenceNo`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `waterBill to mainWater` FOREIGN KEY (`intWaterMainBillId`) REFERENCES `tbl_water_main_bill` (`intid`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -315,4 +313,4 @@ CREATE TABLE `tbl_water_main_bill` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-02-08 19:44:12
+-- Dump completed on 2019-02-11 19:24:11

@@ -1,0 +1,8 @@
+- Check db errors /
+- Complete Payment module
+- Polish Contract generation / 
+- Start Lessee portal
+- Notifications for bill
+- Start ticketing module
+- Start Utilities(Stall Price by type, Lease add-on price)
+- Stall Map

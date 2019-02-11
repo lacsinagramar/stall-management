@@ -155,7 +155,7 @@ block contentScript
 			})
 
 			// FUNCTIONS
-			function generateBill(lesseeName, stallId, meterReading, cubicMeterUsage, amountDue, dueDate, lesseeBillId){
+			function generateBill(lesseeName, stallId, meterReading, kwhUsage, amountDue, dueDate, lesseeBillId){
 				const billTemplate = {
 					content: [
 						{text: '\n\nEXTRAORDINARY PROPERTY MANAGEMENT CORPORATION', style: 'header', bold: true, alignment: 'center'},

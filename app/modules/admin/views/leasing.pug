@@ -279,6 +279,7 @@ block contentScript
 									normal: 'Times-new-roman-Regular.ttf'
 								}
 							}
+							const docArray = [{type:'contract', doc:contract}, {type:'receipt', doc:receipt}]
 							swal({
 								title: `Documents Generated`,
 								text: `Receipt and Contract already generated please click okay`,
@@ -286,25 +287,33 @@ block contentScript
 								confirmButtonText: 'Okay',
 							}).then((value)=>{
 								if(value){
-									pdfMake.createPdf(receipt).open();
-									pdfMake.createPdf(contract).open();
-									pdfMake.createPdf(receipt).download(`receipt-contract${Date.now()}.pdf`);
-									pdfMake.createPdf(contract).download(`contract-${Date.now()}.pdf`);
-									$.post('/admin/add-contract', 
-									{
-										stallData: stallData, 
-										lesseeData: lesseeData, 
-										dateNow:{
-											month: moment().format('MM'),
-											day: moment().format('DD'),
-											year: moment().format('YYYY'),
+									let i = 0;
+									let interval = setInterval(function (){
+										if(i < docArray.length){
+											pdfMake.createPdf(docArray[i].doc).open();
+											if(docArray[i].type == 'receipt')
+												pdfMake.createPdf(docArray[i].doc).download(`receipt-contract${Date.now()}.pdf`);
+											else if(docArray[i].type == 'contract')
+												pdfMake.createPdf(docArray[i].doc).download(`contract-${Date.now()}.pdf`);
+											i++
 										}
-									
-									}).done(function(){
-										setTimeout(function(){
-											location.href='/admin/rental'
-										}, 3000)
-									})
+										else{
+											clearInterval(interval)
+											$.post('/admin/add-contract', {
+												stallData: stallData, 
+												lesseeData: lesseeData, 
+												dateNow:{
+													month: moment().format('MM'),
+													day: moment().format('DD'),
+													year: moment().format('YYYY'),
+												}
+											}).done(function(){
+												setTimeout(function(){
+													location.href='/admin/rental'
+												}, 5000)
+											})
+										}
+									}, 500)
 								}
 							})
 						});

@@ -27,16 +27,21 @@ block content
 					table#stallTable.table.table-bordered.table-striped(cellspacing='0')
 						thead
 							tr
-								th Reference Number
+								th Reference Code
 								th Payment Date
 								th Amount Paid
 								th Actions
 						tbody
-							tr
-								td hello
-								td hello
-								td hello
-								td hello
+							each payment in payments
+								tr
+									td #{payment.strReferenceNo}
+									td #{payment.datDatePaid}
+									td #{payment.dblAmountPaid}
+									td 
+										a.btn.btn-round.btn-info.btn-icon.edit(href='javascript:void(0)')
+											i.now-ui-icons.ui-1_zoom-bold
+										a.btn.btn-round.btn-danger.btn-icon.remove(href='javascript:void(0)')
+											i.now-ui-icons.ui-1_simple-remove
 	#addPaymentModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
@@ -118,6 +123,7 @@ block contentScript
 						billInput.siblings('.amountDue').val('0')
 						billInput.attr('valid', 'false')
 						billInput.siblings('.amountDue').trigger('change')
+						billInput.val('')
 					}
 				})
 			})
@@ -142,19 +148,55 @@ block contentScript
 
 				for(let i = 0; i<billInfos.length; i++){
 					if(billInfos.eq(i).find('.billCode').attr('valid') == 'true'){
-						console.log('true')
+						for(let g = 0; g<finalInfo.length; g++){
+							if(finalInfo[g].billType == billInfos.eq(i).find('select.paymentFor').val() && finalInfo[g].billCode == billInfos.eq(i).find('.billCode').val()){
+								return swal({
+									title: `Invalid Input`,
+									text: `You cannot duplicate pay a bill`,
+									type: 'error'
+								})
+							}
+						}
+						finalInfo.push({
+							billType: billInfos.eq(i).find('select.paymentFor').val(),
+							billCode: billInfos.eq(i).find('.billCode').val()
+						})
 					}
 					else{
-						console.log('false')
+						swal({
+							title: `Invalid Input`,
+							text: `One of your bills is not valid, please check`,
+							type: 'error'
+						})
 					}
-					//- finalInfo.push({
-					//- 	bill: billInfos.eq(i).val(),
-					//- 	billCode: billCodes.eq(i).val(),
-					//- })
-					//- if(i == billInfos.length - 1){
-					//- 	$.post('/admin/get-total-amount', {finalInfo})
-					//- 	console.log(finalInfo)
-					//- }
+					if(i == billInfos.length-1){
+						if(parseInt($('#amountPaid').val()) >= parseInt($('#totalAmountDue').val())){
+							$.post('/admin/add-payment', {data: finalInfo, amountPaid: $('#totalAmountDue').val()})
+							.done(function(){
+								if(parseInt($('#amountPaid').val()) > parseInt($('#totalAmountDue').val())){
+									swal({
+										title: `Change Amount`,
+										text: `Change amount is ${eval($('#amountPaid').val()+'-'+$('#totalAmountDue').val())}`,
+										type: 'info'
+									}).then(value => {
+										if(value){
+											location.href = '/admin/payment'
+										}
+									})
+								}
+								else{
+									location.href = '/admin/payment'
+								}
+							})
+						}
+						else{
+							swal({
+								title: `Amount Paid is Insufficient`,
+								text: `Amount paid should be greater than or equal to the amount due`,
+								type: 'error'
+							})
+						}
+					}
 				}
 			})
 		})

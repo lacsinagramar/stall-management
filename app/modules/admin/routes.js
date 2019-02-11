@@ -133,7 +133,13 @@ router.get('/payment', (req, res) => {
 	db.query('SELECT * FROM tbl_payment', (err, results) => {
 		if(err) console.log(err)
 
-		res.render('admin/views/payment', {url: req.url})
+		if(results.length> 0){
+			for(let f = 0; f<results.length; f++){
+				results[f].datDatePaid = moment(results[f].datDatePaid).format('MMMM DD YYYY')
+			}
+		}
+
+		res.render('admin/views/payment', {url: req.url, payments: results})
 	})
 })
 //END GET
@@ -480,6 +486,53 @@ router.post('/get-bill-amount', (req, res) => {
 		}
 		else{
 			return res.send({valid: false, message: notFoundMessage})
+		}
+	})
+})
+router.post('/add-payment', (req, res) => {
+	function generateReferenceNumber(){
+		const choice = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
+		let refCode = '';
+		for(let i=0; i<=15; i++){
+			refCode += `${choice[Math.floor(Math.random() * Math.floor(choice.length))]}`
+		}
+		return refCode;
+	}
+	const refCode = generateReferenceNumber();
+	db.query('INSERT INTO tbl_payment VALUES(?, ?, ?)', [refCode, moment().format('YYYY-MM-DD'), req.body.amountPaid], (err, results) => {
+		if(err) console.log(err)
+
+		for(let e = 0; e < req.body.data.length; e++){
+			db.query('INSERT INTO tbl_payment_child (strPaymentReferenceNo, intBillId, strBillType) VALUES(?, ?, ?)', [refCode, req.body.data[e].billCode, req.body.data[e].billType], (err, results) => {
+				if(err) console.log(err)
+
+				let query = ``;
+				if(req.body.data[e].billType == 'E'){
+					query = `UPDATE tbl_electric_lessee_bill SET strPaymentReferenceNo = ? WHERE intId = ?`
+				}
+				else if(req.body.data[e].billType == 'W'){
+					query = `UPDATE tbl_water_lessee_bill SET strPaymentReferenceNo = ? WHERE intId = ?`
+				}
+				// else if(req.body.data[e].billType == 'R'){
+				// 	query = `UPDATE tbl_electric_lessee_bill SET strPaymentReferenceNo = ? WHERE intId = ?`
+				// }
+				db.query(query, [refCode, req.body.data[e].billCode], (err, results) => {
+					if(err) console.log(err)
+				})
+			})
+			if(e == req.body.data.length - 1){
+				return res.send(true)
+			}
+		}
+	})
+})
+router.post('/generate-rental-bills', (req, res) => {
+	db.query('SELECT * FROM tbl_contract WHERE booContractStatus = 0', (err, results) => {
+		if(err) console.log(err)
+		let toBeGenerated = [];
+		for(let h = 0; h < results.length; h++){
+			const resultDate = moment(`${results[h].intContractYear}-${results[h].intContractMonth}-${results[h].intContractDay}`).format('YYYY-MM-DD')
+			// if(moment().format('YYYY-MM-DD').isSameOrAfter(moment(resultDate).subtract(10, 'days')))
 		}
 	})
 })

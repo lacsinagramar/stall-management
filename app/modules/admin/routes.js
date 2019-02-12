@@ -129,7 +129,7 @@ router.get('/water-consumption', middleware.hasAdminOrStaff, (req, res) => {
 		return res.render('admin/views/water-consumption', {water: results, url: req.url})
 	})
 })
-router.get('/payment', (req, res) => {
+router.get('/payment', middleware.hasAdminOrStaff, (req, res) => {
 	db.query('SELECT * FROM tbl_payment', (err, results) => {
 		if(err) console.log(err)
 
@@ -295,17 +295,37 @@ router.post('/delete-lessee', (req, res) => {
 	});
 })
 router.post('/add-contract', (req, res) => {
+	function generateReferenceNumber(){
+		const choice = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
+		let refCode = '';
+		for(let i=0; i<=15; i++){
+			refCode += `${choice[Math.floor(Math.random() * Math.floor(choice.length))]}`
+		}
+		return refCode;
+	}
+	const refCode = generateReferenceNumber();
 	console.log("ADD CONTRACT ROUTE",req.body)
 	const queryString = `INSERT INTO tbl_contract 
 	(strLesseeId, strStallId, intContractMonth, intContractDay, intContractYear, intContractDuration)
 	VALUES (?, ?, ?, ?, ?, ?)`;
+	const datePaid = `${req.body.dateNow.year}-${req.body.dateNow.month}-${req.body.dateNow.day}`
+	const amountPaid = req.body.stallData.booStallType == 0? '9000': '7000'
 	db.query(queryString, [req.body.lesseeData.strId, req.body.stallData.strId, req.body.dateNow.month, req.body.dateNow.day, req.body.dateNow.year, 6], (err, results) => {
 		if(err) console.log(err)
+
+		const contractIdNow = results.insertId
 
 		db.query('UPDATE tbl_stall SET booIsAvailable = 1 WHERE strId =?', req.body.stallData.strId, (err, results) => {
 			if(err) console.log(err)
 
-			return res.send(true);
+			db.query('INSERT INTO tbl_payment VALUES(?, ?, ?)',[refCode, datePaid, amountPaid], (err, results) =>{
+				if(err) console.log(err)
+				db.query('INSERT INTO tbl_rental_bill (intContractId, datDueDate, dblAmountDue, strPaymentReferenceNo) VALUES(?, ?, ?, ?)', [contractIdNow, datePaid, amountPaid, refCode], (err, results) =>{
+					if(err) console.log(err)
+					return res.send(true);
+				})
+			})
+
 		})
 
 	})
@@ -475,6 +495,10 @@ router.post('/get-bill-amount', (req, res) => {
 		var query = `SELECT * FROM tbl_water_lessee_bill WHERE intId = ?`
 		var notFoundMessage = `Water Bill with Ref. Code(${req.body.billCode}) doesn't exist on our database`
 	}
+	else if(req.body.bill == 'R'){
+		var query = `SELECT * FROM tbl_rental_bill WHERE intId = ?`
+		var notFoundMessage = `Rental Bill with Ref. Code(${req.body.billCode}) doesn't exist on our database`
+	}
 	db.query(query, req.body.billCode, (err, results) => {
 		if(err) console.log(err)
 		
@@ -513,9 +537,9 @@ router.post('/add-payment', (req, res) => {
 				else if(req.body.data[e].billType == 'W'){
 					query = `UPDATE tbl_water_lessee_bill SET strPaymentReferenceNo = ? WHERE intId = ?`
 				}
-				// else if(req.body.data[e].billType == 'R'){
-				// 	query = `UPDATE tbl_electric_lessee_bill SET strPaymentReferenceNo = ? WHERE intId = ?`
-				// }
+				else if(req.body.data[e].billType == 'R'){
+					query = `UPDATE tbl_rental_bill SET strPaymentReferenceNo = ? WHERE intId = ?`
+				}
 				db.query(query, [refCode, req.body.data[e].billCode], (err, results) => {
 					if(err) console.log(err)
 				})
@@ -527,12 +551,27 @@ router.post('/add-payment', (req, res) => {
 	})
 })
 router.post('/generate-rental-bills', (req, res) => {
-	db.query('SELECT * FROM tbl_contract WHERE booContractStatus = 0', (err, results) => {
+	const yearNow = moment().format('YYYY')
+	const monthNow = moment().format('MM')
+	db.query('SELECT * FROM tbl_contract  JOIN tbl_stall ON strId = strStallId WHERE booContractStatus = 0', (err, results) => {
 		if(err) console.log(err)
-		let toBeGenerated = [];
 		for(let h = 0; h < results.length; h++){
-			const resultDate = moment(`${results[h].intContractYear}-${results[h].intContractMonth}-${results[h].intContractDay}`).format('YYYY-MM-DD')
-			// if(moment().format('YYYY-MM-DD').isSameOrAfter(moment(resultDate).subtract(10, 'days')))
+			const price = results[h].booStallType == 0 ? 9000 : 7000
+			const newDueDate = moment(`${yearNow}-${monthNow}-${results[h].intContractDay}`).format('YYYY-MM-DD')
+			if(moment(moment().format('YYYY-MM-DD')).isSameOrAfter(moment(newDueDate).subtract(10, 'days').format('YYYY-MM-DD'))){
+				console.log(moment().format('YYYY-MM-DD')+' is same of after '+moment(newDueDate).subtract(10, 'days').format('YYYY-MM-DD'))
+				db.query('SELECT * FROM tbl_rental_bill WHERE intContractId = ? AND datDueDate = ?', [results[h].intId, newDueDate], (err, resultsBill) => {
+					if(err) console.log(err)
+
+					if(resultsBill.length == 0){
+						db.query('INSERT INTO tbl_rental_bill (intContractId, datDueDate, dblAmountDue) VALUES (?, ?, ?)',[results[h].intId, newDueDate, price], (err, resultsInsert) => {
+							if(err) console.log(err)
+
+							console.log(`\n\nCREATED A BILL for Contract No. ${results[h].intId} with Due date ${newDueDate}\n\n`)
+						})
+					}
+				})
+			}
 		}
 	})
 })

@@ -71,4 +71,10 @@ html
 		script(src='/assets/plugins/js/jquery.form.js')
 		script(src='/assets/plugins/js/dropify.min.js')
 		script(src='/assets/plugins/js/select2.min.js')
+		script.
+			$(document).ready(function(){
+				setInterval(function(){
+					$.post('/admin/generate-rental-bills')
+				}, 60000)
+			})
 		block scriptAddOns

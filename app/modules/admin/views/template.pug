@@ -96,10 +96,10 @@ block body
 										a(href='/admin/payment')
 											span.sidebar-mini-icon P
 											span.sidebar-normal Payment
-						li
+						li#utilities
 							a(href='../examples/calendar.html')
-								i.now-ui-icons.media-1_album
-								p Calendar
+								i.now-ui-icons.ui-1_settings-gear-63
+								p Utilities
 			.main-panel(style="padding-top:100px")
 				.content
 					block content
@@ -110,6 +110,9 @@ block scriptAddOns
 			const url = passedVar.split('?');
 			if(url[0] == '/'){
 				$('#dashboard').addClass('active')
+			}
+			else if(url[0] == '/utilities'){
+				$('#utilities').addClass('active')
 			}
 		})
 	block contentScript

@@ -1,0 +1,47 @@
+extends ./template.pug
+
+block contentStyle
+	title Login
+
+block content
+	.login-page
+		.page-header.header-filter(filter-color='orange')
+			.page-header-image(style='background-image:url(/assets/now-ui/img/login.jpg)')
+			.content
+				.container(style="height: unset")
+					.col-md-5.ml-auto.mr-auto
+						.card.card-login.card-plain
+							.card-header.text-center
+								.logo-container
+									img(src='/assets/now-ui/img/login.svg', alt='')
+							.card-body
+								.input-group.no-border.input-lg
+									.input-group-prepend
+										span.input-group-text
+											i.now-ui-icons.users_circle-08
+									input#username.form-control(type='text', placeholder='Username')
+								.input-group.no-border.input-lg
+									.input-group-prepend
+										span.input-group-text
+											i.now-ui-icons.objects_key-25
+									input#password.form-control(type='password', placeholder='Password')
+							.card-footer.text-center
+								button#login.btn.btn-primary.btn-round.btn-lg.btn-block Login
+	block contentScript
+		script.
+			$(document).ready(function(){
+				$('#login').on('click', function(){
+					$.post('/login', {user: $('#username').val(), pass: $('#password').val()}).done(function(data){
+						if(data.valid){
+							location.href='/'
+						}
+						else{
+							swal({
+								title: `Error`,
+								text: `There seems to be a problem logging in your account. It's either your username and password is incorrect or your account is inactive.`,
+								type: 'error'
+							})
+						}
+					})
+				})
+			})

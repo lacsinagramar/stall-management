@@ -25,6 +25,9 @@ html
 			.error{
 				color: #bf4141;
 			}
+			.modal-xl{
+				max-width:1200px
+			}
 		block headAddOns
 
 	body
@@ -75,6 +78,6 @@ html
 			$(document).ready(function(){
 				setInterval(function(){
 					$.post('/admin/generate-rental-bills')
-				}, 60000)
+				}, 5000)
 			})
 		block scriptAddOns

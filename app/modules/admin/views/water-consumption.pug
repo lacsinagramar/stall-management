@@ -29,14 +29,22 @@ block content
 											button.btn.btn-info.btn-round.generate(billId=`${bill.intId}`) Generate Bills
 	//MODALS
 	#encodeWaterModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
-		.modal-dialog.modal-lg(role='document')
+		.modal-dialog.modal-xl(role='document')
 			.modal-content
 				.modal-header
 					h5.modal-title Add Water Bill
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
 				form#encodeWaterForm
-					.modal-body#encodeWaterModalBody
+					.modal-body
+						.table-responsive
+							table.table
+								thead
+									tr
+										th Stall ID
+										th Last Month Meter Reading
+										th Current Month Meter Reading
+								tbody#encodeWaterModalTableBody
 					.modal-footer
 						button#encodeWaterSave.btn.btn-primary(type='submit') Save
 	#generateModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
@@ -46,7 +54,17 @@ block content
 					h5.modal-title Generate Bill of Tenants
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
-				.modal-body#generateModalBody
+				.modal-body
+					.table-responsive
+						table.table
+							thead
+								tr
+									th Stall ID
+									th Meter Reading
+									th Consumption
+									th Amount Due
+									th Action
+							tbody#generateModalTableBody
 block contentScript
 	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
 	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
@@ -57,22 +75,12 @@ block contentScript
 				$.post('/admin/get-readings', {billId: $(this).attr('billId'), type:'water'})
 				.done(function (data){
 					for(let i = 0; i< data.length; i++){
-						$('#encodeWaterModalBody').append(`
-							<h6>Stall ${data[i].strStallId}</h6>
-							<div class="row">
-								<div class="col-md-6">
-									<div class="form-group">
-										<label>Last Month Reading<small class="text-danger"> *</small></label>
-										<input class="form-control" type="text" disabled="disabled" value="${data[i].intMeterReading}" />
-									</div>
-								</div>
-								<div class="col-md-6">
-									<div class="form-group">
-										<label>Current Month Reading<small class="text-danger"> *</small></label>
-										<input class="form-control input-cubic" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" type="text" placeholder="Enter Current Meter Reading" />
-									</div>
-								</div>
-							</div><br/>`
+						$('#encodeWaterModalTableBody').append(`
+							<tr>
+								<td><strong>${data[i].strStallId}</strong></td>
+								<td><input class="form-control" type="text" disabled="disabled" value="${data[i].intMeterReading}" /></td>
+								<td><input class="form-control input-cubic" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" type="text" placeholder="Enter Current Meter Reading" /></td>
+							</tr>`
 						)
 					}
 				})
@@ -83,7 +91,7 @@ block contentScript
 				$('#encodeWaterModal').modal('show')
 			})
 			$('#encodeWaterModal').on('hidden.bs.modal', function(){
-				$('#encodeWaterModalBody').empty()
+				$('#encodeWaterModalTableBody').empty()
 			})
 			$('#encodeWaterSave').on('click', function(e){
 				e.preventDefault()
@@ -125,30 +133,21 @@ block contentScript
 				$.post('/admin/get-encoded',{id: $(this).attr('billId'), type:'water'})
 				.done(function(data){
 					for(let f=0; f < data.length; f++){
-						$('#generateModalBody').append(`
-							<div class="row">
-								<div class="col-md-12">
-									<h6 class="text-primary">Stall ${data[f].strStallId}</h6>
-									<strong>Meter Reading this Month: </strong>
-									<span>${data[f].intMeterReading}</span><br />
-									<strong>Usage this Month: </strong>
-									<span>${data[f].intTotalCubicMeterUsage}KwH</span><br />
-									<strong>Amount Due: </strong>
-									<span>P ${data[f].dblAmountDue}</span>
-									<br/>
-									<button class="btn btn-info btn-round generateBill" lesseeBillId="${data[f].lesseeBillId}" amountDue="${data[f].dblAmountDue}" cubicMeterUsage="${data[f].intTotalCubicMeterUsage}" meterReading="${data[f].intMeterReading}" lesseeName="${data[f].strFirstName} ${data[f].strMiddleName} ${data[f].strLastName}" stallId="${data[f].strStallId}" dueDate='${data[f].datDueDate}'>Generate</button>
-								</div>
-							</div>`
-						)
-						if(f != data.length - 1){
-							$('#generateModalBody').append('<hr/>')
-						}
+						$('#generateModalTableBody').append(`
+							<tr>
+								<td><h6 class="text-primary">Stall ${data[f].strStallId}</h6></td>
+								<td>${data[f].intMeterReading}</td>
+								<td>${data[f].intTotalCubicMeterUsage} Cubic Meter</td>
+								<td>P ${data[f].dblAmountDue}</td>
+								<td><button class="btn btn-info btn-round generateBill" lesseeBillId="${data[f].lesseeBillId}" amountDue="${data[f].dblAmountDue}" cubicMeterUsage="${data[f].intTotalCubicMeterUsage}" meterReading="${data[f].intMeterReading}" lesseeName="${data[f].strFirstName} ${data[f].strMiddleName} ${data[f].strLastName}" stallId="${data[f].strStallId}" dueDate='${data[f].datDueDate}'>Generate</button></td>
+							</tr>
+						`)
 					}
 					$('#generateModal').modal('show')
 				})
 			})
 			$('#generateModal').on('hidden.bs.modal', function() {
-				$('#generateModalBody').empty()
+				$('#generateModalTableBody').empty()
 			})
 			$(document).on('click', '.generateBill', function(){
 				generateBill($(this).attr('lesseeName'), $(this).attr('stallId'), $(this).attr('meterReading'), $(this).attr('cubicMeterUsage'), $(this).attr('amountDue'), $(this).attr('dueDate'), $(this).attr('lesseeBillId'))

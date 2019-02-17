@@ -8,6 +8,18 @@
 - Start Reports
 - Stall Map
 
+*Comments
+- Stall Price sa Leasing /
+- Stall Description (Mga pwede ibenta)
+- Table mode yung Consumption, Encoded Consumption, Generate Bills /
+- 2 Decimal Places lang /
+- Lower Set Interval For Rental Bill Generation /
+
+*View for
+- Lessee
+- Leasing
+- Payment
+
 SQL DUMP EXAMPLE
 mysqldump -u root -p -d -B stallv3>stallv3-2.sql
 

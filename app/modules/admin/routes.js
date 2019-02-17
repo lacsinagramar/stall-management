@@ -309,7 +309,7 @@ router.post('/add-contract', (req, res) => {
 	(strLesseeId, strStallId, intContractMonth, intContractDay, intContractYear, intContractDuration)
 	VALUES (?, ?, ?, ?, ?, ?)`;
 	const datePaid = `${req.body.dateNow.year}-${req.body.dateNow.month}-${req.body.dateNow.day}`
-	const amountPaid = req.body.stallData.booStallType == 0? '9000': '7000'
+	const amountPaid = req.body.stallData.booStallType == 0? '18000': '14000'
 	db.query(queryString, [req.body.lesseeData.strId, req.body.stallData.strId, req.body.dateNow.month, req.body.dateNow.day, req.body.dateNow.year, 6], (err, results) => {
 		if(err) console.log(err)
 

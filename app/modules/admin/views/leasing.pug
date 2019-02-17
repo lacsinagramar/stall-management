@@ -27,7 +27,7 @@ block content
 									else
 										td.text-danger Done
 									td
-										a.btn.btn-round.btn-primary.btn-icon.view(href='javascript:void(0)' contractId=`${contract.intId}`)
+										a.btn.btn-round.btn-info.btn-icon.view(href='javascript:void(0)' contractId=`${contract.intId}`)
 											i.now-ui-icons.ui-1_zoom-bold
 	#addLeasingModal.modal.fade(tabindex='false', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
@@ -38,17 +38,19 @@ block content
 						span(aria-hidden='true') ×
 				form#addLeasingForm(method='POST' action='/admin/addLeasing')
 					.modal-body
-							.form-group
-								label Stall ID
-									small.text-danger  *
-								select.select2(name='stallId' style="width: 100%")
-									option(value='') Select a Stall
-									each stall in stalls
-										option(value=`${stall.strId}`) #{stall.strId}
-							.form-group
-								label Username of Lessee
-									small.text-danger  *
-								input.form-control(type='text' name='lesseeUsername' placeholder='Enter Username')
+						.form-group
+							label Stall ID
+								small.text-danger  *
+							select#stallSelect.select2(name='stallId' style="width: 100%")
+								option(value='') Select a Stall
+								each stall in stalls
+									option(value=`${stall.strId}` stallType=`${stall.booStallType}`) #{stall.strId}
+						.form-group
+							label Username of Lessee
+								small.text-danger  *
+							input.form-control(type='text' name='lesseeUsername' placeholder='Enter Username')
+						br
+						#stallDetails
 					.modal-footer
 						button#addLeasingSave.btn.btn-primary(type='submit') Create
 block contentScript
@@ -56,6 +58,15 @@ block contentScript
 	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
 	script.
 		$(document).ready(function(){
+			$('#stallSelect').on('change', function(){
+				$('#stallDetails').empty()
+				let stallType = $(`#stallSelect option[value="${$(this).val()}"]`).attr('stallType')
+				$('#stallDetails').append(`<h6>Payment Details:</h6>
+						<p><b>Stall Type: </b>${stallType == 0? 'Food Stall': 'Dry Goods Stall'}</p>
+						<p><b>Rent per month: </b>Php ${stallType == 0? '9,000': '7,000'}</p>
+						<p><b>Advance Payment: </b>Php ${stallType == 0? '18,000': '14,000'}</p>`
+				)
+			})
 			$('.select2').select2();
 			$('#leasingTable').dataTable()
 			$('#addLeasingSave').on('click', function(e){

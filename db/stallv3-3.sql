@@ -19,7 +19,7 @@
 -- Current Database: `stallv3`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `stallv3` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `stallv3`;
 
 USE `stallv3`;
 
@@ -184,7 +184,7 @@ CREATE TABLE `tbl_payment_child` (
   `strBillType` varchar(5) NOT NULL,
   PRIMARY KEY (`intId`),
   KEY `child to payment_idx` (`strPaymentReferenceNo`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

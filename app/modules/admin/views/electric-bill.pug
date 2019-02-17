@@ -58,13 +58,22 @@ block content
 					.modal-footer
 						button#addElectricSave.btn.btn-primary(type='submit') Save
 	#viewModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
-		.modal-dialog(role='document')
+		.modal-dialog.modal-lg(role='document')
 			.modal-content
 				.modal-header
 					h5.modal-title Encoded Usage of Tenants
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
-				.modal-body#viewModalBody
+				.modal-body
+					.table-responsive
+						table.table
+							thead
+								tr
+									th Stall ID
+									th Meter Reading
+									th Consumption
+									th Amount Due
+							tbody#viewModalTableBody
 				.modal-footer
 					button#validate.btn.btn-primary Validate
 block contentScript
@@ -121,29 +130,21 @@ block contentScript
 				$.post('/admin/get-encoded', {type: 'electric', id: $(this).attr('billId')})
 				.done(function(data){
 					for(let f=0; f < data.length; f++){
-						$('#viewModalBody').append(`
-							<div class="row">
-								<div class="col-md-12">
-									<h6 class="text-primary">Stall ${data[f].strStallId}</h6>
-									<strong>Meter Reading this Month: </strong>
-									<span>${data[f].intMeterReading}</span><br />
-									<strong>Usage this Month: </strong>
-									<span>${data[f].intTotalKwhUsage}KwH</span><br />
-									<strong>Amount Due: </strong>
-									<span>P ${data[f].dblAmountDue}</span>
-								</div>
-							</div>`
-						)
-						if(f != data.length - 1){
-							$('#viewModalBody').append('<br/>')
-						}
+						$('#viewModalTableBody').append(`
+							<tr>
+								<td><h6 class="text-primary">Stall ${data[f].strStallId}</h6></td>
+								<td>${data[f].intMeterReading}</td>
+								<td>${data[f].intTotalKwhUsage}KwH</td>
+								<td>P ${data[f].dblAmountDue}</td>
+							</tr>
+						`)
 					}
 				})
 				$('#viewModal').modal('show')
 				$('#validate').attr('billId', $(this).attr('billId'))
 			})
 			$('#viewModal').on('hidden.bs.modal', function() {
-				$('#viewModalBody').empty()
+				$('#viewModalTableBody').empty()
 			})
 			$('#validate').on('click', function(){
 				$.post('/admin/validate-bill', {type: 'electric', id: $(this).attr('billId')})

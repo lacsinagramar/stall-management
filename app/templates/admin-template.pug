@@ -77,7 +77,9 @@ html
 		script.
 			$(document).ready(function(){
 				setInterval(function(){
-					$.post('/admin/generate-rental-bills')
+					$.post('/admin/generate-rental-bills').done(function(){
+						console.log('DONE GENERATE BILLS API')
+					})
 				}, 5000)
 			})
 		block scriptAddOns

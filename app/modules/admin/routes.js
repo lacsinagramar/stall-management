@@ -4,6 +4,7 @@ const db = require('../../lib/database')();
 const moment = require('moment');
 const multer = require('multer');
 const middleware = require('../auth/middlewares/auth');
+const fs = require('fs')
 
 // MULTER CONFIG
 const myStorage = multer.diskStorage({
@@ -320,9 +321,13 @@ router.post('/add-contract', (req, res) => {
 
 			db.query('INSERT INTO tbl_payment VALUES(?, ?, ?)',[refCode, datePaid, amountPaid], (err, results) =>{
 				if(err) console.log(err)
-				db.query('INSERT INTO tbl_rental_bill (intContractId, datDueDate, dblAmountDue, strPaymentReferenceNo) VALUES(?, ?, ?, ?)', [contractIdNow, datePaid, amountPaid, refCode], (err, results) =>{
+				db.query('INSERT INTO tbl_rental_bill (intContractId, datDueDate, dblAmountDue, strPaymentReferenceNo) VALUES(?, ?, ?, ?)', [contractIdNow, datePaid, amountPaid, refCode], (err, resultsBill) =>{
 					if(err) console.log(err)
-					return res.send(true);
+					db.query('INSERT INTO tbl_payment_child(strPaymentReferenceNo, intBillId, strBillType) VALUES(?, ?, ?)', [refCode, resultsBill.insertId, 'R'], (err, results) => {
+						if(err) console.log(err)
+
+						return res.send(true);
+					})
 				})
 			})
 
@@ -555,6 +560,10 @@ router.post('/generate-rental-bills', (req, res) => {
 	const monthNow = moment().format('MM')
 	db.query('SELECT * FROM tbl_contract  JOIN tbl_stall ON strId = strStallId WHERE booContractStatus = 0', (err, results) => {
 		if(err) console.log(err)
+
+		if(results.length == 0){
+			return res.send(false)
+		}
 		for(let h = 0; h < results.length; h++){
 			const price = results[h].booStallType == 0 ? 9000 : 7000
 			const newDueDate = moment(`${yearNow}-${monthNow}-${results[h].intContractDay}`).format('YYYY-MM-DD')
@@ -572,7 +581,40 @@ router.post('/generate-rental-bills', (req, res) => {
 					}
 				})
 			}
+			if(h == results.length - 1){
+				return res.send(true);
+			}
 		}
+	})
+})
+router.post('/editaccount', upload.any(), (req, res) =>{
+	let query1 = `UPDATE tbl_lessee SET strAddress = ?, strPhoneNumber = ?, strEmail = ? WHERE strId = ?`
+	let query2 = `UPDATE tbl_lessee SET strBaranggayPermit = ? WHERE strId = ?`
+
+	db.query(query1,[req.body.editAddress, req.body.editPhoneNumber, req.body.editEmail, req.body.editLesseeId], (err, results) =>{
+		if(err) console.log(err)
+
+		if(req.files.length > 0){
+			db.query(query2, [req.files[0].filename, req.body.editLesseeId], (err, results) => {
+				if(err) console.log(err)
+
+				fs.unlink(`public/uploads/${req.body.editBaranggayPermitOld}`, err => {
+					if(err) console.log(err)
+					console.log('file deleted')
+				})
+				return res.redirect('/admin/lessee')
+			})
+		}
+		else{
+			return res.redirect('/admin/lessee')
+		}
+	})
+})
+router.post('/get-payment-child', (req, res) => {
+	db.query('SELECT * FROM tbl_payment_child WHERE strPaymentReferenceNo = ?', req.body.paymentRef, (err, results) => {
+		if(err) console.log(err)
+
+		return res.send({payments: results})
 	})
 })
 //END POST

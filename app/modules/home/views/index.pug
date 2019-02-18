@@ -26,7 +26,7 @@ block content
 										each bill in bills
 											tr
 												- if(bill.type == 'E')
-													td Electric
+													td Electricity
 												- else if(bill.type == 'W')
 													td Water
 												- else if(bill.type == 'R')
@@ -39,4 +39,14 @@ block content
 														span.badge.badge-danger Unpaid
 												- else
 													td 
-														span.badge.badge-success Paid
+														a.badge.badge-success.text-white.viewPayment(href='javascript:' paymentRef=`${bill.strPaymentReferenceNo}`) Paid
+block contentScript
+	script.
+		$(document).ready(function(){
+			$('.viewPayment').on('click', function(){
+				swal({
+					type: 'info',
+					text: `Payment reference code of this bill is "${$(this).attr('paymentRef')}"`
+				})
+			})
+		})

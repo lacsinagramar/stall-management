@@ -38,7 +38,7 @@ block content
 									td #{payment.datDatePaid}
 									td Php #{payment.dblAmountPaid}
 									td 
-										a.btn.btn-round.btn-info.btn-icon.edit(href='javascript:void(0)')
+										a.btn.btn-round.btn-info.btn-icon.viewPayment(href='javascript:void(0)' refCode=`${payment.strReferenceNo}`)
 											i.now-ui-icons.ui-1_zoom-bold
 										a.btn.btn-round.btn-danger.btn-icon.remove(href='javascript:void(0)')
 											i.now-ui-icons.ui-1_simple-remove
@@ -78,6 +78,21 @@ block content
 				.modal-footer
 					button#addPaymentSave.btn.btn-primary(type='submit') Save
 					button#addPaymentButton.btn.btn-success + Another Bill
+	#viewPaymentModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+		.modal-dialog.modal-lg(role='document')
+			.modal-content
+				.modal-header
+					h5.modal-title Add Payment
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') ×
+				.modal-body
+					.table-responsive
+						table.table
+							thead
+								tr
+									th Bill Type
+									th Bill Reference Code
+							tbody#viewPaymentModalTableBody
 block contentScript
 	script.
 		$(document).ready(function(){
@@ -198,5 +213,30 @@ block contentScript
 						}
 					}
 				}
+			})
+			$('.viewPayment').on('click', function(){
+				$.post('/admin/get-payment-child', {
+					paymentRef: $(this).attr('refCode')
+				}).done(function(data){
+					for(let m = 0; m<data.payments.length; m++){
+						let billType = '';
+						if(data.payments[m].strBillType === 'R')
+							billType = 'Rental'
+						else if(data.payments[m].strBillType === 'W')
+							billType = 'Water'
+						else if(data.payments[m].strBillType === 'E')
+							billType = 'Electricity'
+						$('#viewPaymentModalTableBody').append(`
+							<tr>
+								<td>${billType}</td>
+								<td>${data.payments[m].intBillId}</td>
+							</tr>`
+						)
+					}
+					$('#viewPaymentModal').modal('show')
+				})
+			})
+			$('#viewPaymentModal').on('hidden.bs.modal', function(){
+				$('#viewPaymentModalTableBody').empty()
 			})
 		})

@@ -28,6 +28,8 @@ block content
 									td #{lessee.strPhoneNumber}
 									td #{`${lessee.booLesseeType == 0 ? 'Individual' : 'Company'}`}
 									td
+										a.btn.btn-round.btn-info.btn-icon.viewLessee(href='javascript:void(0)' permit=`${lessee.strBaranggayPermit}` address=`${lessee.strAddress}` phone=`${lessee.strPhoneNumber}` email=`${lessee.strEmail}` lesseeId=`${lessee.strId}`)
+											i.now-ui-icons.ui-1_zoom-bold
 										a.btn.btn-round.btn-danger.btn-icon.deleteLessee(href='javascript:void(0)' lesseeId=`${lessee.strId}`)
 											i.now-ui-icons.ui-1_simple-remove
 	#addAccountModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
@@ -105,19 +107,11 @@ block content
 					h5.modal-title Edit Information
 					button.close(type='button', data-dismiss='modal', aria-label='Close')
 						span(aria-hidden='true') ×
-				form#editAccountForm(enctype="multipart/form-data")
-					.modal-body
-						.form-group
-							label Address
-							input.form-control(type='text' name='address' placeholder='Enter Address')
-						.form-group
-							label Email Address
-							input.form-control(type='email' name='email' placeholder='Enter E-mail')
-						.form-group
-							label Phone Number
-							input.form-control(type='text' name='phoneNumber' placeholder='Enter Address')
+				form#editAccountForm(enctype="multipart/form-data" method='POST' action='/admin/editaccount')
+					.modal-body#editAccountModalBody
+						input#editLesseeId(type='hidden' name='editLesseeId')
 					.modal-footer
-						button#editAccountSave.btn.btn-primary(type='submit') Save
+						button#editAccountSave.btn.btn-warning(type='submit') Edit
 block contentScript
 	script.
 		$(document).ready(function(){
@@ -125,6 +119,73 @@ block contentScript
 				$.post('/admin/delete-lessee', {id: $(this).attr('lesseeId')}).done(function(){
 					location.href='/admin/lessee'
 				})
+			})
+			$(document).on('click', '.viewLessee', function(){
+				$('#editAccountModalBody').append(`<h6>Lessee Details</h6>
+					<div class="form-group">
+						<label>Address</label>
+						<input class="form-control" type="text" name="editAddress" placeholder="Enter Address" value="${$(this).attr('address')}" />
+					</div>
+					<div class="form-group">
+						<label>Email Address</label>
+						<input class="form-control" type="email" name="editEmail" placeholder="Enter E-mail" value="${$(this).attr('email')}" />
+					</div>
+					<div class="form-group">
+						<label>Phone Number</label>
+						<input class="form-control" type="text" name="editPhoneNumber" placeholder="Enter Phone Number" value="${$(this).attr('phone')}" />
+					</div><br />
+					<h6>Lessee Credentials</h6>
+					<div class="form-group">
+						<label>Baranggay Permit<small class="text-danger"> *</small></label>
+						<input class="form-control dropify" type="file" data-default-file="/uploads/${$(this).attr('permit')}" name="editBaranggayPermit" accept="image/*" data-height="500" data-allowed-file-extensions="jpeg jpg png" />
+						<input type="hidden" name="editBaranggayPermitOld" value="${$(this).attr('permit')}"/>
+					</div>`
+				)
+				$('input[name="editBaranggayPermit"]').dropify({
+					allowedFiles: ['png', 'jpg', 'jpeg', 'gif', 'bmp'],
+					messages: {
+						'default': 'Drag and drop an image here or click',
+						'replace': 'Drag and drop or click to replace',
+						'remove': 'Remove',
+						'error': 'Ooops, you can only upload JPG, JPEG, and PNG files.'
+					},
+					error: {
+						'fileSize': 'The file size is too big (1M max).',
+						'fileFormat': 'The file format is not allowed ({{ value }} only).'
+					}
+				})
+				$('#editAccountForm').validate({
+					rules:{
+						editAddress:{
+							required:true
+						},
+						editEmail:{
+							required:true,
+							email: true
+						},
+						editPhoneNumber:{
+							required:true,
+							minlength: 18
+						}
+					},
+					messages:{
+						phoneNumber:{
+							minlength: 'Please enter a valid Philippine mobile number'
+						}
+					}
+				})
+				$('input[name="editPhoneNumber"]').mask('(+63) 900-000-0000',{
+					translation:{
+						'0':{
+							pattern: /[0-9]/
+						},
+						'9':{
+							pattern: /[9]/
+						}
+					}
+				})
+				$('#editLesseeId').val($(this).attr('lesseeId'))
+				$('#editAccountModal').modal('show')
 			})
 			$('.dropify').dropify({
 				allowedFiles: ['png', 'jpg', 'jpeg', 'gif', 'bmp'],

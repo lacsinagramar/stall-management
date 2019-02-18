@@ -16,9 +16,9 @@
 - Lower Set Interval For Rental Bill Generation /
 
 *View for
-- Lessee
+- Lessee /
 - Leasing
-- Payment
+- Payment /
 
 SQL DUMP EXAMPLE
 mysqldump -u root -p -d -B stallv3>stallv3-2.sql

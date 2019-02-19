@@ -10,14 +10,14 @@
 
 *Comments
 - Stall Price sa Leasing /
-- Stall Description (Mga pwede ibenta)
+- Stall Description (Pangalan ng Stall) /
 - Table mode yung Consumption, Encoded Consumption, Generate Bills /
 - 2 Decimal Places lang /
 - Lower Set Interval For Rental Bill Generation /
 
 *View for
 - Lessee /
-- Leasing
+- Leasing /
 - Payment /
 
 SQL DUMP EXAMPLE

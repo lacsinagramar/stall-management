@@ -93,6 +93,13 @@ router.post('/login', (req, res) => {
         }
     })
 })
+router.post('/get-user-stalls', (req, res) => {
+    db.query('SELECT strStallId FROM tbl_contract WHERE booContractStatus = 0 AND strLesseeId = ?', req.body.id, (err, results) => {
+        if(err) console.log(err)
+
+        return res.send(results)
+    })
+})
 //END POST
 
 exports.index = router;

@@ -49,15 +49,54 @@ block content
 							label Username of Lessee
 								small.text-danger  *
 							input.form-control(type='text' name='lesseeUsername' placeholder='Enter Username')
+						.form-group
+							label Stall Description
+								small.text-danger  *
+							input.form-control(type='text' name='stallDescription' placeholder='Enter Stall Description')
 						br
 						#stallDetails
 					.modal-footer
 						button#addLeasingSave.btn.btn-primary(type='submit') Create
+	#viewLeasingModal.modal.fade(tabindex='false', role='dialog', aria-hidden='true')
+		.modal-dialog(role='document')
+			.modal-content
+				.modal-header
+					h5.modal-title Leasing Details
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') ×
+				.modal-body#viewLeasingModalBody
 block contentScript
 	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
 	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
 	script.
 		$(document).ready(function(){
+			$('#viewLeasingModal').on('hidden.bs.modal', function(){
+				$('#viewLeasingModalBody').empty()
+			})
+			$(document).on('click', '.view', function(){
+				$.post('/admin/get-leasing', {
+					id: $(this).attr('contractId')
+				}).done(function(data){
+					let contractDate = `${data.contract.intContractYear}-${data.contract.intContractMonth}-${data.contract.intContractDay}`
+					$('#viewLeasingModalBody').append(`<center>
+							<h6 class="text-primary" style="font-size: 1.5em;">${data.contract.strContractStallDescription}</h6>
+						</center>
+						<span>
+							<strong>Lessee Name: &nbsp;</strong>${data.contract.strFirstName} ${data.contract.strMiddleName} ${data.contract.strLastName}
+						</span><br />
+						<span>
+							<strong>Stall Type: &nbsp;</strong>${data.contract.booStallType == 0 ? 'Food Stall' : 'Dry Goods Stall'}
+						</span><br />
+						<span>
+							<strong>Date of Contract: &nbsp;</strong>${moment(contractDate).format('YYYY-MM-DD')}
+						</span><br />
+						<span>
+							<strong>Contract End Date: &nbsp;</strong>${moment(contractDate).add(data.contract.intContractDuration, 'months').format('YYYY-MM-DD')}
+						</span>`
+					)
+				})
+				$('#viewLeasingModal').modal('show')
+			})
 			$('#stallSelect').on('change', function(){
 				$('#stallDetails').empty()
 				let stallType = $(`#stallSelect option[value="${$(this).val()}"]`).attr('stallType')
@@ -317,7 +356,8 @@ block contentScript
 													month: moment().format('MM'),
 													day: moment().format('DD'),
 													year: moment().format('YYYY'),
-												}
+												},
+												stallDescription: $('input[name="stallDescription"]').val()
 											}).done(function(){
 												setTimeout(function(){
 													location.href='/admin/rental'
@@ -358,6 +398,9 @@ block contentScript
 								leasing: true
 							}
 						}
+					},
+					stallDescription:{
+						required: true,
 					}
 				},
 				messages:{

@@ -20,7 +20,7 @@ block body
                                 a.dropdown-item(href='/')
                                     i.now-ui-icons.education_paper
                                     | Bills
-                                a.dropdown-item(href='../sections.html#testimonials')
+                                a#reportIssue.dropdown-item(href='javascript:' lesseeId=`${session.strId}`)
                                     i.now-ui-icons.ui-2_chat-round
                                     | Report Issue
                                 a.dropdown-item(href='/logout')
@@ -30,5 +30,24 @@ block body
                 .navbar-translate
                     p.navbar-brand Stall Management System
     block content
+    #issueModal.modal.fade(tabindex='false', role='dialog', aria-hidden='true')
+		.modal-dialog(role='document')
+			.modal-content
+				.modal-header
+					h5.modal-title Report an Issue
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') ×
+				.modal-body#issueModalBody
+                    //select.selectpicker
 block scriptAddOns
+    script.
+        $(document).ready(function(){
+            $('#reportIssue').on('click', function(){
+                $.post('/get-user-stalls',{
+                    id: $(this).attr('lesseeId')
+                }).done(function(data){
+                    
+                })
+            })
+        })
     block contentScript

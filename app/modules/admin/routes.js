@@ -307,11 +307,11 @@ router.post('/add-contract', (req, res) => {
 	const refCode = generateReferenceNumber();
 	console.log("ADD CONTRACT ROUTE",req.body)
 	const queryString = `INSERT INTO tbl_contract 
-	(strLesseeId, strStallId, intContractMonth, intContractDay, intContractYear, intContractDuration)
-	VALUES (?, ?, ?, ?, ?, ?)`;
+	(strLesseeId, strStallId, strContractStallDescription, intContractMonth, intContractDay, intContractYear, intContractDuration)
+	VALUES (?, ?, ?, ?, ?, ?, ?)`;
 	const datePaid = `${req.body.dateNow.year}-${req.body.dateNow.month}-${req.body.dateNow.day}`
 	const amountPaid = req.body.stallData.booStallType == 0? '18000': '14000'
-	db.query(queryString, [req.body.lesseeData.strId, req.body.stallData.strId, req.body.dateNow.month, req.body.dateNow.day, req.body.dateNow.year, 6], (err, results) => {
+	db.query(queryString, [req.body.lesseeData.strId, req.body.stallData.strId, req.body.stallDescription, req.body.dateNow.month, req.body.dateNow.day, req.body.dateNow.year, 6], (err, results) => {
 		if(err) console.log(err)
 
 		const contractIdNow = results.insertId
@@ -615,6 +615,17 @@ router.post('/get-payment-child', (req, res) => {
 		if(err) console.log(err)
 
 		return res.send({payments: results})
+	})
+})
+router.post('/get-leasing', (req, res) => {
+	let query = `SELECT * FROM tbl_contract
+	JOIN tbl_lessee ON strLesseeId = tbl_lessee.strId
+	JOIN tbl_stall ON strStallId = tbl_stall.strId
+	WHERE intId = ?`
+	db.query(query, req.body.id, (err, results) => {
+		if(err) console.log(err)
+
+		return res.send({contract: results[0]})
 	})
 })
 //END POST

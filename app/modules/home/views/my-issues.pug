@@ -1,0 +1,35 @@
+extends ./template.pug
+
+block contentStyle
+	title Lessee -Stall Management System
+
+block content
+	.page-header.header-filter(filter-color='orange')
+		.page-header-image(style='background-image:url(/assets/now-ui/img/login.jpg)')
+		.content
+			.container(style="height: unset; color: black")
+				.col-md-12
+					.card
+						.card-header
+							h4.card-title Your Bills
+						.card-body
+							.table-responsive
+								table#issueTable.table
+									thead
+										tr
+											th Issue Subject
+											th Status
+									tbody
+										each issue in issues
+											tr
+												td #{issue.strSubject}
+												- if(issue.booStatus == 0)
+													td
+														span.badge.badge-warning Pending
+												- else
+													td
+														a.badge.badge-success.text-white.viewTicket(href='javascript:' issueId=`${issue.intId}`) Ticketed
+block contentScript
+	script.
+		$(document).ready(function(){
+		})

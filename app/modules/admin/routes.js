@@ -140,7 +140,16 @@ router.get('/payment', middleware.hasAdminOrStaff, (req, res) => {
 			}
 		}
 
-		res.render('admin/views/payment', {url: req.url, payments: results})
+		return res.render('admin/views/payment', {url: req.url, payments: results})
+	})
+})
+router.get('/issue', (req, res) => {
+	const query = `SELECT *,tbl_issue_report.intId AS issueId FROM tbl_issue_report JOIN tbl_contract ON tbl_contract.intId = intContractId
+	JOIN tbl_lessee ON strLesseeId = strId WHERE booStatus = 0`
+	db.query(query, (err, results) => {
+		if(err) console.log(err)
+
+		return res.render('admin/views/issue', {url: req.url, issues: results});
 	})
 })
 //END GET
@@ -626,6 +635,16 @@ router.post('/get-leasing', (req, res) => {
 		if(err) console.log(err)
 
 		return res.send({contract: results[0]})
+	})
+})
+router.post('/create-ticket', (req, res) => {
+	const query = `INSERT INTO tbl_ticket (intIssueId, strAssigneeName) VALUES (?, ?);
+	UPDATE tbl_issue_report SET booStatus = 1 WHERE intId = ?`
+
+	db.query(query, [req.body.issue, req.body.assignee, req.body.issue], (err, results) => {
+		if(err) console.log(err)
+
+		return res.send(true)
 	})
 })
 //END POST

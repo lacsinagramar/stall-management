@@ -1,0 +1,73 @@
+extends ./template.pug
+
+block content
+	.row
+		.col-md-12
+			.card
+				.card-header
+					h4.card-title Reported Issues
+				.card-body
+					table#issueTable.table.table-bordered.table-striped(cellspacing='0')
+						thead
+							tr
+								th Lessee
+								th Stall ID
+								th Issue Subject
+								th Actions
+						tbody
+							each issue in issues
+								tr
+									td #{issue.strFirstName} #{issue.strMiddleName} #{issue.strLastName}
+									td #{issue.strStallId}
+									td #{issue.strSubject}
+									td
+										a.btn.btn-round.btn-info.btn-icon.view(href='javascript:void(0)' issueId=`${issue.issueId}` message=`${issue.strMessage}`)
+											i.now-ui-icons.ui-1_zoom-bold
+										a.btn.btn-round.btn-danger.btn-icon.remove(href='javascript:void(0)' issueId=`${issue.issueId}`)
+											i.now-ui-icons.ui-1_simple-remove
+	#issueModal.modal.fade(role='dialog', aria-hidden='true')
+		.modal-dialog(role='document')
+			.modal-content
+				.modal-header
+					h5.modal-title Issue Reported
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') ×
+				.modal-body
+					h6 Message
+					p#issueMessage
+				.modal-footer
+					button#createTicket.btn.btn-primary Create Ticket
+block contentScript
+	script.
+		$(document).ready(function(){
+			$('#issueTable').dataTable()
+			$(document).on('click', '.view', function(){
+				$('#issueMessage').text($(this).attr('message'))
+				$('#issueModal').modal('show')
+				$('#createTicket').attr('issueId', $(this).attr('issueId'))
+			})
+			$(document).on('click', '#createTicket', function(){
+				const issueId = $(this).attr('issueId')
+				swal({
+					title: 'Assign Person',
+					input: 'text',
+					inputPlaceholder: 'Enter name here...'
+				}).then( value => {
+					if(value != ''){
+						$.post('/admin/create-ticket', {
+							issue: issueId,
+							assignee: value
+						}).done(function(){
+							location.href='/admin/issue'
+						})
+					}
+					else{
+						swal({
+							type: 'error',
+							title: 'Error',
+							text: 'Please enter the name of the assigned person'
+						})
+					}
+				})
+			})
+		})

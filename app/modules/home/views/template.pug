@@ -42,10 +42,13 @@ block body
 						label Stall ID
 						select#stallSelect.selectpicker.form-control
 					.form-group
+						label Issue Subject
+						input#issueSubject.form-control(type='text' placeholder='Enter Issue')
+					.form-group
 						label Message
 						textarea#issueMessage.form-control(rows='3' placeholder='Write your message here...')
 				.modal-footer
-					button.btn.btn-primary.btn-round Send
+					button#sendIssue.btn.btn-primary.btn-round Send
 block scriptAddOns
 	script.
 		$(document).ready(function(){
@@ -54,7 +57,7 @@ block scriptAddOns
 					id: $(this).attr('lesseeId')
 				}).done(function(data){
 					for(let n = 0; n < data.length; n++){
-						$('#stallSelect').append(`<option value='${data[n].strStallId}'>${data[n].strStallId}</option>`)
+						$('#stallSelect').append(`<option value='${data[n].intId}'>${data[n].strStallId}</option>`)
 					}
 					$('#stallSelect').selectpicker('refresh')
 					$('#issueModal').modal('show')
@@ -62,6 +65,21 @@ block scriptAddOns
 			})
 			$('#issueModal').on('hidden.bs.modal', function(){
 				$('#stallSelect').empty()
+				$('#issueSubject').val('')
+				$('#issueMessage').val('')
+			})
+			$('#sendIssue').on('click', function(){
+				$.post('/create-issue',{
+					contractId: $('#stallSelect').val(),
+					subject: $('#issueSubject').val(),
+					message: $('#issueMessage').val()
+				}).done(function (){
+					swal({
+						type: 'success',
+						text: `You have successfully sent an issue report`
+					})
+					$('#issueModal').modal('hide')
+				})
 			})
 		})
 	block contentScript

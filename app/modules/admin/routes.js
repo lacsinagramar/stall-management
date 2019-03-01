@@ -19,10 +19,15 @@ const upload = multer({storage: myStorage})
 
 //GET
 router.get('/',middleware.hasAdminOrStaff, (req, res) => {
-	res.render('admin/views/index', {url: req.url, query: req.query});
+	return res.render('admin/views/index', {url: req.url, query: req.query, session: req.session});
 });
 router.get('/login',middleware.hasNoAdminOrStaff, (req, res) => {
-	res.render('admin/views/login', {query: req.query});
+	db.query('SELECT * FROM tbl_utilities LIMIT 1', (err, results) => {
+		if(err) console.log(err)
+
+		req.session.utilities = results[0]
+		return res.render('admin/views/login', {query: req.query, session: req.session});
+	})
 });
 router.get('/logout', (req, res) => {
 	if(req.session.admin){
@@ -40,14 +45,14 @@ router.get('/stall',middleware.hasAdmin, (req, res) => {
 	db.query('SELECT * FROM tbl_stall', (err, results) =>{
 		if(err) console.log(err)
 
-		return res.render('admin/views/stall', {url: req.url, stalls:results})
+		return res.render('admin/views/stall', {url: req.url, stalls:results, session: req.session})
 	})
 })
 router.get('/lessee',middleware.hasAdmin, (req, res) => {
 	db.query('SELECT * FROM tbl_lessee WHERE booIsDeleted = 0', (err, results) => {
 		if(err) console.log(err)
 
-		if(results.length==0) return res.render('admin/views/lessee', {lessees: results, url: req.url})
+		if(results.length==0) return res.render('admin/views/lessee', {lessees: results, url: req.url, session: req.session})
 
 		for(let a = 0; a<results.length; a++){
 			db.query('SELECT * FROM tbl_company_lessee WHERE strLesseeId = ?', [results[a].strId], (err, results2) =>{
@@ -59,7 +64,7 @@ router.get('/lessee',middleware.hasAdmin, (req, res) => {
 			})
 			if(a == results.length - 1){
 				console.log(results);
-				return res.render('admin/views/lessee', {lessees: results, url: req.url})
+				return res.render('admin/views/lessee', {lessees: results, url: req.url, session: req.session})
 			}
 		}    
 	})
@@ -72,8 +77,8 @@ router.get('/rental',middleware.hasAdmin, (req, res) => {
 		db.query('SELECT * FROM tbl_stall WHERE booIsAvailable = 0', (err, results) => {
 			if(err) console.log(err)
 
-			if(results.length>0) return res.render('admin/views/leasing', {contracts: contract, url: req.url, stalls: results})
-			else return res.render('admin/views/leasing', {contracts: contract, url: req.url, stalls: []})
+			if(results.length>0) return res.render('admin/views/leasing', {contracts: contract, url: req.url, stalls: results, session: req.session})
+			else return res.render('admin/views/leasing', {contracts: contract, url: req.url, stalls: [], session: req.session})
 		})
 
 	})
@@ -82,8 +87,8 @@ router.get('/staff', middleware.hasAdmin, (req, res) => {
 	db.query('SELECT * FROM tbl_staff WHERE booStatus = 1', (err, results) => {
 		if(err) console.log(err)
 
-		if(results.length>0) return res.render('admin/views/staff', {staffs: results, url: req.url})
-		else return res.render('admin/views/staff', {staffs: [], url: req.url})
+		if(results.length>0) return res.render('admin/views/staff', {staffs: results, url: req.url, session: req.session})
+		else return res.render('admin/views/staff', {staffs: [], url: req.url, session: req.session})
 	})
 })
 router.get('/electric-bill', middleware.hasAdmin, (req, res) => {
@@ -94,7 +99,7 @@ router.get('/electric-bill', middleware.hasAdmin, (req, res) => {
 			results[i].billDate = moment(`${results[i].intDueMonth}-${results[i].intDueYear}`, 'MM-YYYY').format('MMMM YYYY')
 		}
 
-		return res.render('admin/views/electric-bill', {electric: results, url: req.url})
+		return res.render('admin/views/electric-bill', {electric: results, url: req.url, session: req.session})
 	})
 })
 router.get('/water-bill', middleware.hasAdmin, (req, res) => {
@@ -105,7 +110,7 @@ router.get('/water-bill', middleware.hasAdmin, (req, res) => {
 			results[i].billDate = moment(`${results[i].intDueMonth}-${results[i].intDueYear}`, 'MM-YYYY').format('MMMM YYYY')
 		}
 
-		return res.render('admin/views/water-bill', {water: results, url: req.url})
+		return res.render('admin/views/water-bill', {water: results, url: req.url, session: req.session})
 	})
 })
 router.get('/electric-consumption', middleware.hasAdminOrStaff, (req, res) => {
@@ -116,7 +121,7 @@ router.get('/electric-consumption', middleware.hasAdminOrStaff, (req, res) => {
 			results[i].billDate = moment(`${results[i].intDueMonth}-${results[i].intDueYear}`, 'MM-YYYY').format('MMMM YYYY')
 		}
 
-		return res.render('admin/views/electric-consumption', {electric: results, url: req.url})
+		return res.render('admin/views/electric-consumption', {electric: results, url: req.url, session: req.session})
 	})
 })
 router.get('/water-consumption', middleware.hasAdminOrStaff, (req, res) => {
@@ -127,7 +132,7 @@ router.get('/water-consumption', middleware.hasAdminOrStaff, (req, res) => {
 			results[i].billDate = moment(`${results[i].intDueMonth}-${results[i].intDueYear}`, 'MM-YYYY').format('MMMM YYYY')
 		}
 
-		return res.render('admin/views/water-consumption', {water: results, url: req.url})
+		return res.render('admin/views/water-consumption', {water: results, url: req.url, session: req.session})
 	})
 })
 router.get('/payment', middleware.hasAdminOrStaff, (req, res) => {
@@ -140,23 +145,26 @@ router.get('/payment', middleware.hasAdminOrStaff, (req, res) => {
 			}
 		}
 
-		return res.render('admin/views/payment', {url: req.url, payments: results})
+		return res.render('admin/views/payment', {url: req.url, payments: results, session: req.session})
 	})
 })
-router.get('/issue', (req, res) => {
+router.get('/issue', middleware.hasAdmin, (req, res) => {
 	const query = `SELECT *,tbl_issue_report.intId AS issueId FROM tbl_issue_report JOIN tbl_contract ON tbl_contract.intId = intContractId
 	JOIN tbl_lessee ON strLesseeId = strId WHERE booStatus = 0`
 	db.query(query, (err, results) => {
 		if(err) console.log(err)
 
-		return res.render('admin/views/issue', {url: req.url, issues: results});
+		return res.render('admin/views/issue', {url: req.url, issues: results, session: req.session});
 	})
+})
+router.get('/utilities', middleware.hasAdmin, (req, res) => {
+	return res.render('admin/views/utilities', {url: req.url, utilities: req.session.utilities, session: req.session})
 })
 //END GET
 
 //POST
 router.post('/login', (req, res) => {
-	if(req.body.user == 'admin' && req.body.pass == 'admin'){
+	if(req.body.user == req.session.utilities.strAdminUsername && req.body.pass == req.session.utilities.strAdminPassword){
 		req.session.admin = true;
 		console.log(req.session);
 		return res.send({valid: true})
@@ -645,6 +653,21 @@ router.post('/create-ticket', (req, res) => {
 		if(err) console.log(err)
 
 		return res.send(true)
+	})
+})
+router.post('/utilities', (req, res) => {
+	const query = `'UPDATE tbl_utilities SET 
+	dblFoodStallPrice = ?, dblDryGoodsStallPrice = ?, strAdminUsername = ?, strAdminPassword = ? 
+	WHERE intUtilitiesId = 1'`
+	const values = [req.body.foodStall, req.body.dryGoodsStall, req.body.adminUser, req.body.adminPass]
+	db.query(query, values, (err, results) => {
+		if(err) console.log(err)
+
+		req.session.utilities.dblFoodStallPrice = values[0]
+		req.session.utilities.dblDryGoodsStallPrice = values[1]
+		req.session.utilities.strAdminUsername = values[2]
+		req.session.utilities.strAdminPassword = values[3]
+		return res.redirect('/admin/utilities')
 	})
 })
 //END POST

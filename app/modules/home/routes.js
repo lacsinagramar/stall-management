@@ -101,6 +101,9 @@ router.get('/my-issues', middleware.hasLessee, (req, res) => {
                             }
                         }   
                     }
+                    else if (o == results.length - 1){
+                        return res.render('home/views/my-issues', {issues: []})
+                    }
                 })
             }
         }
@@ -138,6 +141,19 @@ router.post('/create-issue', (req, res) => {
         if(err) console.log(err)
 
         return res.send(true)
+    })
+})
+router.post('/view-ticket', (req, res) => {
+    const query = `SELECT * FROM tbl_ticket WHERE intId = ?`
+    db.query(query,req.body.issueId, (err, results) => {
+        if(err) console.log(err)
+
+        if(results.length > 0){
+            return res.send(results)
+        }
+        else {
+            return res.send([])
+        }
     })
 })
 //END POST

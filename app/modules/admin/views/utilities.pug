@@ -1,0 +1,40 @@
+extends ./template.pug
+
+block content
+	.row
+		.col-md-12
+			.card
+				.card-header
+					h3.card-title Utilities
+				.card-body
+					form(method='POST' action='/admin/utilities')
+						.row
+							.col-md-6
+								h4 Stall Type Prices
+								.form-group
+									label Food Stall
+									input#foodStall.form-control(type="number" name="foodStall")
+								.form-group
+									label Dry Goods Stall
+									input#dryGoodsStall.form-control(type="number" name="dryGoodsStall")
+							.col-md-6
+								h4 Super Admin Credentials
+								.form-group
+									label Username
+									input#adminUser.form-control(type="text" name="adminUser")
+								.form-group
+									label Password
+									input#adminPass.form-control(type="password" name="adminPass")
+						.row
+							.col-md-12
+								button.btn.btn-success.btn-round(type='submit') Update
+block contentScript
+	script.
+		$(document).ready(function(){
+			const utilitiesVar = !{JSON.stringify(utilities)}
+			$('#foodStall').val(utilitiesVar.dblFoodStallPrice)
+			$('#dryGoodsStall').val(utilitiesVar.dblDryGoodsStallPrice)
+			$('#adminUser').val(utilitiesVar.strAdminUsername)
+			$('#adminPass').val(utilitiesVar.strAdminPassword)
+		})
+

@@ -3,7 +3,7 @@
 - Polish Contract generation / 
 - Start Lessee portal /
 - Notifications for bill /
-- Start ticketing module
+- Start ticketing module /
 - Start Utilities(Stall Price by type, Lease add-on price)
 - Start Reports
 - Stall Map
@@ -19,6 +19,9 @@
 - Lessee /
 - Leasing /
 - Payment /
+
+*NOTES
+- Generate Receipt on Payment
 
 SQL DUMP EXAMPLE
 mysqldump -u root -p -d -B stallv3>stallv3-2.sql

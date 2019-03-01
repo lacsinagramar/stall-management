@@ -32,8 +32,7 @@ block body
 							img(src='/assets/now-ui-admin/img/james.jpg')
 						.info
 							a.collapsed(data-toggle='collapse', href='#account')
-								span Admin
-									b.caret
+								span#loginName
 							.clearfix
 							#account.collapse
 								ul.nav
@@ -101,7 +100,7 @@ block body
 											span.sidebar-mini-icon RI
 											span.sidebar-normal Reported Issues
 						li#utilities
-							a(href='../examples/calendar.html')
+							a(href='/admin/utilities')
 								i.now-ui-icons.ui-1_settings-gear-63
 								p Utilities
 			.main-panel(style="padding-top:100px")
@@ -111,12 +110,20 @@ block scriptAddOns
 	script.
 		$(document).ready(function(){
 			const passedVar = !{JSON.stringify(url)}
+			const passedSession = !{JSON.stringify(session)}
 			const url = passedVar.split('?');
 			if(url[0] == '/'){
 				$('#dashboard').addClass('active')
 			}
 			else if(url[0] == '/utilities'){
 				$('#utilities').addClass('active')
+			}
+			
+			if(passedSession.admin){
+				$('#loginName').append(`Admin<b class='caret'></b>`)
+			}
+			else{
+				$('#loginName').append(`${passedSession.staff.strFirstName}<b class='caret'></b>`)
 			}
 		})
 	block contentScript

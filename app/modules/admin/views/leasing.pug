@@ -70,6 +70,24 @@ block contentScript
 	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
 	script.
 		$(document).ready(function(){
+			function convertToString(x){
+				const number = x.toString()
+				let numberReturn = ''
+				let counter = 0
+
+				for(let q = number.length-1; q>=0; q--){
+					if(counter%3 == 0 && counter!= 0){
+						counter = 0
+						numberReturn+= ','+number[q]
+					}
+					else{
+						counter++
+						numberReturn+= number[q]
+					}
+				}
+				return numberReturn.split("").reverse().join("")
+			}
+			const passedSession = !{JSON.stringify(session.utilities)}
 			$('#viewLeasingModal').on('hidden.bs.modal', function(){
 				$('#viewLeasingModalBody').empty()
 			})
@@ -98,12 +116,13 @@ block contentScript
 				$('#viewLeasingModal').modal('show')
 			})
 			$('#stallSelect').on('change', function(){
+				console.log(passedSession)
 				$('#stallDetails').empty()
 				let stallType = $(`#stallSelect option[value="${$(this).val()}"]`).attr('stallType')
 				$('#stallDetails').append(`<h6>Payment Details:</h6>
 						<p><b>Stall Type: </b>${stallType == 0? 'Food Stall': 'Dry Goods Stall'}</p>
-						<p><b>Rent per month: </b>Php ${stallType == 0? '9,000': '7,000'}</p>
-						<p><b>Advance Payment: </b>Php ${stallType == 0? '18,000': '14,000'}</p>`
+						<p><b>Rent per month: </b>Php ${stallType == 0? convertToString(passedSession.dblFoodStallPrice): convertToString(passedSession.dblDryGoodsStallPrice)}</p>
+						<p><b>Advance Payment: </b>Php ${stallType == 0? convertToString(passedSession.dblFoodStallPrice*2): convertToString(passedSession.dblDryGoodsStallPrice*2)}</p>`
 				)
 			})
 			$('.select2').select2();
@@ -134,7 +153,7 @@ block contentScript
 									{
 										text:[
 											{text:'the amount of: '},
-											{text:`${stallData.booStallType == 0 ? 'Eighteen Thousand Pesos Only Pesos ( P 18,000.00 )' : 'Fourteen Thousan Pesos Only ( P 14,000.00 )'}\n\n`, decoration: 'underline'},
+											{text:`${stallData.booStallType == 0 ? `Eighteen Thousand Pesos Only Pesos ( P ${convertToString(passedSession.dblFoodStallPrice*2)}.00 )` : 'Fourteen Thousan Pesos Only ( P 14,000.00 )'}\n\n`, decoration: 'underline'},
 										]
 									},
 									{

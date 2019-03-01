@@ -29,7 +29,53 @@ block content
 												- else
 													td
 														a.badge.badge-success.text-white.viewTicket(href='javascript:' issueId=`${issue.intId}`) Ticketed
+	// MODALS
+	#ticketModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+		.modal-dialog.modal-lg(role='document')
+			.modal-content
+				.modal-header
+					h5.modal-title Add Water Bill
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') ×
+				.modal-body
+					.table-responsive
+						table.table
+							thead
+								tr
+									th Ticket No.
+									th Assignee Name
+									th Status
+							tbody#ticketModalTableBody
 block contentScript
 	script.
 		$(document).ready(function(){
+			$(document).on('click', '.viewTicket', function(){
+				$.post('/view-ticket', {
+					issueId: $(this).attr('issueId')
+				}).done(function(data){
+					for(let p = 0; p < data.length; p++){
+						let status = ''
+						if(data[p].booStatus == 0){
+							status = '<span class="badge badge-info text-white">Resolving</span>'
+						}
+						else if(data[p].booStatus == 1){
+							status = '<span class="badge badge-success text-white">Resolved</span>'
+						}
+						else if(data[p].booStatus == 2){
+							status = '<span class="badge badge-danger text-white">Closed/Unresolved</span>'
+						}
+						$('#ticketModalTableBody').append(`
+							<tr>
+								<td>${data[p].intId}</td>
+								<td>${data[p].strAssigneeName}</td>
+								<td>${status}</td>
+							</tr>
+						`)
+					}
+					$('#ticketModal').modal('show')
+				})
+			})
+			$('#ticketModal').on('hidden.bs.modal', function(){
+				$('#ticketModalTableBody').empty()
+			})
 		})

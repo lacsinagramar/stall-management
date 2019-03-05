@@ -4,7 +4,8 @@
 - Start Lessee portal /
 - Notifications for bill /
 - Start ticketing module /
-- Start Utilities(Stall Price by type, Lease add-on price)
+- Start Utilities(Stall Price by type, Lease add-on price) /
+- Start Dashboard
 - Start Reports
 - Stall Map
 
@@ -22,6 +23,10 @@
 
 *NOTES
 - Generate Receipt on Payment
+- Edit/Delete
+    * Lessee
+    * Contract (Terminate)
+- Auto Terminate Contract
 
 SQL DUMP EXAMPLE
 mysqldump -u root -p -d -B stallv3>stallv3-2.sql

@@ -5,6 +5,7 @@ const moment = require('moment');
 const multer = require('multer');
 const middleware = require('../auth/middlewares/auth');
 const fs = require('fs')
+const numberToWords = require('number-to-words')
 
 // MULTER CONFIG
 const myStorage = multer.diskStorage({
@@ -16,6 +17,25 @@ const myStorage = multer.diskStorage({
 	}
 });
 const upload = multer({storage: myStorage})
+
+// HELPER FUNCTIONS
+function changeContractStatus(contractId, status){
+	return new Promise(function (resolve, reject){
+		db.query('UPDATE tbl_contract SET booContractStatus = ? WHERE intId = ?', [status, contractId], (err, results) => {
+			if(err) console.log(err)
+
+			db.query('SELECT strStallId FROM tbl_contract WHERE intId = ?', contractId, (err, results) => {
+				if(err) console.log(err)
+
+				db.query('UPDATE tbl_stall SET booIsAvailable = 0 WHERE strId = ?', results[0].strStallId, (err, results) => {
+					if(err) console.log(err)
+
+					resolve()
+				})
+			})
+		})
+	})
+}
 
 //GET
 router.get('/',middleware.hasAdminOrStaff, (req, res) => {
@@ -324,11 +344,12 @@ router.post('/add-contract', (req, res) => {
 	const refCode = generateReferenceNumber();
 	console.log("ADD CONTRACT ROUTE",req.body)
 	const queryString = `INSERT INTO tbl_contract 
-	(strLesseeId, strStallId, strContractStallDescription, intContractMonth, intContractDay, intContractYear, intContractDuration)
-	VALUES (?, ?, ?, ?, ?, ?, ?)`;
+	(strLesseeId, strStallId, strContractStallDescription, intContractMonth, intContractDay, intContractYear, intContractDuration, dblRentPrice)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 	const datePaid = `${req.body.dateNow.year}-${req.body.dateNow.month}-${req.body.dateNow.day}`
-	const amountPaid = req.body.stallData.booStallType == 0? '18000': '14000'
-	db.query(queryString, [req.body.lesseeData.strId, req.body.stallData.strId, req.body.stallDescription, req.body.dateNow.month, req.body.dateNow.day, req.body.dateNow.year, 6], (err, results) => {
+	const amountPaid = req.body.stallData.booStallType == 0? `${req.session.utilities.dblFoodStallPrice*2}`: `${req.session.utilities.dblDryGoodsStallPrice*2}`
+	const rentPrice = req.body.stallData.booStallType == 0? `${req.session.utilities.dblFoodStallPrice}`: `${req.session.utilities.dblDryGoodsStallPrice}`
+	db.query(queryString, [req.body.lesseeData.strId, req.body.stallData.strId, req.body.stallDescription, req.body.dateNow.month, req.body.dateNow.day, req.body.dateNow.year, 6, rentPrice], (err, results) => {
 		if(err) console.log(err)
 
 		const contractIdNow = results.insertId
@@ -582,7 +603,7 @@ router.post('/generate-rental-bills', (req, res) => {
 			return res.send(false)
 		}
 		for(let h = 0; h < results.length; h++){
-			const price = results[h].booStallType == 0 ? 9000 : 7000
+			const price = results[h].dblRentPrice
 			const newDueDate = moment(`${yearNow}-${monthNow}-${results[h].intContractDay}`).format('YYYY-MM-DD')
 			if(moment(moment().format('YYYY-MM-DD')).isSameOrAfter(moment(newDueDate).subtract(10, 'days').format('YYYY-MM-DD'))){
 				console.log(moment().format('YYYY-MM-DD')+' is same of after '+moment(newDueDate).subtract(10, 'days').format('YYYY-MM-DD'))
@@ -656,10 +677,31 @@ router.post('/create-ticket', (req, res) => {
 	})
 })
 router.post('/utilities', (req, res) => {
-	const query = `'UPDATE tbl_utilities SET 
-	dblFoodStallPrice = ?, dblDryGoodsStallPrice = ?, strAdminUsername = ?, strAdminPassword = ? 
-	WHERE intUtilitiesId = 1'`
-	const values = [req.body.foodStall, req.body.dryGoodsStall, req.body.adminUser, req.body.adminPass]
+	function convertToUpperCase(word){
+		const splittedWords = word.split(' ');
+		let finalWord = '';
+		for(let r = 0; r < splittedWords.length; r++){
+			splittedWords[r] = `${splittedWords[r].charAt(0).toUpperCase()}${splittedWords[r].slice(1)}`
+			finalWord+= ` ${splittedWords[r]}`
+			if(r == splittedWords.length - 1){
+				return finalWord.slice(1)
+			}
+		}
+	}
+	const query = `UPDATE tbl_utilities SET 
+	dblFoodStallPrice = ?, dblDryGoodsStallPrice = ?, strAdminUsername = ?, strAdminPassword = ?, strFoodStallPrice = ?, strDryGoodsStallPrice = ?
+	WHERE intUtilitiesId = 1`
+	const wordValues = {
+		foodStall: {
+			regular: convertToUpperCase(numberToWords.toWords(req.body.foodStall)),
+			double: convertToUpperCase(numberToWords.toWords(eval(`${req.body.foodStall}*2`)))
+		},
+		dryGoodsStall: {
+			regular: convertToUpperCase(numberToWords.toWords(req.body.dryGoodsStall)),
+			double: convertToUpperCase(numberToWords.toWords(eval(`${req.body.dryGoodsStall}*2`)))
+		}
+	}
+	const values = [req.body.foodStall, req.body.dryGoodsStall, req.body.adminUser, req.body.adminPass, JSON.stringify(wordValues.foodStall), JSON.stringify(wordValues.dryGoodsStall)]
 	db.query(query, values, (err, results) => {
 		if(err) console.log(err)
 
@@ -667,7 +709,14 @@ router.post('/utilities', (req, res) => {
 		req.session.utilities.dblDryGoodsStallPrice = values[1]
 		req.session.utilities.strAdminUsername = values[2]
 		req.session.utilities.strAdminPassword = values[3]
+		req.session.utilities.strFoodStallPrice = values[4]
+		req.session.utilities.strDryGoodsStallPrice = values[5]
 		return res.redirect('/admin/utilities')
+	})
+})
+router.post('/terminate-contract', (req, res) => {
+	changeContractStatus(req.body.contractId, 2).then(() => {
+		return res.send(true)
 	})
 })
 //END POST

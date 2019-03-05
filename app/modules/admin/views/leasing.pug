@@ -22,13 +22,23 @@ block content
 								tr
 									td #{contract.strStallId}
 									td #{contract.strLesseeId}
-									if(contract.booContractStatus == 0)
+									- if(contract.booContractStatus == 0)
 										td.text-success On-going
-									else
-										td.text-danger Done
-									td
-										a.btn.btn-round.btn-info.btn-icon.view(href='javascript:void(0)' contractId=`${contract.intId}`)
-											i.now-ui-icons.ui-1_zoom-bold
+										td
+											a.btn.btn-round.btn-info.btn-icon.view(href='javascript:void(0)' contractId=`${contract.intId}`)
+												i.now-ui-icons.ui-1_zoom-bold
+											a.btn.btn-round.btn-danger.btn-icon.terminate(href='javascript:void(0)' contractId=`${contract.intId}`)
+												i.now-ui-icons.ui-1_simple-remove
+									- else if(contract.booContractStatus == 1)
+										td.text-info Done
+										td
+											a.btn.btn-round.btn-info.btn-icon.view(href='javascript:void(0)' contractId=`${contract.intId}`)
+												i.now-ui-icons.ui-1_zoom-bold
+									- else if(contract.booContractStatus == 2)
+										td.text-danger Terminated
+										td
+											a.btn.btn-round.btn-info.btn-icon.view(href='javascript:void(0)' contractId=`${contract.intId}`)
+												i.now-ui-icons.ui-1_zoom-bold
 	#addLeasingModal.modal.fade(tabindex='false', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
@@ -88,6 +98,10 @@ block contentScript
 				return numberReturn.split("").reverse().join("")
 			}
 			const passedSession = !{JSON.stringify(session.utilities)}
+			const wordValues = {
+				foodStall: JSON.parse(passedSession.strFoodStallPrice),
+				dryGoodsStall: JSON.parse(passedSession.strDryGoodsStallPrice)
+			}
 			$('#viewLeasingModal').on('hidden.bs.modal', function(){
 				$('#viewLeasingModalBody').empty()
 			})
@@ -116,7 +130,6 @@ block contentScript
 				$('#viewLeasingModal').modal('show')
 			})
 			$('#stallSelect').on('change', function(){
-				console.log(passedSession)
 				$('#stallDetails').empty()
 				let stallType = $(`#stallSelect option[value="${$(this).val()}"]`).attr('stallType')
 				$('#stallDetails').append(`<h6>Payment Details:</h6>
@@ -153,7 +166,7 @@ block contentScript
 									{
 										text:[
 											{text:'the amount of: '},
-											{text:`${stallData.booStallType == 0 ? `Eighteen Thousand Pesos Only Pesos ( P ${convertToString(passedSession.dblFoodStallPrice*2)}.00 )` : 'Fourteen Thousan Pesos Only ( P 14,000.00 )'}\n\n`, decoration: 'underline'},
+											{text:`${stallData.booStallType == 0 ? `${wordValues.foodStall.double} ( P ${convertToString(passedSession.dblFoodStallPrice*2)}.00 )` : `${wordValues.dryGoodsStall.double} ( P ${convertToString(passedSession.dblDryGoodsStallPrice*2)}.00 )`}\n\n`, decoration: 'underline'},
 										]
 									},
 									{
@@ -230,13 +243,13 @@ block contentScript
 											{text: [
 													{text: 'The '},
 													{text: '"LESSEE" ', bold: true},
-													{text: `agrees to pay as rental amount of ( Php ${stallData.booStallType == 0 ? '9,000.00': '7,000.00'} ) per month. Failure to pay rental shall cause termination of this agreement.\n\n`},
+													{text: `agrees to pay as rental amount of ( Php ${stallData.booStallType == 0 ? `${convertToString(passedSession.dblFoodStallPrice)}.00`: `${convertToString(passedSession.dblDryGoodsStall)}.00`} ) per month. Failure to pay rental shall cause termination of this agreement.\n\n`},
 												]
 											},
 											{text: [
 													{text: 'Upon execution of this agreement, the '},
 													{text: '"LESSEE" ', bold: true},
-													{text: `shall deliver and pay the amount of Nine Thousand Pesos ( Php ${stallData.booStallType == 0 ? '9,000.00': '7,000.00'} ) as good will to reserve the space for him/her for six months. This amount is non-refundable and shall in no way be charged to unpaid rentals.\n\n`},
+													{text: `shall deliver and pay the amount of ${stallData.booStallType == 0 ? `${wordValues.foodStall.regular}` : `${wordValues.dryGoodsStall.regular}`} Pesos ( Php ${stallData.booStallType == 0 ? `${convertToString(passedSession.dblFoodStallPrice)}.00`: `${convertToString(passedSession.dblDryGoodsStall)}.00`} ) as good will to reserve the space for him/her for six months. This amount is non-refundable and shall in no way be charged to unpaid rentals.\n\n`},
 												]
 											},
 											{text: [
@@ -435,4 +448,11 @@ block contentScript
 					}
 				}
 			});
+			$(document).on('click', '.terminate', function(){
+				$.post('/admin/terminate-contract', {
+					contractId: $(this).attr('contractId')
+				}).done(function(){
+					location.href='/admin/rental'
+				})
+			})
 		})

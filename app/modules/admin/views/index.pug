@@ -12,7 +12,7 @@ block content
 									.icon.icon-primary
 										i.now-ui-icons.ui-2_chat-round
 									h3.info-title 859
-									h6.stats-title Messages
+									h6.stats-title Issues
 						.col-md-3
 							.statistics
 								.info
@@ -21,250 +21,30 @@ block content
 									h3.info-title
 										small $
 										| 3,521
-									h6.stats-title Today Revenue
+									h6.stats-title Revenue this Month
 						.col-md-3
 							.statistics
 								.info
 									.icon.icon-info
 										i.now-ui-icons.users_single-02
 									h3.info-title 562
-									h6.stats-title Customers
+									h6.stats-title Lessees
 						.col-md-3
 							.statistics
 								.info
 									.icon.icon-danger
 										i.now-ui-icons.objects_support-17
 									h3.info-title 353
-									h6.stats-title Support Requests
-	.row
-		.col-lg-4.col-md-6
-			.card.card-chart
-				.card-header
-					h5.card-category Active Users
-					h2.card-title 34,252
-					.dropdown
-						button.btn.btn-round.btn-default.dropdown-toggle.btn-simple.btn-icon.no-caret(type='button', data-toggle='dropdown')
-							i.now-ui-icons.loader_gear
-						.dropdown-menu.dropdown-menu-right
-							a.dropdown-item(href='#') Action
-							a.dropdown-item(href='#') Another action
-							a.dropdown-item(href='#') Something else here
-							a.dropdown-item.text-danger(href='#') Remove Data
-				.card-body
-					.chart-area
-						canvas#activeUsers
-					.table-responsive
-						table.table
-							tbody
-								tr
-									td
-										.flag
-										img(src='/assets/now-ui-admin/img/US.png')
-									td USA
-									td.text-right
-										| 2.920
-									td.text-right
-										| 53.23%
-								tr
-									td
-										.flag
-										img(src='/assets/now-ui-admin/img/DE.png')
-									td Germany
-									td.text-right
-										| 1.300
-									td.text-right
-										| 20.43%
-								tr
-									td
-										.flag
-										img(src='/assets/now-ui-admin/img/AU.png')
-									td Australia
-									td.text-right
-										| 760
-									td.text-right
-										| 10.35%
-								tr
-									td
-										.flag
-										img(src='/assets/now-ui-admin/img/GB.png')
-									td United Kingdom
-									td.text-right
-										| 690
-									td.text-right
-										| 7.87%
-								tr
-									td
-										.flag
-										img(src='/assets/now-ui-admin/img/RO.png')
-									td Romania
-									td.text-right
-										| 600
-									td.text-right
-										| 5.94%
-								tr
-									td
-										.flag
-										img(src='/assets/now-ui-admin/img/BR.png')
-									td Brasil
-									td.text-right
-										| 550
-									td.text-right
-										| 4.34%
-				.card-footer
-					.stats
-						i.now-ui-icons.arrows-1_refresh-69
-						|  Just Updated
-		.col-lg-4.col-md-6
-			.card.card-chart
-				.card-header
-					h5.card-category Summer Email Campaign
-					h2.card-title 55,300
-					.dropdown
-						button.btn.btn-round.btn-default.dropdown-toggle.btn-simple.btn-icon.no-caret(type='button', data-toggle='dropdown')
-							i.now-ui-icons.loader_gear
-						.dropdown-menu.dropdown-menu-right
-							a.dropdown-item(href='#') Action
-							a.dropdown-item(href='#') Another action
-							a.dropdown-item(href='#') Something else here
-							a.dropdown-item.text-danger(href='#') Remove Data
-				.card-body
-					.chart-area
-						canvas#emailsCampaignChart
-					.card-progress
-						.progress-container
-							span.progress-badge Delivery Rate
-						.progress
-							.progress-bar(role='progressbar', aria-valuenow='60', aria-valuemin='0', aria-valuemax='100', style='width: 90%;')
-								span.progress-value 90%
-						.progress-container.progress-success
-							span.progress-badge Open Rate
-						.progress
-							.progress-bar.progress-bar-warning(role='progressbar', aria-valuenow='60', aria-valuemin='0', aria-valuemax='100', style='width: 60%;')
-								span.progress-value 60%
-						.progress-container.progress-info
-								span.progress-badge Click Rate
-						.progress
-							.progress-bar.progress-bar-warning(role='progressbar', aria-valuenow='60', aria-valuemin='0', aria-valuemax='100', style='width: 12%;')
-								span.progress-value 12%
-						.progress-container.progress-warning
-								span.progress-badge Hard Bounce
-						.progress
-							.progress-bar.progress-bar-warning(role='progressbar', aria-valuenow='60', aria-valuemin='0', aria-valuemax='100', style='width: 5%;')
-								span.progress-value 5%
-						.progress-container.progress-danger
-							span.progress-badge Spam Report
-						.progress
-							.progress-bar.progress-bar-warning(role='progressbar', aria-valuenow='60', aria-valuemin='0', aria-valuemax='100', style='width: 0.11%;')
-								span.progress-value 0.11%
-				.card-footer
-					.stats
-						i.now-ui-icons.arrows-1_refresh-69
-						|  Just Updated
-		.col-lg-4.col-md-6
-			.card.card-chart
-				.card-header
-					h5.card-category Active Countries
-					h2.card-title 105
-				.card-body
-					.chart-area
-						canvas#activeCountries
-					#worldMap.map
-				.card-footer
-					.stats
-						i.now-ui-icons.ui-2_time-alarm
-						|  Last 7 days
+									h6.stats-title Staffs
 	.row
 		.col-md-12
 			.card
 				.card-header
 					h4.card-title  Best Selling Products
 				.card-body
-					.table-responsive
-						table.table.table-shopping
-							thead
-								tr
-									th.text-center
-									th
-										| Product
-									th
-										| Color
-									th
-										| Size
-									th.text-right
-										| Price
-									th.text-right
-										| Qty
-									th.text-right
-										| Amount
-							tbody
-								tr
-									td
-										.img-container
-										img(src='/assets/now-ui-admin/img/saint-laurent.jpg', alt='...')
-									td.td-name
-										a(href='#jacket') Suede Biker Jacket
-										br
-										small by Saint Laurent
-									td
-										| Black
-									td
-										| M
-									td.td-number
-										small €
-										| 3,390
-									td.td-number
-										| 1
-									td.td-number
-										small €
-										| 549
-								tr
-									td
-										.img-container
-										img(src='/assets/now-ui-admin/img/balmain.jpg', alt='...')
-									td.td-name
-										a(href='#pants') Jersey T-Shirt
-										br
-										small by Balmain
-									td
-										| Black
-									td
-										| M
-									td.td-number
-										small €
-										| 499
-									td.td-number
-										| 2
-									td.td-number
-										small €
-										| 998
-								tr
-									td
-										.img-container
-										img(src='/assets/now-ui-admin/img/prada.jpg', alt='...')
-									td.td-name
-										a(href='#nothing') Slim-Fit Swim Short
-										br
-										small by Prada
-									td
-										| Red
-									td
-										| M
-									td.td-number
-										small €
-										| 200
-									td.td-number
-										| 1
-									td.td-number
-										small €
-										| 799
-								tr
-									td(colspan='5')
-									td.td-total
-										| Total
-									td.td-price
-										small €
-										| 2,346
+					canvas#myChart
 block contentScript
+	script(src='/assets/plugins/js/Chart.js')
 	script.
 		$(document).ready(function(){
 			var auth = !{JSON.stringify(query)}
@@ -275,4 +55,10 @@ block contentScript
 					type: 'error'
 				})
 			}
+			//- var myChart = new Chart( $('#myChart'), {
+			//- 	type: 'line',
+			//- 	data: {
+
+			//- 	}
+			//- })
 		})

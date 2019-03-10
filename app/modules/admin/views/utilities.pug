@@ -9,7 +9,7 @@ block content
 				.card-body
 					form(method='POST' action='/admin/utilities')
 						.row
-							.col-md-6
+							.col-md-4
 								h4 Stall Type Prices
 								.form-group
 									label Food Stall
@@ -17,7 +17,15 @@ block content
 								.form-group
 									label Dry Goods Stall
 									input#dryGoodsStall.form-control(type="number" name="dryGoodsStall")
-							.col-md-6
+							.col-md-4
+								h4 House Rules
+								.form-group
+									label Admin Fee Percentage (For Utilities Bill)
+									input#adminFee.form-control(type="number" name="adminFee")
+								.form-group
+									label Monthly Utilities Bill Cut Off
+									input#cutOff.form-control(type="number" name="cutOff" min='1' max='28')
+							.col-md-4
 								h4 Super Admin Credentials
 								.form-group
 									label Username
@@ -36,5 +44,7 @@ block contentScript
 			$('#dryGoodsStall').val(utilitiesVar.dblDryGoodsStallPrice)
 			$('#adminUser').val(utilitiesVar.strAdminUsername)
 			$('#adminPass').val(utilitiesVar.strAdminPassword)
+			$('#adminFee').val(utilitiesVar.intAdminFeePercentage)
+			$('#cutOff').val(utilitiesVar.intUtilitiesCutOffDay)
 		})
 

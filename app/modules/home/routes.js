@@ -156,6 +156,44 @@ router.post('/view-ticket', (req, res) => {
         }
     })
 })
+router.post('/update-account', (req, res) => {
+    console.log(req.body)
+    let query = '';
+    let values;
+    if(req.body.username != '' && req.body.password != ''){
+        query = 'UPDATE tbl_lessee SET strUsername = ?, strPassword = ? WHERE strId = ?'
+        values = [req.body.username, req.body.password, req.body.lesseeId]
+        db.query(query, values, (err, results) => {
+            if(err) console.log(err)
+    
+            console.log(results)
+    
+            return res.send(true)
+        })
+    }
+    else if(req.body.username != '' && req.body.password == ''){
+        query = 'UPDATE tbl_lessee SET strUsername = ? WHERE strId = ?'
+        values = [req.body.username, req.body.lesseeId]
+        db.query(query, values, (err, results) => {
+            if(err) console.log(err)
+    
+            console.log(results)
+    
+            return res.send(true)
+        })
+    }
+    else if(req.body.username == '' && req.body.password != ''){
+        query = 'UPDATE tbl_lessee SET strPassword = ? WHERE strId = ?'
+        values = [req.body.password, req.body.lesseeId]
+        db.query(query, values, (err, results) => {
+            if(err) console.log(err)
+    
+            console.log(results)
+    
+            return res.send(true)
+        })
+    }
+})
 //END POST
 
 exports.index = router;

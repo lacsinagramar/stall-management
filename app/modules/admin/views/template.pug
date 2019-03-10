@@ -72,6 +72,10 @@ block body
 										a(href='/admin/water-bill')
 											span.sidebar-mini-icon WB
 											span.sidebar-normal Water Bill
+									li
+										a(href='/admin/ticket')
+											span.sidebar-mini-icon T
+											span.sidebar-normal Tickets
 						li
 							a(data-toggle='collapse', href='#transaction')
 								i.now-ui-icons.education_atom
@@ -125,5 +129,18 @@ block scriptAddOns
 			else{
 				$('#loginName').append(`${passedSession.staff.strFirstName}<b class='caret'></b>`)
 			}
+			$.post('/admin/check-bills-to-encode').done(function(data){
+				let notifString = `The following bills has no encoded consumptions:<br><br>`
+				for(let s = 0; s < data.length; s++){
+					notifString+=`${data[s].type} Bill for ${data[s].billDate}<br>`
+					if(s == data.length - 1){
+						swal({
+							type: 'info',
+							title: `It's time to encode bills!`,
+							html: notifString
+						})
+					}
+				}
+			})
 		})
 	block contentScript

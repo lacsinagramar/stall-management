@@ -39,6 +39,8 @@ function changeContractStatus(contractId, status){
 
 //GET
 router.get('/',middleware.hasAdminOrStaff, (req, res) => {
+	// const query = `SELECT COUNT(*) FROM tbl_issues `
+	// db.query(query)
 	return res.render('admin/views/index', {url: req.url, query: req.query, session: req.session});
 });
 router.get('/login',middleware.hasNoAdminOrStaff, (req, res) => {
@@ -179,6 +181,19 @@ router.get('/issue', middleware.hasAdmin, (req, res) => {
 })
 router.get('/utilities', middleware.hasAdmin, (req, res) => {
 	return res.render('admin/views/utilities', {url: req.url, utilities: req.session.utilities, session: req.session})
+})
+router.get('/ticket', (req, res) => {
+	db.query('SELECT * FROM tbl_ticket', (err, results) => {
+		if(err) console.log(err)
+
+		if(results.length > 0){
+			for(let t = 0; t < results.length; t++){
+				results[t].datTicketDate = moment(results[t].datTicketDate).format('YYYY-MM-DD')
+			}
+		}
+
+		return res.render('admin/views/ticket', {url: req.url, session: req.session, tickets: results})
+	})
 })
 //END GET
 
@@ -462,12 +477,13 @@ router.post('/get-readings', (req, res) => {
 })
 router.post('/encode-electric-bill', (req, res) => {
 	const queryString = `INSERT INTO tbl_electric_lessee_bill 
-	(intElectricMainBillId, intContractId, intMeterReading, intTotalKwhUsage, dblAmountDue, datDueDate)
-	VALUES (?, ?, ?, ?, ?, ?)`
-
+	(intElectricMainBillId, intContractId, intMeterReading, intTotalKwhUsage, dblAmountDue, dblAdminFee, datDueDate)
+	VALUES (?, ?, ?, ?, ?, ?, ?)`
+	
 	for(let e=0; e<req.body.lesseeBills.length; e++){
 		const billNow = req.body.lesseeBills[e];
-		db.query(queryString, [billNow.mainBillId, billNow.contractId, billNow.currentMeterReading, billNow.totalUsage, billNow.amountDue, billNow.dueDate], (err, results) => {
+		const cutOffDate = `${moment(billNow.dueDate).format('YYYY-MM')}-${req.session.utilities.intUtilitiesCutOffDay}`
+		db.query(queryString, [billNow.mainBillId, billNow.contractId, billNow.currentMeterReading, billNow.totalUsage, billNow.amountDue, billNow.adminFee, cutOffDate], (err, results) => {
 			if(err) console.log(err)
 		})
 		if(e == req.body.lesseeBills.length - 1){
@@ -481,12 +497,13 @@ router.post('/encode-electric-bill', (req, res) => {
 })
 router.post('/encode-water-bill', (req, res) => {
 	const queryString = `INSERT INTO tbl_water_lessee_bill 
-	(intWaterMainBillId, intContractId, intMeterReading, intTotalCubicMeterUsage, dblAmountDue, datDueDate)
-	VALUES (?, ?, ?, ?, ?, ?)`
+	(intWaterMainBillId, intContractId, intMeterReading, intTotalCubicMeterUsage, dblAmountDue, dblAdminFee, datDueDate)
+	VALUES (?, ?, ?, ?, ?, ?, ?)`
 
 	for(let e=0; e<req.body.lesseeBills.length; e++){
 		const billNow = req.body.lesseeBills[e];
-		db.query(queryString, [billNow.mainBillId, billNow.contractId, billNow.currentMeterReading, billNow.totalUsage, billNow.amountDue, billNow.dueDate], (err, results) => {
+		const cutOffDate = `${moment(billNow.dueDate).format('YYYY-MM')}-${req.session.utilities.intUtilitiesCutOffDay}`
+		db.query(queryString, [billNow.mainBillId, billNow.contractId, billNow.currentMeterReading, billNow.totalUsage, billNow.amountDue, billNow.adminFee, cutOffDate], (err, results) => {
 			if(err) console.log(err)
 		})
 		if(e == req.body.lesseeBills.length - 1){
@@ -605,7 +622,14 @@ router.post('/generate-rental-bills', (req, res) => {
 		for(let h = 0; h < results.length; h++){
 			const price = results[h].dblRentPrice
 			const newDueDate = moment(`${yearNow}-${monthNow}-${results[h].intContractDay}`).format('YYYY-MM-DD')
-			if(moment(moment().format('YYYY-MM-DD')).isSameOrAfter(moment(newDueDate).subtract(10, 'days').format('YYYY-MM-DD'))){
+			const doneDate = moment(`${results[h].intContractYear}-${results[h].intContractMonth}-${results[h].intContractDay}`).add(results[h].intContractDuration, 'months').add(7, 'days').format('YYYY-MM-DD')
+			if(moment(moment().format('YYYY-MM-DD')).isSameOrAfter(doneDate)){
+				changeContractStatus(results[h].intId, 1).then(() => {
+					console.log('Contract Done')
+					return res.send(true)
+				})
+			}
+			else if(moment(moment().format('YYYY-MM-DD')).isSameOrAfter(moment(newDueDate).subtract(10, 'days').format('YYYY-MM-DD'))){
 				console.log(moment().format('YYYY-MM-DD')+' is same of after '+moment(newDueDate).subtract(10, 'days').format('YYYY-MM-DD'))
 				db.query('SELECT * FROM tbl_rental_bill WHERE intContractId = ? AND datDueDate = ?', [results[h].intId, newDueDate], (err, resultsBill) => {
 					if(err) console.log(err)
@@ -667,10 +691,10 @@ router.post('/get-leasing', (req, res) => {
 	})
 })
 router.post('/create-ticket', (req, res) => {
-	const query = `INSERT INTO tbl_ticket (intIssueId, strAssigneeName) VALUES (?, ?);
+	const query = `INSERT INTO tbl_ticket (intIssueId, strAssigneeUsername, datTicketDate) VALUES (?, ?, ?);
 	UPDATE tbl_issue_report SET booStatus = 1 WHERE intId = ?`
 
-	db.query(query, [req.body.issue, req.body.assignee, req.body.issue], (err, results) => {
+	db.query(query, [req.body.issue, req.body.assignee, moment().format('YYYY-MM-DD'), req.body.issue], (err, results) => {
 		if(err) console.log(err)
 
 		return res.send(true)
@@ -689,7 +713,7 @@ router.post('/utilities', (req, res) => {
 		}
 	}
 	const query = `UPDATE tbl_utilities SET 
-	dblFoodStallPrice = ?, dblDryGoodsStallPrice = ?, strAdminUsername = ?, strAdminPassword = ?, strFoodStallPrice = ?, strDryGoodsStallPrice = ?
+	dblFoodStallPrice = ?, dblDryGoodsStallPrice = ?, strAdminUsername = ?, strAdminPassword = ?, strFoodStallPrice = ?, strDryGoodsStallPrice = ?, intUtilitiesCutOffDay = ?, intAdminFeePercentage = ?
 	WHERE intUtilitiesId = 1`
 	const wordValues = {
 		foodStall: {
@@ -701,7 +725,7 @@ router.post('/utilities', (req, res) => {
 			double: convertToUpperCase(numberToWords.toWords(eval(`${req.body.dryGoodsStall}*2`)))
 		}
 	}
-	const values = [req.body.foodStall, req.body.dryGoodsStall, req.body.adminUser, req.body.adminPass, JSON.stringify(wordValues.foodStall), JSON.stringify(wordValues.dryGoodsStall)]
+	const values = [req.body.foodStall, req.body.dryGoodsStall, req.body.adminUser, req.body.adminPass, JSON.stringify(wordValues.foodStall), JSON.stringify(wordValues.dryGoodsStall), req.body.cutOff, req.body.adminFee]
 	db.query(query, values, (err, results) => {
 		if(err) console.log(err)
 
@@ -711,11 +735,116 @@ router.post('/utilities', (req, res) => {
 		req.session.utilities.strAdminPassword = values[3]
 		req.session.utilities.strFoodStallPrice = values[4]
 		req.session.utilities.strDryGoodsStallPrice = values[5]
+		req.session.utilities.intUtilitiesCutOffDay = values[6]
+		req.session.utilities.intAdminFeePercentage = values[7]
 		return res.redirect('/admin/utilities')
 	})
 })
 router.post('/terminate-contract', (req, res) => {
 	changeContractStatus(req.body.contractId, 2).then(() => {
+		return res.send(true)
+	})
+})
+router.post('/get-staffs', (req, res) => {
+	db.query('SELECT * FROM tbl_staff WHERE booStatus = 1', (err, results) => {
+		if(err) console.log(err)
+
+		return res.send(results)
+	})
+})
+router.post('/check-bills-to-encode', (req, res) => {
+	let unencodedBills = []
+	function getUnencodedBills(type){
+		return new Promise(function(resolve, reject){
+			if(type == 'E'){
+				db.query('SELECT * FROM tbl_electric_main_bill', (err, results) => {
+					if(err) console.log(err)
+
+					if(results.length > 0){
+						for(let r = 0; r < results.length; r++){
+							db.query('SELECT * FROM tbl_electric_lessee_bill WHERE intElectricMainBillId = ?', results[r].intId, (err, eBills) => {
+								if(err) console.log(err)
+
+								if(eBills.length == 0){
+									unencodedBills.push({
+										type: 'Electric',
+										billDate: moment(`${results[r].intDueYear}-${results[r].intDueMonth}-${results[r].intDueDay}`).format('MMMM YYYY')
+									})
+								}
+								if(r == results.length - 1){
+									return resolve()
+								}
+							})
+						}
+					}
+					else{
+						return resolve()
+					}
+				})
+			}
+			else if(type == 'W'){
+				db.query('SELECT * FROM tbl_water_main_bill', (err, results) => {
+					if(err) console.log(err)
+
+					if(results.length > 0){
+						for(let r = 0; r < results.length; r++){
+							db.query('SELECT * FROM tbl_water_lessee_bill WHERE intWaterMainBillId = ?', results[r].intId, (err, wBills) => {
+								if(err) console.log(err)
+
+								if(wBills.length == 0){
+									unencodedBills.push({
+										type: 'Water',
+										billDate: moment(`${results[r].intDueYear}-${results[r].intDueMonth}-${results[r].intDueDay}`).format('MMMM YYYY')
+									})
+								}
+								if(r == results.length - 1){
+									return resolve()
+								}
+							})
+						}
+					}
+					else{
+						return resolve()
+					}
+				})
+			}
+		})
+	}
+	getUnencodedBills('E').then(() => {
+		getUnencodedBills('W').then(() => {
+			return res.send(unencodedBills)
+		})
+	})
+})
+router.post('/update-ticket-status', (req, res) => {
+	db.query('UPDATE tbl_ticket SET booStatus = ? WHERE intId = ?', [req.body.status, req.body.ticketId], (err, results) => {
+		if(err) console.log(err)
+
+		return res.send(true)
+	})
+})
+router.post('/get-staff-details', (req, res) => {
+	db.query('SELECT * FROM tbl_staff WHERE intId = ?', req.body.staffId, (err, results) => {
+		if(err) console.log(err)
+
+		return res.send(results[0])
+	})
+})
+router.post('/edit-staff', (req, res) => {
+	const query = `UPDATE tbl_staff 
+	SET strFirstName = ?, strMiddleName = ?, strLastName = ?, strEmail = ?, strPhone = ?, strUsername = ?, strPassword = ?
+	WHERE intId = ?`
+	const values = [req.body.firstName, req.body.middleName, req.body.lastName, req.body.email, req.body.phoneNumber, req.body.username, req.body.password, req.body.staffId]
+	db.query(query, values, (err, results) => {
+		if(err) console.log(err)
+
+		return res.redirect('/admin/staff')
+	})
+})
+router.post('/delete-staff', (req, res) => {
+	db.query('UPDATE tbl_staff SET booStatus = 0 WHERE intId = ?', req.body.staffId, (err, results) => {
+		if(err) console.log(err)
+
 		return res.send(true)
 	})
 })

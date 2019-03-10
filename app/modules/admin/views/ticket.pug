@@ -1,0 +1,58 @@
+extends ./template.pug
+
+block content
+	.row
+		.col-md-12
+			.card
+				.card-header
+					h4.card-title Tickets
+				.card-body
+					table#ticketTable.table.table-bordered.table-striped(cellspacing='0')
+						thead
+							tr
+								th Ticket ID
+								th Assignee Username
+								th Ticket Date
+								th Ticket Status
+								th Actions
+						tbody
+							each ticket in tickets
+								tr
+									td #{ticket.intId}
+									td #{ticket.strAssigneeUsername}
+									td #{ticket.datTicketDate}
+									- if (ticket.booStatus == 0)
+										td
+											span.badge.badge-info.text-white Resolving
+										td
+											a.resolve.badge.badge-success.text-white(href='javascript:' ticketId=`${ticket.intId}` style='float:left') Resolve
+											a.close.badge.badge-danger.text-white(href='javascript:' ticketId=`${ticket.intId}` style='float:left') Close
+									- else if (ticket.booStatus == 1)
+										td
+											span.badge.badge-success.text-white Resolved
+										td No Available Actions
+									- else if (ticket.booStatus == 2)
+										td
+											span.badge.badge-danger.text-white Closed/Unresolved
+										td No Available Actions
+block contentScript
+	script.
+		$(document).ready(function(){
+			$('#ticketTable').dataTable()
+			$(document).on('click', '.resolve', function(){
+				$.post('/admin/update-ticket-status', {
+					status: 1,
+					ticketId: $(this).attr('ticketId')
+				}).done(function(){
+					location.href='/admin/ticket'
+				})
+			})
+			$(document).on('click', '.close', function(){
+				$.post('/admin/update-ticket-status', {
+					status: 2,
+					ticketId: $(this).attr('ticketId')
+				}).done(function(){
+					location.href='/admin/ticket'
+				})
+			})
+		})

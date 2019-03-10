@@ -5,9 +5,6 @@
 - Notifications for bill /
 - Start ticketing module /
 - Start Utilities(Stall Price by type, Lease add-on price) /
-- Start Dashboard
-- Start Reports
-- Stall Map
 
 *Comments
 - Stall Price sa Leasing /
@@ -22,11 +19,25 @@
 - Payment /
 
 *NOTES
-- Generate Receipt on Payment
+- Generate Receipt on Payment 
 - Edit/Delete
-    * Lessee
-    * Contract (Terminate)
-- Auto Terminate Contract
+    * Lessee /
+    * Contract (Terminate) /
+- Auto Terminate Contract /
+
+** FOR FINAL DEF
+- Cut off Utilities Bill /
+- 5% Admin Fee on Utilities Bill /
+- Report Issue Process
+    1. Lessee Reports Issue /
+    2. Admin Creates Ticket and Assign Staff /
+    3. Staff Changes Status /
+- Notification for bills to be encoded /
+- Change Username and Password of Lessee and Staffs /
+- Validation para sa sabay magencode
+- Start Dashboard
+- Start Reports
+- Stall Map
 
 SQL DUMP EXAMPLE
 mysqldump -u root -p -d -B stallv3>stallv3-2.sql

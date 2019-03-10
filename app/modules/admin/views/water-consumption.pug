@@ -70,25 +70,35 @@ block contentScript
 	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
 	script.
 		$(document).ready(function(){
+			const utilities = !{JSON.stringify(session.utilities)}
 			$('#waterTable').dataTable();
 			$('.encodeWaterOpen').on('click', function(){
-				$.post('/admin/get-readings', {billId: $(this).attr('billId'), type:'water'})
-				.done(function (data){
-					for(let i = 0; i< data.length; i++){
-						$('#encodeWaterModalTableBody').append(`
-							<tr>
-								<td><strong>${data[i].strStallId}</strong></td>
-								<td><input class="form-control" type="text" disabled="disabled" value="${data[i].intMeterReading}" /></td>
-								<td><input class="form-control input-cubic" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" type="text" placeholder="Enter Current Meter Reading" /></td>
-							</tr>`
-						)
-					}
-				})
-				$('#encodeWaterSave').attr('usage', $(this).attr('totalCubic'))
-				$('#encodeWaterSave').attr('amountDue', $(this).attr('amountDue'))
-				$('#encodeWaterSave').attr('dueDate', $(this).attr('dueDate'))
-				$('#encodeWaterSave').attr('billId', $(this).attr('billId'))
-				$('#encodeWaterModal').modal('show')
+				if(moment(moment(`${yearNow}-${monthNow}-${utilities.intUtilitiesCutOffDay}`).subtract(7, 'days').format('YYYY-MM-DD')).isSameOrAfter(moment().format('YYYY-MM-DD'))){
+					$.post('/admin/get-readings', {billId: $(this).attr('billId'), type:'water'})
+					.done(function (data){
+						for(let i = 0; i< data.length; i++){
+							$('#encodeWaterModalTableBody').append(`
+								<tr>
+									<td><strong>${data[i].strStallId}</strong></td>
+									<td><input class="form-control" type="text" disabled="disabled" value="${data[i].intMeterReading}" /></td>
+									<td><input class="form-control input-cubic" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" type="text" placeholder="Enter Current Meter Reading" /></td>
+								</tr>`
+							)
+						}
+					})
+					$('#encodeWaterSave').attr('usage', $(this).attr('totalCubic'))
+					$('#encodeWaterSave').attr('amountDue', $(this).attr('amountDue'))
+					$('#encodeWaterSave').attr('dueDate', $(this).attr('dueDate'))
+					$('#encodeWaterSave').attr('billId', $(this).attr('billId'))
+					$('#encodeWaterModal').modal('show')
+				}
+				else{
+					swal({
+						title: `It's not time to encode yet`,
+						text: `You can only encode if today is already a week before the cut off day`,
+						type: 'error'
+					})
+				}
 			})
 			$('#encodeWaterModal').on('hidden.bs.modal', function(){
 				$('#encodeWaterModalTableBody').empty()
@@ -102,14 +112,17 @@ block contentScript
 					totalInputted = eval(totalInputted+'+'+inputs.eq(c).val())
 				}
 				if(totalInputted == $(this).attr('usage')){
-					const pricePerKwH = eval(`${$(this).attr('amountDue')}/${$(this).attr('usage')}`)
+					const pricePerCubicMeter = eval(`${$(this).attr('amountDue')}/${$(this).attr('usage')}`)
 					for(let d=0; d<inputs.length; d++){
 						let usageNow = eval(`${inputs.eq(d).val()}-${inputs.eq(d).attr('previousReading')}`)
+						let amountDueNow = eval(`${pricePerCubicMeter}*${usageNow}`);
+						let adminFeeNow = eval(`${amountDueNow}*${utilities.intAdminFeePercentage}`).toFixed(2)
 						bills.push({
 							contractId: inputs.eq(d).attr('contractId'),
 							currentMeterReading: inputs.eq(d).val(),
 							totalUsage: usageNow,
-							amountDue: eval(`${pricePerKwH}*${usageNow}`),
+							amountDue: amountDueNow,
+							adminFee: adminFeeNow,
 							dueDate: $(this).attr('dueDate'),
 							mainBillId: $(this).attr('billId')
 						})
@@ -138,8 +151,8 @@ block contentScript
 								<td><h6 class="text-primary">Stall ${data[f].strStallId}</h6></td>
 								<td>${data[f].intMeterReading}</td>
 								<td>${data[f].intTotalCubicMeterUsage} Cubic Meter</td>
-								<td>P ${data[f].dblAmountDue}</td>
-								<td><button class="btn btn-info btn-round generateBill" lesseeBillId="${data[f].lesseeBillId}" amountDue="${data[f].dblAmountDue}" cubicMeterUsage="${data[f].intTotalCubicMeterUsage}" meterReading="${data[f].intMeterReading}" lesseeName="${data[f].strFirstName} ${data[f].strMiddleName} ${data[f].strLastName}" stallId="${data[f].strStallId}" dueDate='${data[f].datDueDate}'>Generate</button></td>
+								<td>P ${eval(`${data[f].dblAmountDue}+${data[f].dblAdminFee}`)}</td>
+								<td><button class="btn btn-info btn-round generateBill" lesseeBillId="${data[f].lesseeBillId}" amountDue="${eval(`${data[f].dblAmountDue}+${data[f].dblAdminFee}`)}" cubicMeterUsage="${data[f].intTotalCubicMeterUsage}" meterReading="${data[f].intMeterReading}" lesseeName="${data[f].strFirstName} ${data[f].strMiddleName} ${data[f].strLastName}" stallId="${data[f].strStallId}" dueDate='${data[f].datDueDate}'>Generate</button></td>
 							</tr>
 						`)
 					}

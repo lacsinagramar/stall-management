@@ -48,26 +48,33 @@ block contentScript
 			})
 			$(document).on('click', '#createTicket', function(){
 				const issueId = $(this).attr('issueId')
-				swal({
-					title: 'Assign Person',
-					input: 'text',
-					inputPlaceholder: 'Enter name here...'
-				}).then( value => {
-					if(value != ''){
-						$.post('/admin/create-ticket', {
-							issue: issueId,
-							assignee: value
-						}).done(function(){
-							location.href='/admin/issue'
-						})
-					}
-					else{
-						swal({
-							type: 'error',
-							title: 'Error',
-							text: 'Please enter the name of the assigned person'
-						})
-					}
+				$.post('/admin/get-staffs').done(function(data){
+					let swalOptions = {}
+					data.forEach(staff => {
+						swalOptions[`${staff.strUsername}`] = `${staff.strFirstName} ${staff.strLastName}`
+					})
+					swal({
+						title: 'Assign Person',
+						input: 'select',
+						inputOptions: swalOptions,
+						inputPlaceholder: 'Select a Staff'
+					}).then( value => {
+						if(value != ''){
+							$.post('/admin/create-ticket', {
+								issue: issueId,
+								assignee: value
+							}).done(function(){
+								location.href='/admin/issue'
+							})
+						}
+						else{
+							swal({
+								type: 'error',
+								title: 'Error',
+								text: 'Please enter the name of the assigned person'
+							})
+						}
+					})
 				})
 			})
 		})

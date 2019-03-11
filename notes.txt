@@ -20,6 +20,7 @@
 
 *NOTES
 - Generate Receipt on Payment 
+- Validation para sa sabay magencode
 - Edit/Delete
     * Lessee /
     * Contract (Terminate) /
@@ -34,10 +35,21 @@
     3. Staff Changes Status /
 - Notification for bills to be encoded /
 - Change Username and Password of Lessee and Staffs /
-- Validation para sa sabay magencode
-- Start Dashboard
+- Start Dashboard /
+- Start Queries
 - Start Reports
 - Stall Map
+
+** Queries
+- Lessee
+- Contract
+- Staffs
+- Stalls
+
+** Reports
+- Paid and Unpaid Tenants
+- Expiring Contracts
+- Revenue
 
 SQL DUMP EXAMPLE
 mysqldump -u root -p -d -B stallv3>stallv3-2.sql

@@ -39,9 +39,53 @@ function changeContractStatus(contractId, status){
 
 //GET
 router.get('/',middleware.hasAdminOrStaff, (req, res) => {
-	// const query = `SELECT COUNT(*) FROM tbl_issues `
-	// db.query(query)
-	return res.render('admin/views/index', {url: req.url, query: req.query, session: req.session});
+	function getRevenue(){
+		return new Promise(function(resolve, reject){
+			const monthNow = moment().format('MM')
+			db.query(`SELECT SUM(dblAdminFee) AS adminFeeRev FROM tbl_electric_lessee_bill WHERE MONTH(datDueDate) = ${monthNow} AND strPaymentReferenceNo IS NOT NULL`, (err, results) => {
+				if(err) console.log(err)
+
+				const electricAdmin = results[0].adminFeeRev
+				db.query(`SELECT SUM(dblAdminFee) AS adminFeeRev FROM tbl_water_lessee_bill WHERE MONTH(datDueDate) = ${monthNow} AND strPaymentReferenceNo IS NOT NULL`, (err, results) => {
+					if(err) console.log(err)
+	
+					const waterAdmin = results[0].adminFeeRev
+					db.query(`SELECT SUM(dblAmountDue) AS rentalFee FROM tbl_rental_bill WHERE MONTH(datDueDate) = ${monthNow} AND strPaymentReferenceNo IS NOT NULL`, (err, results) => {
+						if(err) console.log(err)
+		
+						const rentalFee = results[0].rentalFee
+
+						console.log(eval(`${electricAdmin}+${waterAdmin}+${rentalFee}`),'resolve')
+						resolve(eval(`${electricAdmin}+${waterAdmin}+${rentalFee}`))
+					})
+				})
+			})
+		})
+	}
+	getRevenue().then(revenue => {
+		db.query('SELECT COUNT(*) AS issueCount FROM tbl_issue_report', (err, results) => {
+			if(err) console.log(err)
+
+			db.query('SELECT COUNT(*) AS lesseeCount FROM tbl_lessee WHERE booIsDeleted = 0', (err, lesseeCount) =>{
+				if(err) console.log(err)
+
+				db.query('SELECT COUNT(*) AS staffCount FROM tbl_staff WHERE booStatus = 1', (err, staffCount) => {
+					if(err) console.log(err)
+
+					return res.render('admin/views/index', {
+						url: req.url, 
+						query: req.query, 
+						session: req.session, 
+						issueCount: results[0].issueCount, 
+						revenueThisMonth: revenue,
+						lesseeCount: lesseeCount[0].lesseeCount,
+						staffCount: staffCount[0].staffCount
+					});
+				})
+			})
+	
+		})
+	})
 });
 router.get('/login',middleware.hasNoAdminOrStaff, (req, res) => {
 	db.query('SELECT * FROM tbl_utilities LIMIT 1', (err, results) => {
@@ -725,7 +769,7 @@ router.post('/utilities', (req, res) => {
 			double: convertToUpperCase(numberToWords.toWords(eval(`${req.body.dryGoodsStall}*2`)))
 		}
 	}
-	const values = [req.body.foodStall, req.body.dryGoodsStall, req.body.adminUser, req.body.adminPass, JSON.stringify(wordValues.foodStall), JSON.stringify(wordValues.dryGoodsStall), req.body.cutOff, req.body.adminFee]
+	const values = [req.body.foodStall, req.body.dryGoodsStall, req.body.adminUser, req.body.adminPass, JSON.stringify(wordValues.foodStall), JSON.stringify(wordValues.dryGoodsStall), req.body.cutOff, eval(`${req.body.adminFee}/100`)]
 	db.query(query, values, (err, results) => {
 		if(err) console.log(err)
 
@@ -846,6 +890,62 @@ router.post('/delete-staff', (req, res) => {
 		if(err) console.log(err)
 
 		return res.send(true)
+	})
+})
+router.post('/get-due-payments', (req, res) => {
+	let array = []
+	const electricQuery = `SELECT * FROM tbl_electric_lessee_bill
+	JOIN tbl_contract ON tbl_contract.intId = intContractId WHERE MONTH(datDueDate) = ${moment().format('MM')}`
+	const waterQuery = `SELECT * FROM tbl_water_lessee_bill
+	JOIN tbl_contract ON tbl_contract.intId = intContractId WHERE MONTH(datDueDate) = ${moment().format('MM')}`
+	const rentalQuery = `SELECT * FROM tbl_rental_bill
+	JOIN tbl_contract ON tbl_contract.intId = intContractId WHERE MONTH(datDueDate) = ${moment().format('MM')}`
+	db.query(electricQuery, (err, results) => {
+		if(err) console.log(err)
+
+		for(let t = 0; t < results.length; t++){
+			array.push(results[t])
+			if(t == results.length - 1){
+				db.query(waterQuery, (err, results) => {
+					if(err) console.log(err)
+			
+					for(let t = 0; t < results.length; t++){
+						array.push(results[t])
+						if(t == results.length - 1){
+							db.query(rentalQuery, (err, results) => {
+								if(err) console.log(err)
+						
+								for(let t = 0; t < results.length; t++){
+									array.push(results[t])
+									if(t == results.length - 1){
+										return res.send(array)
+									}
+								}
+							})
+						}
+					}
+				})
+			}
+		}
+	})
+})
+router.post('/get-expiring-contracts', (req, res) => {
+	const query = `SELECT * FROM tbl_contract
+	JOIN tbl_lessee ON strId = strLesseeId
+	WHERE booContractStatus = 0`
+	db.query(query, (err, results) => {
+		if(err) console.log(err)
+
+		let array = []
+		for(let v = 0; v < results.length; v++){
+			const endDate = moment(`${results[v].intContractYear}-${results[v].intContractMonth}-${results[v].intContractDay}`).add(results[v].intContractDuration, 'months').format('YYYY-MM')
+			if(moment(endDate).isSame(moment().add(1, 'months').format('YYYY-MM'))){
+				array.push(results[v])
+			}
+			if(v == results.length - 1){
+				return res.send(array)
+			}
+		}
 	})
 })
 //END POST

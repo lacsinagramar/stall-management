@@ -43,11 +43,11 @@ block body
 					ul#sideNav.nav
 						li#dashboard
 							a(href='/admin')
-								i.now-ui-icons.design_app
+								i.now-ui-icons.business_chart-bar-32
 								p Dashboard
 						li
 							a(data-toggle='collapse', href='#maintenance')
-								i.now-ui-icons.design_image
+								i.now-ui-icons.ui-2_settings-90
 								p Maintenance
 									b.caret
 							#maintenance.collapse
@@ -78,7 +78,7 @@ block body
 											span.sidebar-normal Tickets
 						li
 							a(data-toggle='collapse', href='#transaction')
-								i.now-ui-icons.education_atom
+								i.now-ui-icons.files_paper
 								p Transaction
 									b.caret
 							#transaction.collapse
@@ -107,6 +107,14 @@ block body
 							a(href='/admin/utilities')
 								i.now-ui-icons.ui-1_settings-gear-63
 								p Utilities
+						li#queries
+							a(href='/admin/queries')
+								i.now-ui-icons.design_bullet-list-67
+								p Queries
+						li#reports
+							a(href='/admin/reports')
+								i.now-ui-icons.education_paper
+								p Reports
 			.main-panel(style="padding-top:100px")
 				.content
 					block content
@@ -121,6 +129,12 @@ block scriptAddOns
 			}
 			else if(url[0] == '/utilities'){
 				$('#utilities').addClass('active')
+			}
+			else if(url[0] == '/queries'){
+				$('#queries').addClass('active')
+			}
+			else if(url[0] == '/reports'){
+				$('#reports').addClass('active')
 			}
 			
 			if(passedSession.admin){

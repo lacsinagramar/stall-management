@@ -11,7 +11,7 @@ block content
 								.info
 									.icon.icon-primary
 										i.now-ui-icons.ui-2_chat-round
-									h3.info-title 859
+									h3.info-title #{issueCount}
 									h6.stats-title Issues
 						.col-md-3
 							.statistics
@@ -19,30 +19,56 @@ block content
 									.icon.icon-success
 										i.now-ui-icons.business_money-coins
 									h3.info-title
-										small $
-										| 3,521
+										small P
+										| #{revenueThisMonth}
 									h6.stats-title Revenue this Month
 						.col-md-3
 							.statistics
 								.info
 									.icon.icon-info
 										i.now-ui-icons.users_single-02
-									h3.info-title 562
+									h3.info-title #{lesseeCount}
 									h6.stats-title Lessees
 						.col-md-3
 							.statistics
 								.info
 									.icon.icon-danger
 										i.now-ui-icons.objects_support-17
-									h3.info-title 353
+									h3.info-title #{staffCount}
 									h6.stats-title Staffs
 	.row
 		.col-md-12
 			.card
 				.card-header
-					h4.card-title  Best Selling Products
+					h4.card-title Payments Due this Month
 				.card-body
-					canvas#myChart
+					.responsive-table
+						table#paymentsTable.table
+							thead
+								tr
+									th Stall ID
+									th Stall Name
+									th Bill Type
+									th Amount Due
+									th Status
+							tbody#paymentsTableBody
+	.row
+		.col-md-12
+			.card
+				.card-header
+					h4.card-title Expiring Contracts Next Month
+				.card-body
+					.responsive-table
+						table#expiringTable.table
+							thead
+								tr
+									th Stall ID
+									th Contract ID
+									th Stall Name
+									th Lessee Name
+									th Contract End Date
+							tbody#expiringTableBody
+					//canvas#myChart
 block contentScript
 	script(src='/assets/plugins/js/Chart.js')
 	script.
@@ -55,6 +81,53 @@ block contentScript
 					type: 'error'
 				})
 			}
+			$.post('/admin/get-due-payments').done(function(data){
+				for(let u = 0; u < data.length; u++){
+					let billType = ''
+					let amountDue = 0
+					if(data[u].intTotalKwhUsage){
+						billType = 'Electric'
+						amountDue = data[u].dblAmountDue + data[u].dblAdminFee
+					}
+					else if(data[u].intTotalCubicMeterUsage){
+						billType = 'Water'
+						amountDue = data[u].dblAmountDue + data[u].dblAdminFee
+					}
+					else{
+						billType = 'Rental'
+						amountDue = data[u].dblAmountDue
+					}
+					$('#paymentsTableBody').append(`
+						<tr>
+							<td>${data[u].strStallId}</td>
+							<td>${data[u].strContractStallDescription}</td>
+							<td>${billType}</td>
+							<td>${amountDue}</td>
+							<td>${data[u].strPaymentReferenceNo == null ? `<span class='badge badge-danger text-white'>Not Paid</span>`: `<span class='badge badge-success text-white'>Paid</span>`}</td>
+						</tr>
+					`)
+					if(u == data.length - 1){
+						$('#paymentsTable').dataTable()
+					}
+				}
+			})
+			$.post('/admin/get-expiring-contracts').done(function(data){
+				console.log(data)
+				for(let w = 0; w < data.length; w++){
+					$('#expiringTableBody').append(`
+						<tr>
+							<td>${data[w].strStallId}</td>
+							<td>${data[w].intId}</td>
+							<td>${data[w].strContractStallDescription}</td>
+							<td>${data[w].strFirstName} ${data[w].strMiddleName} ${data[w].strLastName}</td>
+							<td>${moment(`${data[w].intContractYear}-${data[w].intContractMonth}-${data[w].intContractDay}`).add(data[w].intContractDuration, 'months').format('YYYY-MM-DD')}</td>
+						</tr>
+					`)
+					if(w == data.length - 1){
+						$('#expiringTable').dataTable()
+					}
+				}
+			})
 			//- var myChart = new Chart( $('#myChart'), {
 			//- 	type: 'line',
 			//- 	data: {

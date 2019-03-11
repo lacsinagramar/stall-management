@@ -48,7 +48,7 @@ block content
 					.modal-footer
 						button#encodeWaterSave.btn.btn-primary(type='submit') Save
 	#generateModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
-		.modal-dialog(role='document')
+		.modal-dialog.modal-xl(role='document')
 			.modal-content
 				.modal-header
 					h5.modal-title Generate Bill of Tenants
@@ -73,7 +73,9 @@ block contentScript
 			const utilities = !{JSON.stringify(session.utilities)}
 			$('#waterTable').dataTable();
 			$('.encodeWaterOpen').on('click', function(){
-				if(moment(moment(`${yearNow}-${monthNow}-${utilities.intUtilitiesCutOffDay}`).subtract(7, 'days').format('YYYY-MM-DD')).isSameOrAfter(moment().format('YYYY-MM-DD'))){
+				const monthNow = moment().format('MM')
+				const yearNow = moment().format('YYYY')
+				if(moment(moment().format('YYYY-MM-DD')).isSameOrAfter(moment(`${yearNow}-${monthNow}-${utilities.intUtilitiesCutOffDay}`).subtract(7, 'days').format('YYYY-MM-DD'))){
 					$.post('/admin/get-readings', {billId: $(this).attr('billId'), type:'water'})
 					.done(function (data){
 						for(let i = 0; i< data.length; i++){

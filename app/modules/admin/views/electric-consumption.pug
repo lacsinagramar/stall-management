@@ -75,7 +75,7 @@ block contentScript
 			$('.encodeElectricOpen').on('click', function(){
 				const monthNow = moment().format('MM')
 				const yearNow = moment().format('YYYY')
-				if(moment(moment(`${yearNow}-${monthNow}-${utilities.intUtilitiesCutOffDay}`).subtract(7, 'days').format('YYYY-MM-DD')).isSameOrAfter(moment().format('YYYY-MM-DD'))){
+				if(moment(moment().format('YYYY-MM-DD')).isSameOrAfter(moment(`${yearNow}-${monthNow}-${utilities.intUtilitiesCutOffDay}`).subtract(7, 'days').format('YYYY-MM-DD'))){
 					$.post('/admin/get-readings', {billId: $(this).attr('billId'), type:'electric'})
 					.done(function (data){
 						for(let i = 0; i< data.length; i++){

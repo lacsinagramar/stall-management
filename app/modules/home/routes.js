@@ -144,7 +144,7 @@ router.post('/create-issue', (req, res) => {
     })
 })
 router.post('/view-ticket', (req, res) => {
-    const query = `SELECT * FROM tbl_ticket WHERE intId = ?`
+    const query = `SELECT * FROM tbl_ticket WHERE intIssueId = ?`
     db.query(query,req.body.issueId, (err, results) => {
         if(err) console.log(err)
 

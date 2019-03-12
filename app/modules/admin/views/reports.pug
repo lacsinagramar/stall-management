@@ -1,0 +1,50 @@
+extends ./template.pug
+
+block content
+	.row
+		.col-md-12
+			.card
+				.card-header
+					h4.card-title Reports
+				.card-body
+					.toolbar
+						button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addStallModal') Save as Excel File
+					br
+					center
+						h5 Generate Reports
+					.row
+						.col-md-5
+							.form-group
+								label Generate Report For:
+								select#generateReport.form-control.selectpicker(data-style='select-with-transition btn-primary btn-round' title='Select')
+									option(value='0') Lessee Payments
+									option(value='1') Expiring Contracts
+									option(value='2') Profit
+						.col-md-5
+							.form-group
+								label Filter by:
+								select#filter.form-control.selectpicker(disabled='true' data-style='select-with-transition btn-primary btn-round' title='Select')
+						.col-md-2
+							button.btn.btn-round.btn-info(disabled='true') Generate Report
+					table#reportsTable.table.table-bordered.table-striped(cellspacing='0' style='display:none')
+block contentScript
+	script.
+		$(document).ready(function(){
+			$('.selectpicker').selectpicker()
+			$('#generateReport').on('change', function(){
+				if($(this).val() == 0 || $(this).val() == 1){
+					$('#filter').append(`<option>January</option>`)
+				}
+				else{
+					$('#filter').append(`
+						<option>Monthly</option>
+						<option>Yearly</option>
+					`)
+					$('#filter').prop('disabled', false)
+					$('#filter').selectpicker('refresh')
+				}
+			})
+			$('#filter').on('change', function(){
+				$('#generate').prop('disabled', false)
+			})
+		})

@@ -55,7 +55,6 @@ router.get('/',middleware.hasAdminOrStaff, (req, res) => {
 		
 						const rentalFee = results[0].rentalFee
 
-						console.log(eval(`${electricAdmin}+${waterAdmin}+${rentalFee}`),'resolve')
 						resolve(eval(`${electricAdmin}+${waterAdmin}+${rentalFee}`))
 					})
 				})
@@ -238,6 +237,9 @@ router.get('/ticket', (req, res) => {
 
 		return res.render('admin/views/ticket', {url: req.url, session: req.session, tickets: results})
 	})
+})
+router.get('/reports', (req, res) => {
+	return res.render('admin/views/reports', {url: req.url, session: req.session})
 })
 //END GET
 
@@ -946,6 +948,60 @@ router.post('/get-expiring-contracts', (req, res) => {
 				return res.send(array)
 			}
 		}
+	})
+})
+router.post('/reports/revenue', (req, res) => {
+	function getRevenue(){
+		return new Promise(function(resolve, reject){
+			let groupBy = ''
+			if(req.body.filter == 'monthly'){
+				groupBy = 'GROUP BY MONTH(datDueDate)'
+			}
+			else{
+				groupBy = 'GROUP BY YEAR(datDueDate)'
+			}
+			db.query(`SELECT SUM(dblAdminFee) AS adminFeeRev FROM tbl_electric_lessee_bill WHERE strPaymentReferenceNo IS NOT NULL ${groupBy}`, (err, results) => {
+				if(err) console.log(err)
+
+				const electricAdmin = results[0].adminFeeRev
+				db.query(`SELECT SUM(dblAdminFee) AS adminFeeRev FROM tbl_water_lessee_bill WHERE strPaymentReferenceNo IS NOT NULL ${groupBy}`, (err, results) => {
+					if(err) console.log(err)
+	
+					const waterAdmin = results[0].adminFeeRev
+					db.query(`SELECT SUM(dblAmountDue) AS rentalFee FROM tbl_rental_bill WHERE strPaymentReferenceNo IS NOT NULL ${groupBy}`, (err, results) => {
+						if(err) console.log(err)
+		
+						const rentalFee = results[0].rentalFee
+
+						resolve(eval(`${electricAdmin}+${waterAdmin}+${rentalFee}`))
+					})
+				})
+			})
+		})
+	}
+	getRevenue().then(revenue => {
+		db.query('SELECT COUNT(*) AS issueCount FROM tbl_issue_report', (err, results) => {
+			if(err) console.log(err)
+
+			db.query('SELECT COUNT(*) AS lesseeCount FROM tbl_lessee WHERE booIsDeleted = 0', (err, lesseeCount) =>{
+				if(err) console.log(err)
+
+				db.query('SELECT COUNT(*) AS staffCount FROM tbl_staff WHERE booStatus = 1', (err, staffCount) => {
+					if(err) console.log(err)
+
+					return res.render('admin/views/index', {
+						url: req.url, 
+						query: req.query, 
+						session: req.session, 
+						issueCount: results[0].issueCount, 
+						revenueThisMonth: revenue,
+						lesseeCount: lesseeCount[0].lesseeCount,
+						staffCount: staffCount[0].staffCount
+					});
+				})
+			})
+	
+		})
 	})
 })
 //END POST

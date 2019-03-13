@@ -8,43 +8,200 @@ block content
 					h4.card-title Reports
 				.card-body
 					.toolbar
-						button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addStallModal') Save as Excel File
+						button#export.btn.btn-round.btn-success(disabled='true') Save as Excel File
+						button#generate.btn.btn-round.btn-info(disabled='true') Generate Report
 					br
 					center
 						h5 Generate Reports
 					.row
-						.col-md-5
+						.col-md-2
 							.form-group
 								label Generate Report For:
 								select#generateReport.form-control.selectpicker(data-style='select-with-transition btn-primary btn-round' title='Select')
 									option(value='0') Lessee Payments
 									option(value='1') Expiring Contracts
 									option(value='2') Profit
-						.col-md-5
+						.col-md-2.hiddenColumn(style='display:none')
 							.form-group
 								label Filter by:
 								select#filter.form-control.selectpicker(disabled='true' data-style='select-with-transition btn-primary btn-round' title='Select')
-						.col-md-2
-							button.btn.btn-round.btn-info(disabled='true') Generate Report
+						.col-md-2.hiddenColumn(style='display:none')
+							.form-group
+								label Number of rows:
+								select#filterRows.form-control.selectpicker(disabled='true' data-style='select-with-transition btn-primary btn-round' title='Select')
+									option(value='5') 5
+									option(value='10') 10
+									option(value='12') 12
 					table#reportsTable.table.table-bordered.table-striped(cellspacing='0' style='display:none')
 block contentScript
+	script(src='/assets/plugins/SheetJS/FileSaver.js')
+	script(src='/assets/plugins/SheetJS/xlsx.full.min.js')
 	script.
 		$(document).ready(function(){
 			$('.selectpicker').selectpicker()
 			$('#generateReport').on('change', function(){
+				$('#generate').prop('disabled', true)
+				$('.hiddenColumn').fadeOut(1000)
 				if($(this).val() == 0 || $(this).val() == 1){
-					$('#filter').append(`<option>January</option>`)
+					$('#generate').prop('disabled', false)
 				}
 				else{
 					$('#filter').append(`
-						<option>Monthly</option>
-						<option>Yearly</option>
+						<option value="monthly">Monthly</option>
+						<option value="yearly">Yearly</option>
 					`)
 					$('#filter').prop('disabled', false)
 					$('#filter').selectpicker('refresh')
+					$('.hiddenColumn').fadeIn(1000)
 				}
 			})
 			$('#filter').on('change', function(){
+				$('#filterRows').prop('disabled', false)
+				$('#filterRows').selectpicker('refresh')
+			})
+			$('#filterRows').on('change', function(){
 				$('#generate').prop('disabled', false)
+			})
+			$('#generate').on('click', function(){
+				$('#export').prop('disabled', false)
+				$('#reportsTable').fadeOut(1000).promise().then(function(){
+					$('#reportsTable').empty()
+					if($('#generateReport').val() == 0){
+						$.post('/admin/get-due-payments').done(function(data){
+							$('#reportsTable').append(`
+								<thead>	
+									<tr>
+										<th>Stall ID</th>
+										<th>Stall Name</th>
+										<th>Bill Type</th>
+										<th>Amount Due</th>
+										<th>Status</th>
+									</tr>
+								</thead>
+								<tbody id='reportsTableBody'>
+								</tbody>
+							`)
+							for(let u = 0; u < data.length; u++){
+								let billType = ''
+								let amountDue = 0
+								if(data[u].intTotalKwhUsage){
+									billType = 'Electric'
+									amountDue = data[u].dblAmountDue + data[u].dblAdminFee
+								}
+								else if(data[u].intTotalCubicMeterUsage){
+									billType = 'Water'
+									amountDue = data[u].dblAmountDue + data[u].dblAdminFee
+								}
+								else{
+									billType = 'Rental'
+									amountDue = data[u].dblAmountDue
+								}
+								$('#reportsTableBody').append(`
+									<tr>
+										<td>${data[u].strStallId}</td>
+										<td>${data[u].strContractStallDescription}</td>
+										<td>${billType}</td>
+										<td>${amountDue}</td>
+										<td>${data[u].strPaymentReferenceNo == null ? `Not Paid`: `Paid`}</td>
+									</tr>
+								`)
+								if(u == data.length - 1){
+									$('#reportsTable').fadeIn(1000)
+									var wb = XLSX.utils.table_to_book($('#reportsTable')[0], {sheet:"Sheet JS"});
+									var wbout = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
+									function s2ab(s) {
+										var buf = new ArrayBuffer(s.length);
+										var view = new Uint8Array(buf);
+										for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+										return buf;
+									}
+									$("#export").on('click', function(){
+										saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), `reports-${moment().format('YYYY')}.xlsx`);
+									});
+								}
+							}
+						})
+					}
+					else if($('#generateReport').val() == 1){
+						$.post('/admin/get-expiring-contracts').done(function(data){
+							$('#reportsTable').append(`
+								<thead>
+									<tr>
+										<th>Stall ID</th>
+										<th>Contract ID</th>
+										<th>Stall Name</th>
+										<th>Lessee Name</th>
+										<th>Contract End Date</th>
+									</tr>
+								</thead>
+								<tbody id="reportsTableBody"></tbody>
+							`)
+							for(let w = 0; w < data.length; w++){
+								$('#reportsTableBody').append(`
+									<tr>
+										<td>${data[w].strStallId}</td>
+										<td>${data[w].intId}</td>
+										<td>${data[w].strContractStallDescription}</td>
+										<td>${data[w].strFirstName} ${data[w].strMiddleName} ${data[w].strLastName}</td>
+										<td>${moment(`${data[w].intContractYear}-${data[w].intContractMonth}-${data[w].intContractDay}`).add(data[w].intContractDuration, 'months').format('YYYY-MM-DD')}</td>
+									</tr>
+								`)
+								if(w == data.length - 1){
+									$('#reportsTable').fadeIn(1000)
+									var wb = XLSX.utils.table_to_book($('#reportsTable')[0], {sheet:"Sheet JS"});
+									var wbout = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
+									function s2ab(s) {
+										var buf = new ArrayBuffer(s.length);
+										var view = new Uint8Array(buf);
+										for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+										return buf;
+									}
+									$("#export").on('click', function(){
+										saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), `reports-${moment().format('YYYY')}.xlsx`);
+									});
+								}
+							}
+						})
+					}
+					else if($('#generateReport').val() == 2){
+						$.post('/admin/reports/revenue', {
+							filter: $('#filter').val(),
+							rows: $('#filterRows').val()
+						}).done(function(data){
+							$('#reportsTable').append(`
+								<thead>
+									<tr>
+										<td>${$('#filter').val() == 'monthly' ? 'Month': 'Year'}</td>
+										<td>Revenue</td>
+									</tr>
+								</thead>
+								<tbody id='reportsTableBody'>
+								</tbody>
+							`)
+							for(let a = 0; a < data.length; a++){
+								$('#reportsTableBody').append(`
+									<tr>
+										<td>${data[a].filterHead}</td>
+										<td>${data[a].revenue}</td>
+									</tr>
+								`)
+								if(a == data.length - 1){
+									$('#reportsTable').fadeIn(1000)
+									var wb = XLSX.utils.table_to_book($('#reportsTable')[0], {sheet:"Sheet JS"});
+									var wbout = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
+									function s2ab(s) {
+										var buf = new ArrayBuffer(s.length);
+										var view = new Uint8Array(buf);
+										for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+										return buf;
+									}
+									$("#export").on('click', function(){
+										saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), `reports-${moment().format('YYYY')}.xlsx`);
+									});
+								}
+							}
+						})
+					}
+				})
 			})
 		})

@@ -1,0 +1,197 @@
+extends ./template.pug
+
+block content
+	.row
+		.col-md-12
+			.card
+				.card-header
+					h4.card-title Queries
+				.card-body
+					.toolbar
+						button#export.btn.btn-round.btn-success(disabled='true') Save as Excel File
+						button#generate.btn.btn-round.btn-info(disabled='true') Generate Query
+					br
+					center
+						h5 Generate Queries
+					.row
+						.col-md-2
+							.form-group
+								label Generate Query For:
+								select#generateQuery.form-control.selectpicker(data-style='select-with-transition btn-primary btn-round' title='Select')
+									option(value='0') Lessee
+									option(value='1') Stalls
+									option(value='2') Contracts
+									option(value='3') Staffs
+					table#queriesTable.table.table-bordered.table-striped(cellspacing='0' style='display:none')
+block contentScript
+	script(src='/assets/plugins/SheetJS/FileSaver.js')
+	script(src='/assets/plugins/SheetJS/xlsx.full.min.js')
+	script.
+		$(document).ready(function(){
+			$('.selectpicker').selectpicker()
+			$('#generateQuery').on('change', function(){
+				$('#generate').prop('disabled', false)
+			})
+			$('#generate').on('click', function(){
+				$('#export').prop('disabled', false)
+				$('#queriesTable').fadeOut(1000).promise().then(function(){
+					$('#queriesTable').empty()
+					if($('#generateQuery').val() == 0){
+						$.post('/admin/queries/lessee').done(function(data){
+							$('#queriesTable').append(`
+								<thead>
+									<tr>
+										<th>Name</th>
+										<th>Address</th>
+										<th>Phone Number</th>
+										<th>Email Address</th>
+										<th>Lessee Type</th>
+									</tr>
+								</thead>
+								<tbody id='queriesTableBody'></tbody>
+							`)
+							for(let b = 0; b < data.length; b++){
+								$('#queriesTableBody').append(`
+									<tr>
+										<td>${data[b].strFirstName} ${data[b].strMiddleName} ${data[b].strLastName}</td>
+										<td>${data[b].strAddress}</td>
+										<td>${data[b].strPhoneNumber}</td>
+										<td>${data[b].strEmail}</td>
+										<td>${data[b].booLesseeType == 0 ? 'Individual': 'Company'}</td>
+									</tr>
+								`)
+								if(b == data.length - 1){
+									$('#queriesTable').fadeIn(1000)
+									var wb = XLSX.utils.table_to_book($('#queriesTable')[0], {sheet:"Sheet JS"});
+									var wbout = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
+									function s2ab(s) {
+										var buf = new ArrayBuffer(s.length);
+										var view = new Uint8Array(buf);
+										for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+										return buf;
+									}
+									$("#export").on('click', function(){
+										saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), `queries-${moment().format('YYYY')}.xlsx`);
+									});
+								}
+							}
+						})
+					}
+					else if($('#generateQuery').val() == 1){
+						$.post('/admin/queries/stall').done(function(data){
+							$('#queriesTable').append(`
+								<thead>
+									<tr>
+										<th>Stall ID</th>
+										<th>Stall Type</th>
+									</tr>
+								</thead>
+								<tbody id='queriesTableBody'></tbody>
+							`)
+							for(let b = 0; b < data.length; b++){
+								$('#queriesTableBody').append(`
+									<tr>
+										<td>${data[b].strId}</td>
+										<td>${data[b].booStallType == 0 ? 'Food Stall': 'Dry Goods Stall'}</td>
+									</tr>
+								`)
+								if(b == data.length - 1){
+									$('#queriesTable').fadeIn(1000)
+									var wb = XLSX.utils.table_to_book($('#queriesTable')[0], {sheet:"Sheet JS"});
+									var wbout = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
+									function s2ab(s) {
+										var buf = new ArrayBuffer(s.length);
+										var view = new Uint8Array(buf);
+										for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+										return buf;
+									}
+									$("#export").on('click', function(){
+										saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), `queries-${moment().format('YYYY')}.xlsx`);
+									});
+								}
+							}
+						})
+					}
+					else if($('#generateQuery').val() == 2){
+						$.post('/admin/queries/contract').done(function(data){
+							$('#queriesTable').append(`
+								<thead>
+									<tr>
+										<th>Lessee ID</th>
+										<th>Stall ID</th>
+										<th>Description</th>
+										<th>Start Date</th>
+										<th>End Date</th>
+									</tr>
+								</thead>
+								<tbody id='queriesTableBody'></tbody>
+							`)
+							for(let b = 0; b < data.length; b++){
+								$('#queriesTableBody').append(`
+									<tr>
+										<td>${data[b].strLesseeId}</td>
+										<td>${data[b].strStallId}</td>
+										<td>${data[b].strContractStallDescription}</td>
+										<td>${moment(`${data[b].intContractYear}-${data[b].intContractMonth}-${data[b].intContractDay}`).format('YYYY-MM-DD')}</td>
+										<td>${moment(`${data[b].intContractYear}-${data[b].intContractMonth}-${data[b].intContractDay}`).add(data[b].intContractDuration, 'months').format('YYYY-MM-DD')}</td>
+									</tr>
+								`)
+								if(b == data.length - 1){
+									$('#queriesTable').fadeIn(1000)
+									var wb = XLSX.utils.table_to_book($('#queriesTable')[0], {sheet:"Sheet JS"});
+									var wbout = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
+									function s2ab(s) {
+										var buf = new ArrayBuffer(s.length);
+										var view = new Uint8Array(buf);
+										for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+										return buf;
+									}
+									$("#export").on('click', function(){
+										saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), `queries-${moment().format('YYYY')}.xlsx`);
+									});
+								}
+							}
+						})
+					}
+					else if($('#generateQuery').val() == 3){
+						$.post('/admin/queries/staff').done(function(data){
+							$('#queriesTable').append(`
+								<thead>
+									<tr>
+										<th>Name</th>
+										<th>Phone Number</th>
+										<th>Email Address</th>
+										<th>Username</th>
+									</tr>
+								</thead>
+								<tbody id='queriesTableBody'></tbody>
+							`)
+							for(let b = 0; b < data.length; b++){
+								$('#queriesTableBody').append(`
+									<tr>
+										<td>${data[b].strFirstName} ${data[b].strMiddleName} ${data[b].strLastName}</td>
+										<td>${data[b].strPhone}</td>
+										<td>${data[b].strEmail}</td>
+										<td>${data[b].strUsername}</td>
+									</tr>
+								`)
+								if(b == data.length - 1){
+									$('#queriesTable').fadeIn(1000)
+									var wb = XLSX.utils.table_to_book($('#queriesTable')[0], {sheet:"Sheet JS"});
+									var wbout = XLSX.write(wb, {bookType:'xlsx', bookSST:true, type: 'binary'});
+									function s2ab(s) {
+										var buf = new ArrayBuffer(s.length);
+										var view = new Uint8Array(buf);
+										for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+										return buf;
+									}
+									$("#export").on('click', function(){
+										saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), `queries-${moment().format('YYYY')}.xlsx`);
+									});
+								}
+							}
+						})
+					}
+				})
+			})
+		})

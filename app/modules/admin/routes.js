@@ -238,8 +238,11 @@ router.get('/ticket', (req, res) => {
 		return res.render('admin/views/ticket', {url: req.url, session: req.session, tickets: results})
 	})
 })
-router.get('/reports', (req, res) => {
+router.get('/reports', middleware.hasAdmin, (req, res) => {
 	return res.render('admin/views/reports', {url: req.url, session: req.session})
+})
+router.get('/queries', (req, res) => {
+	return res.render('admin/views/queries', {url: req.url, session: req.session})
 })
 //END GET
 
@@ -951,57 +954,193 @@ router.post('/get-expiring-contracts', (req, res) => {
 	})
 })
 router.post('/reports/revenue', (req, res) => {
+	function filterHeadExist(array, filterHead){
+		return new Promise(function(resolve, reject){
+			let valid = false;
+			array.forEach(element => {
+				if(element.filterHead == filterHead){
+					valid = true
+				}
+			})
+			resolve(valid)
+		})
+	}
 	function getRevenue(){
 		return new Promise(function(resolve, reject){
-			let groupBy = ''
+			let finalRevenue = []
+			let electricQuery = ''
+			let waterQuery = ''
+			let rentalQuery = ''
+			let format = ''
 			if(req.body.filter == 'monthly'){
-				groupBy = 'GROUP BY MONTH(datDueDate)'
+				format = 'MMMM'
+				electricQuery = `SELECT SUM(dblAdminFee) AS adminFeeRev, datDueDate FROM tbl_electric_lessee_bill 
+				WHERE strPaymentReferenceNo IS NOT NULL 
+				GROUP BY MONTH(datDueDate)
+				ORDER BY datDueDate DESC
+				LIMIT ${req.body.rows}`
+
+				waterQuery = `SELECT SUM(dblAdminFee) AS adminFeeRev, datDueDate FROM tbl_water_lessee_bill 
+				WHERE strPaymentReferenceNo IS NOT NULL 
+				GROUP BY MONTH(datDueDate)
+				ORDER BY datDueDate DESC
+				LIMIT ${req.body.rows}`
+
+				rentalQuery = `SELECT SUM(dblAmountDue) AS rentalFee, datDueDate FROM tbl_rental_bill 
+				WHERE strPaymentReferenceNo IS NOT NULL 
+				GROUP BY MONTH(datDueDate)
+				ORDER BY datDueDate DESC
+				LIMIT ${req.body.rows}`
 			}
 			else{
-				groupBy = 'GROUP BY YEAR(datDueDate)'
+				format = 'YYYY'
+				electricQuery = `SELECT SUM(dblAdminFee) AS adminFeeRev, datDueDate FROM tbl_electric_lessee_bill 
+				WHERE strPaymentReferenceNo IS NOT NULL 
+				GROUP BY YEAR(datDueDate)
+				ORDER BY datDueDate DESC
+				LIMIT ${req.body.rows}`
+
+				waterQuery = `SELECT SUM(dblAdminFee) AS adminFeeRev, datDueDate FROM tbl_water_lessee_bill 
+				WHERE strPaymentReferenceNo IS NOT NULL 
+				GROUP BY YEAR(datDueDate)
+				ORDER BY datDueDate DESC
+				LIMIT ${req.body.rows}`
+
+				rentalQuery = `SELECT SUM(dblAmountDue) AS rentalFee, datDueDate FROM tbl_rental_bill 
+				WHERE strPaymentReferenceNo IS NOT NULL 
+				GROUP BY YEAR(datDueDate)
+				ORDER BY datDueDate DESC
+				LIMIT ${req.body.rows}`
 			}
-			db.query(`SELECT SUM(dblAdminFee) AS adminFeeRev FROM tbl_electric_lessee_bill WHERE strPaymentReferenceNo IS NOT NULL ${groupBy}`, (err, results) => {
+			db.query(electricQuery, (err, results) => {
 				if(err) console.log(err)
 
-				const electricAdmin = results[0].adminFeeRev
-				db.query(`SELECT SUM(dblAdminFee) AS adminFeeRev FROM tbl_water_lessee_bill WHERE strPaymentReferenceNo IS NOT NULL ${groupBy}`, (err, results) => {
-					if(err) console.log(err)
-	
-					const waterAdmin = results[0].adminFeeRev
-					db.query(`SELECT SUM(dblAmountDue) AS rentalFee FROM tbl_rental_bill WHERE strPaymentReferenceNo IS NOT NULL ${groupBy}`, (err, results) => {
-						if(err) console.log(err)
-		
-						const rentalFee = results[0].rentalFee
+				console.log(results)
+				for(let w = 0; w < results.length; w++){
+					if(finalRevenue.length == 0){
+						console.log('electricPush')
+						finalRevenue.push({
+							filterHead: moment(results[w].datDueDate).format(format),
+							revenue: results[w].adminFeeRev
+						})
+					}
+					else{
+						for(let z = 0; z < finalRevenue.length; z++){
+							if(finalRevenue[z].filterHead == moment(results[w].datDueDate).format(format)){
+								finalRevenue[z].revenue = eval(`${finalRevenue[z].revenue}+${results[w].adminFeeRev}`)
+							}
+							else{
+								filterHeadExist(finalRevenue, moment(results[w].datDueDate).format(format)).then(exists => {
+									if(!exists){
+										finalRevenue.push({
+											filterHead: moment(results[w].datDueDate).format(format),
+											revenue: results[w].adminFeeRev
+										})
+									}
+								})
+							}
+						}
+					}
+					if(w == results.length - 1){
+						db.query(waterQuery, (err, results) => {
+							if(err) console.log(err)
 
-						resolve(eval(`${electricAdmin}+${waterAdmin}+${rentalFee}`))
-					})
-				})
+							console.log(finalRevenue, 'finalRev')
+							for(let x = 0; x < results.length; x++){
+								if(finalRevenue.length == 0){
+									finalRevenue.push({
+										filterHead: moment(results[x].datDueDate).format(format),
+										revenue: results[x].adminFeeRev
+									})
+								}
+								else{
+									for(let z = 0; z < finalRevenue.length; z++){
+										if(finalRevenue[z].filterHead == moment(results[x].datDueDate).format(format)){
+											finalRevenue[z].revenue = eval(`${finalRevenue[z].revenue}+${results[x].adminFeeRev}`)
+										}
+										else{
+											filterHeadExist(finalRevenue, moment(results[x].datDueDate).format(format)).then(exists => {
+												if(!exists){
+													finalRevenue.push({
+														filterHead: moment(results[x].datDueDate).format(format),
+														revenue: results[x].adminFeeRev
+													})
+												}
+											})
+										}
+									}
+								}
+								if(x == results.length - 1){
+									db.query(rentalQuery, (err, results) => {
+										if(err) console.log(err)
+				
+										console.log(results)
+										for(let y = 0; y < results.length; y++){
+											if(finalRevenue.length == 0){
+												console.log('rentalPush')
+												finalRevenue.push({
+													filterHead: moment(results[y].datDueDate).format(format),
+													revenue: results[y].rentalFee
+												})
+											}
+											else{
+												for(let z = 0; z < finalRevenue.length; z++){
+													if(finalRevenue[z].filterHead == moment(results[y].datDueDate).format(format)){
+														finalRevenue[z].revenue = eval(`${finalRevenue[z].revenue}+${results[y].rentalFee}`)
+													}
+													else{
+														filterHeadExist(finalRevenue, moment(results[y].datDueDate).format(format)).then(exists => {
+															if(!exists){
+																finalRevenue.push({
+																	filterHead: moment(results[y].datDueDate).format(format),
+																	revenue: results[y].adminFeeRev
+																})
+															}
+														})
+													}
+												}
+											}
+										}
+										resolve(finalRevenue)
+									})
+								}
+							}
+						})
+					}
+				}
 			})
 		})
 	}
 	getRevenue().then(revenue => {
-		db.query('SELECT COUNT(*) AS issueCount FROM tbl_issue_report', (err, results) => {
-			if(err) console.log(err)
+		return res.send(revenue)
+	})
+})
+router.post('/queries/lessee', (req, res) => {
+	db.query('SELECT * FROM tbl_lessee', (err, results) => {
+		if(err) console.log(err)
 
-			db.query('SELECT COUNT(*) AS lesseeCount FROM tbl_lessee WHERE booIsDeleted = 0', (err, lesseeCount) =>{
-				if(err) console.log(err)
+		return res.send(results)
+	})
+})
+router.post('/queries/contract', (req, res) => {
+	db.query('SELECT * FROM tbl_contract', (err, results) => {
+		if(err) console.log(err)
 
-				db.query('SELECT COUNT(*) AS staffCount FROM tbl_staff WHERE booStatus = 1', (err, staffCount) => {
-					if(err) console.log(err)
+		return res.send(results)
+	})
+})
+router.post('/queries/stall', (req, res) => {
+	db.query('SELECT * FROM tbl_stall', (err, results) => {
+		if(err) console.log(err)
 
-					return res.render('admin/views/index', {
-						url: req.url, 
-						query: req.query, 
-						session: req.session, 
-						issueCount: results[0].issueCount, 
-						revenueThisMonth: revenue,
-						lesseeCount: lesseeCount[0].lesseeCount,
-						staffCount: staffCount[0].staffCount
-					});
-				})
-			})
-	
-		})
+		return res.send(results)
+	})
+})
+router.post('/queries/staff', (req, res) => {
+	db.query('SELECT * FROM tbl_staff', (err, results) => {
+		if(err) console.log(err)
+
+		return res.send(results)
 	})
 })
 //END POST

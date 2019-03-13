@@ -41,15 +41,15 @@
 - Stall Map
 
 ** Queries
-- Lessee
-- Contract
-- Staffs
-- Stalls
+- Lessee /
+- Contract /
+- Staffs /
+- Stalls /
 
 ** Reports
-- Paid and Unpaid Tenants
-- Expiring Contracts
-- Revenue
+- Paid and Unpaid Tenants /
+- Expiring Contracts /
+- Revenue /
 
 SQL DUMP EXAMPLE
 mysqldump -u root -p -d -B stallv3>stallv3-2.sql

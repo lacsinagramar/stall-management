@@ -243,13 +243,13 @@ block contentScript
 											{text: [
 													{text: 'The '},
 													{text: '"LESSEE" ', bold: true},
-													{text: `agrees to pay as rental amount of ( Php ${stallData.booStallType == 0 ? `${convertToString(passedSession.dblFoodStallPrice)}.00`: `${convertToString(passedSession.dblDryGoodsStall)}.00`} ) per month. Failure to pay rental shall cause termination of this agreement.\n\n`},
+													{text: `agrees to pay as rental amount of ( Php ${stallData.booStallType == 0 ? `${convertToString(passedSession.dblFoodStallPrice)}.00`: `${convertToString(passedSession.dblDryGoodsStallPrice)}.00`} ) per month. Failure to pay rental shall cause termination of this agreement.\n\n`},
 												]
 											},
 											{text: [
 													{text: 'Upon execution of this agreement, the '},
 													{text: '"LESSEE" ', bold: true},
-													{text: `shall deliver and pay the amount of ${stallData.booStallType == 0 ? `${wordValues.foodStall.regular}` : `${wordValues.dryGoodsStall.regular}`} Pesos ( Php ${stallData.booStallType == 0 ? `${convertToString(passedSession.dblFoodStallPrice)}.00`: `${convertToString(passedSession.dblDryGoodsStall)}.00`} ) as good will to reserve the space for him/her for six months. This amount is non-refundable and shall in no way be charged to unpaid rentals.\n\n`},
+													{text: `shall deliver and pay the amount of ${stallData.booStallType == 0 ? `${wordValues.foodStall.regular}` : `${wordValues.dryGoodsStall.regular}`} Pesos ( Php ${stallData.booStallType == 0 ? `${convertToString(passedSession.dblFoodStallPrice)}.00`: `${convertToString(passedSession.dblDryGoodsStallPrice)}.00`} ) as good will to reserve the space for him/her for six months. This amount is non-refundable and shall in no way be charged to unpaid rentals.\n\n`},
 												]
 											},
 											{text: [

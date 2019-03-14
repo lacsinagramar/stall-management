@@ -908,18 +908,68 @@ router.post('/get-due-payments', (req, res) => {
 	db.query(electricQuery, (err, results) => {
 		if(err) console.log(err)
 
+		if(results.length == 0){
+			db.query(waterQuery, (err, results) => {
+				if(err) console.log(err)
+
+				if(results.length == 0){
+					db.query(rentalQuery, (err, results) => {
+						if(err) console.log(err)
+
+						if(results.length == 0) return res.send(array)
+						for(let t = 0; t < results.length; t++){
+							array.push(results[t])
+							if(t == results.length - 1){
+								return res.send(array)
+							}
+						}
+					})
+				}
+				for(let t = 0; t < results.length; t++){
+					array.push(results[t])
+					if(t == results.length - 1){
+						db.query(rentalQuery, (err, results) => {
+							if(err) console.log(err)
+
+							if(results.length == 0) return res.send(array)
+							for(let t = 0; t < results.length; t++){
+								array.push(results[t])
+								if(t == results.length - 1){
+									return res.send(array)
+								}
+							}
+						})
+					}
+				}
+			})
+		}
 		for(let t = 0; t < results.length; t++){
 			array.push(results[t])
+
 			if(t == results.length - 1){
 				db.query(waterQuery, (err, results) => {
 					if(err) console.log(err)
-			
+
+					if(results.length == 0){
+						db.query(rentalQuery, (err, results) => {
+							if(err) console.log(err)
+
+							if(results.length == 0) return res.send(array)
+							for(let t = 0; t < results.length; t++){
+								array.push(results[t])
+								if(t == results.length - 1){
+									return res.send(array)
+								}
+							}
+						})
+					}
 					for(let t = 0; t < results.length; t++){
 						array.push(results[t])
 						if(t == results.length - 1){
 							db.query(rentalQuery, (err, results) => {
 								if(err) console.log(err)
-						
+
+								if(results.length == 0) return res.send(array)
 								for(let t = 0; t < results.length; t++){
 									array.push(results[t])
 									if(t == results.length - 1){

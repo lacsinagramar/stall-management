@@ -57,7 +57,7 @@ CREATE TABLE `tbl_contract` (
   KEY `contract to stall_idx` (`strStallId`),
   CONSTRAINT `contract to lessee` FOREIGN KEY (`strLesseeId`) REFERENCES `tbl_lessee` (`strid`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `contract to stall` FOREIGN KEY (`strStallId`) REFERENCES `tbl_stall` (`strid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -82,7 +82,7 @@ CREATE TABLE `tbl_electric_lessee_bill` (
   KEY `electricBill to contract_idx` (`intContractId`),
   CONSTRAINT `electricBill to contract` FOREIGN KEY (`intContractId`) REFERENCES `tbl_contract` (`intId`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `electricBill to mainElectric` FOREIGN KEY (`intElectricMainBillId`) REFERENCES `tbl_electric_main_bill` (`intid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10002 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -102,7 +102,7 @@ CREATE TABLE `tbl_electric_main_bill` (
   `booStatus` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`intId`),
   UNIQUE KEY `dueConstraint` (`intDueMonth`,`intDueYear`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -121,7 +121,7 @@ CREATE TABLE `tbl_issue_report` (
   PRIMARY KEY (`intId`),
   KEY `issueReport to contract_idx` (`intContractId`),
   CONSTRAINT `issueReport to contract` FOREIGN KEY (`intContractId`) REFERENCES `tbl_contract` (`intId`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -181,7 +181,7 @@ CREATE TABLE `tbl_payment_child` (
   `strBillType` varchar(5) NOT NULL,
   PRIMARY KEY (`intId`),
   KEY `child to payment_idx` (`strPaymentReferenceNo`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -202,7 +202,7 @@ CREATE TABLE `tbl_rental_bill` (
   KEY `rentalBill to payment_idx` (`strPaymentReferenceNo`),
   CONSTRAINT `rentalBill to contract` FOREIGN KEY (`intContractId`) REFERENCES `tbl_contract` (`intId`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `rentalBill to payment` FOREIGN KEY (`strPaymentReferenceNo`) REFERENCES `tbl_payment` (`strReferenceNo`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10003 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -224,7 +224,7 @@ CREATE TABLE `tbl_staff` (
   `booStatus` tinyint(4) NOT NULL DEFAULT '1',
   PRIMARY KEY (`intId`),
   UNIQUE KEY `strUsername_UNIQUE` (`strUsername`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -260,7 +260,7 @@ CREATE TABLE `tbl_ticket` (
   KEY `ticket to staff_idx` (`strAssigneeUsername`),
   CONSTRAINT `ticket to issueReport` FOREIGN KEY (`intIssueId`) REFERENCES `tbl_issue_report` (`intId`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `ticket to staff` FOREIGN KEY (`strAssigneeUsername`) REFERENCES `tbl_staff` (`strUsername`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10001 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -279,7 +279,7 @@ CREATE TABLE `tbl_utilities` (
   `strFoodStallPrice` longtext NOT NULL,
   `strDryGoodsStallPrice` longtext NOT NULL,
   `intUtilitiesCutOffDay` int(11) NOT NULL,
-  `intAdminFeePercentage` int(11) NOT NULL,
+  `intAdminFeePercentage` double NOT NULL,
   PRIMARY KEY (`intUtilitiesId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -346,6 +346,5 @@ CREATE TABLE `tbl_water_main_bill` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-03-14  1:59:37
-INSERT INTO `tbl_utilities` (`intUtilitiesId`, `dblFoodStallPrice`, `dblDryGoodsStallPrice`, `strAdminUsername`, `strAdminPassword`, `strFoodStallPrice`, `strDryGoodsStallPrice`, `intUtilitiesCutOffDay`, `intAdminFeePercentage`) VALUES ('1', '9000', '7000', 'admin', 'admin', '{\"regular\":\"Nine Thousand\",\"double\":\"Eighteen Thousand\"}', '{\"regular\":\"Seven Thousand\",\"double\":\"Fourteen Thousand\"}', '15', '5');
-
+-- Dump completed on 2019-03-14 16:48:21
+INSERT INTO `tbl_utilities` (`intUtilitiesId`, `dblFoodStallPrice`, `dblDryGoodsStallPrice`, `strAdminUsername`, `strAdminPassword`, `strFoodStallPrice`, `strDryGoodsStallPrice`, `intUtilitiesCutOffDay`, `intAdminFeePercentage`) VALUES ('1', '9000', '7000', 'admin', 'admin', '{\"regular\":\"Nine Thousand\",\"double\":\"Eighteen Thousand\"}', '{\"regular\":\"Seven Thousand\",\"double\":\"Fourteen Thousand\"}', '15', '0.05');

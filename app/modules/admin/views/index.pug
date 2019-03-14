@@ -112,7 +112,6 @@ block contentScript
 				}
 			})
 			$.post('/admin/get-expiring-contracts').done(function(data){
-				console.log(data)
 				for(let w = 0; w < data.length; w++){
 					$('#expiringTableBody').append(`
 						<tr>

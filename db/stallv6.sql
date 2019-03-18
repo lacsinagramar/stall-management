@@ -351,3 +351,4 @@ CREATE TABLE `tbl_water_main_bill` (
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2019-03-18 18:11:45
+INSERT INTO `tbl_utilities` (`intUtilitiesId`, `dblFoodStallPrice`, `dblDryGoodsStallPrice`, `strAdminUsername`, `strAdminPassword`, `strFoodStallPrice`, `strDryGoodsStallPrice`, `intUtilitiesCutOffDay`, `intAdminFeePercentage`) VALUES ('1', '8000', '7000', 'admin', 'admin', '{\"regular\":\"Eight Thousand\",\"double\":\"Sixteen Thousand\"}', '{\"regular\":\"Seven Thousand\",\"double\":\"Fourteen Thousand\"}', '25', '0.05');

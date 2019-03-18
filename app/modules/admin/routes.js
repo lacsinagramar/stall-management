@@ -274,7 +274,7 @@ router.post('/login', (req, res) => {
 });
 router.post('/addstall', (req, res) => {
 	console.log(req.body)
-	db.query('INSERT INTO tbl_stall VALUES(?, ?, 0)', [req.body.stallId, req.body.stallType], (err, results) => {
+	db.query('INSERT INTO tbl_stall VALUES(?, ?, 0, 0, 0)', [req.body.stallId, req.body.stallType], (err, results) => {
 		if(err) console.log(err)
 
 		return res.redirect('/admin/stall')
@@ -493,46 +493,34 @@ router.post('/add-water', (req, res) => {
 	})
 })
 router.post('/get-readings', (req, res) => {
-	let finalResults = [];
-	if(req.body.type == 'electric'){
-		var queryString = `SELECT * FROM tbl_electric_lessee_bill WHERE intContractId = ? ORDER BY intMeterReading DESC LIMIT 1`
-	}
-	else if(req.body.type == 'water'){
-		var queryString = `SELECT * FROM tbl_water_lessee_bill WHERE intContractId = ? ORDER BY intMeterReading DESC LIMIT 1`
-	}
-	db.query('SELECT * FROM tbl_contract WHERE booContractStatus = 0', (err, results) => {
+	const query = `SELECT * FROM tbl_contract
+	JOIN tbl_stall ON strStallId = strId
+	WHERE booContractStatus = 0`
+	db.query(query, (err, results) => {
 		if(err) console.log(err)
 
 		for(let i = 0; i < results.length; i++){
-			const stallObject = results[i];
-			db.query(queryString, stallObject.intId, (err, results2) => {
-				if(err) console.log(err)
-
-				if(results2.length > 0){
-					stallObject.intMeterReading = results2[0].intMeterReading
-				}
-				else{
-					stallObject.intMeterReading = 0
-				}
-				console.log(stallObject)
-				finalResults.push(stallObject)
-				if(i == results.length - 1){
-					console.log(i)
-					return res.send(finalResults)
-				}
-			})
+			if(req.body.type == 'electric'){
+				results[i].intMeterReading = results[i].intKwhUsage 
+			}
+			else if(req.body.type == 'water'){
+				results[i].intMeterReading = results[i].intCubicMeterUsage
+			}
+			if(i == results.length - 1){
+				return res.send(results)
+			}
 		}
 	})
 })
 router.post('/encode-electric-bill', (req, res) => {
 	const queryString = `INSERT INTO tbl_electric_lessee_bill 
-	(intElectricMainBillId, intContractId, intMeterReading, intTotalKwhUsage, dblAmountDue, dblAdminFee, datDueDate)
-	VALUES (?, ?, ?, ?, ?, ?, ?)`
+	(intElectricMainBillId, intContractId, intPreviousMeterReading, intMeterReading, intTotalKwhUsage, dblAmountDue, dblAdminFee, datDueDate)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 	
 	for(let e=0; e<req.body.lesseeBills.length; e++){
 		const billNow = req.body.lesseeBills[e];
 		const cutOffDate = `${moment(billNow.dueDate).format('YYYY-MM')}-${req.session.utilities.intUtilitiesCutOffDay}`
-		db.query(queryString, [billNow.mainBillId, billNow.contractId, billNow.currentMeterReading, billNow.totalUsage, billNow.amountDue, billNow.adminFee, cutOffDate], (err, results) => {
+		db.query(queryString, [billNow.mainBillId, billNow.contractId, billNow.previousMeterReading, billNow.currentMeterReading, billNow.totalUsage, billNow.amountDue, billNow.adminFee, cutOffDate], (err, results) => {
 			if(err) console.log(err)
 		})
 		if(e == req.body.lesseeBills.length - 1){
@@ -546,13 +534,13 @@ router.post('/encode-electric-bill', (req, res) => {
 })
 router.post('/encode-water-bill', (req, res) => {
 	const queryString = `INSERT INTO tbl_water_lessee_bill 
-	(intWaterMainBillId, intContractId, intMeterReading, intTotalCubicMeterUsage, dblAmountDue, dblAdminFee, datDueDate)
-	VALUES (?, ?, ?, ?, ?, ?, ?)`
+	(intWaterMainBillId, intContractId, intPreviousMeterReading, intMeterReading, intTotalCubicMeterUsage, dblAmountDue, dblAdminFee, datDueDate)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 
 	for(let e=0; e<req.body.lesseeBills.length; e++){
 		const billNow = req.body.lesseeBills[e];
 		const cutOffDate = `${moment(billNow.dueDate).format('YYYY-MM')}-${req.session.utilities.intUtilitiesCutOffDay}`
-		db.query(queryString, [billNow.mainBillId, billNow.contractId, billNow.currentMeterReading, billNow.totalUsage, billNow.amountDue, billNow.adminFee, cutOffDate], (err, results) => {
+		db.query(queryString, [billNow.mainBillId, billNow.contractId, billNow.previousMeterReading, billNow.currentMeterReading, billNow.totalUsage, billNow.amountDue, billNow.adminFee, cutOffDate], (err, results) => {
 			if(err) console.log(err)
 		})
 		if(e == req.body.lesseeBills.length - 1){
@@ -584,12 +572,43 @@ router.post('/get-encoded', (req, res) => {
 })
 router.post('/validate-bill', (req, res) => {
 	if(req.body.type == 'electric'){
-		var query = `UPDATE tbl_electric_main_bill SET booStatus = 2 WHERE intId = ?`
+		var query = `UPDATE tbl_electric_main_bill SET booStatus = 2 WHERE intId = ?;
+		SELECT * FROM tbl_electric_lessee_bill
+		JOIN tbl_contract ON tbl_contract.intId = intContractId
+		WHERE intElectricMainBillId = ?`
+		var queryNext = `UPDATE tbl_stall SET intKwhUsage = ? WHERE strId = ?`
 	}
 	else if(req.body.type == 'water'){
-		var query = `UPDATE tbl_water_main_bill SET booStatus = 2 WHERE intId = ?`
+		var query = `UPDATE tbl_water_main_bill SET booStatus = 2 WHERE intId = ?;
+		SELECT * FROM tbl_water_lessee_bill
+		JOIN tbl_contract ON tbl_contract.intId = intContractId
+		WHERE intWaterMainBillId = ?`
+		var queryNext = `UPDATE tbl_stall SET intCubicMeterUsage = ? WHERE strId = ?`
 	}
-	db.query(query, req.body.id, (err, results) => {
+	db.query(query, [req.body.id, req.body.id], (err, results) => {
+		if(err) console.log(err)
+
+		for(let a = 0; a < results[1].length; a++){
+			db.query(queryNext, [results[1][a].intMeterReading, results[1][a].strStallId], (err, results) => {
+				if(err) console.log(err)
+
+			})
+			if(a == results[1].length - 1){
+				return res.send(true)
+			}
+		}
+	})
+})
+router.post('/decline-bill', (req, res) => {
+	if(req.body.type == 'electric'){
+		var query = `UPDATE tbl_electric_main_bill SET booStatus = 0 WHERE intId = ?;
+		DELETE FROM tbl_electric_lessee_bill WHERE intElectricMainBillId = ?`
+	}
+	else if(req.body.type == 'water'){
+		var query = `UPDATE tbl_water_main_bill SET booStatus = 0 WHERE intId = ?;
+		DELETE FROM tbl_water_lessee_bill WHERE intWaterMainBillId = ?`
+	}
+	db.query(query, [req.body.id, req.body.id], (err, results) => {
 		if(err) console.log(err)
 		return res.send(true)
 	})
@@ -615,7 +634,12 @@ router.post('/get-bill-amount', (req, res) => {
 			if(results[0].strPaymentReferenceNo != null){
 				return res.send({valid: false, message: `This bill is already paid`})
 			}
-			return res.send({valid:true, amountDue: results[0].dblAmountDue})
+			if(req.body.bill == 'E' || req.body.bill == 'W'){
+				return res.send({valid:true, amountDue: eval(`${results[0].dblAmountDue}+${results[0].dblAdminFee}`)})
+			}
+			else if(req.body.bill == 'R'){
+				return res.send({valid:true, amountDue: results[0].dblAmountDue})
+			}
 		}
 		else{
 			return res.send({valid: false, message: notFoundMessage})

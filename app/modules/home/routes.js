@@ -59,7 +59,9 @@ router.get('/', middleware.hasLessee, (req, res) => {
                                             return 0;
                                         }
                                     })
-                                    return res.render('home/views/index', {bills: finalBills, session: req.session.lessee})
+                                    if(h == results.length - 1){
+                                        return res.render('home/views/index', {bills: finalBills, session: req.session.lessee})
+                                    }
                                 }
                             }
                         })

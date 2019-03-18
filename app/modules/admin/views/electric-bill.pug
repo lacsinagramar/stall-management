@@ -58,7 +58,7 @@ block content
 					.modal-footer
 						button#addElectricSave.btn.btn-primary(type='submit') Save
 	#viewModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
-		.modal-dialog.modal-lg(role='document')
+		.modal-dialog.modal-xl(role='document')
 			.modal-content
 				.modal-header
 					h5.modal-title Encoded Usage of Tenants
@@ -70,12 +70,14 @@ block content
 							thead
 								tr
 									th Stall ID
-									th Meter Reading
+									th Previous Meter Reading
+									th Current Meter Reading
 									th Consumption
 									th Amount Due
 							tbody#viewModalTableBody
 				.modal-footer
-					button#validate.btn.btn-primary Validate
+					button#validate.btn.btn-success Validate
+					button#decline.btn.btn-danger Decline
 block contentScript
 	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
 	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
@@ -133,6 +135,7 @@ block contentScript
 						$('#viewModalTableBody').append(`
 							<tr>
 								<td><h6 class="text-primary">Stall ${data[f].strStallId}</h6></td>
+								<td>${data[f].intPreviousMeterReading}</td>
 								<td>${data[f].intMeterReading}</td>
 								<td>${data[f].intTotalKwhUsage}KwH</td>
 								<td>P ${data[f].dblAmountDue}</td>
@@ -142,12 +145,19 @@ block contentScript
 				})
 				$('#viewModal').modal('show')
 				$('#validate').attr('billId', $(this).attr('billId'))
+				$('#decline').attr('billId', $(this).attr('billId'))
 			})
 			$('#viewModal').on('hidden.bs.modal', function() {
 				$('#viewModalTableBody').empty()
 			})
 			$('#validate').on('click', function(){
 				$.post('/admin/validate-bill', {type: 'electric', id: $(this).attr('billId')})
+				.done(function (){
+					location.href='/admin/electric-bill'
+				})
+			})
+			$('#decline').on('click', function(){
+				$.post('/admin/decline-bill', {type: 'electric', id: $(this).attr('billId')})
 				.done(function (){
 					location.href='/admin/electric-bill'
 				})

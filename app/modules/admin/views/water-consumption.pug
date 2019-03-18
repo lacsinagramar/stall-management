@@ -82,8 +82,8 @@ block contentScript
 							$('#encodeWaterModalTableBody').append(`
 								<tr>
 									<td><strong>${data[i].strStallId}</strong></td>
-									<td><input class="form-control" type="text" disabled="disabled" value="${data[i].intMeterReading}" /></td>
-									<td><input class="form-control input-cubic" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" type="text" placeholder="Enter Current Meter Reading" /></td>
+									<td><input class="form-control" type="number" disabled="disabled" value="${data[i].intMeterReading}" /></td>
+									<td><input class="form-control input-cubic" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" type="number" min="${data[i].intMeterReading}" placeholder="Enter Current Meter Reading" /></td>
 								</tr>`
 							)
 						}
@@ -111,37 +111,31 @@ block contentScript
 				let totalInputted = 0;
 				let bills = []
 				for(let c=0; c<inputs.length; c++){
-					totalInputted = eval(totalInputted+'+'+inputs.eq(c).val())
-				}
-				if(totalInputted == $(this).attr('usage')){
-					const pricePerCubicMeter = eval(`${$(this).attr('amountDue')}/${$(this).attr('usage')}`)
-					for(let d=0; d<inputs.length; d++){
-						let usageNow = eval(`${inputs.eq(d).val()}-${inputs.eq(d).attr('previousReading')}`)
-						let amountDueNow = eval(`${pricePerCubicMeter}*${usageNow}`);
-						let adminFeeNow = eval(`${amountDueNow}*${utilities.intAdminFeePercentage}`).toFixed(2)
-						bills.push({
-							contractId: inputs.eq(d).attr('contractId'),
-							currentMeterReading: inputs.eq(d).val(),
-							totalUsage: usageNow,
-							amountDue: amountDueNow,
-							adminFee: adminFeeNow,
-							dueDate: $(this).attr('dueDate'),
-							mainBillId: $(this).attr('billId')
-						})
-						if(d == inputs.length-1){
-							$.post('/admin/encode-water-bill', {lesseeBills: bills})
-							.done(function(){
-								location.href='/admin/water-consumption'
+					totalInputted = eval(totalInputted+'+'+eval(`${inputs.eq(c).val()}-${inputs.eq(c).attr('previousReading')}`))
+					if(c == inputs.length - 1){
+						const pricePerCubicMeter = eval(`${$(this).attr('amountDue')}/${totalInputted}`).toFixed(2)
+						for(let d=0; d<inputs.length; d++){
+							let usageNow = eval(`${inputs.eq(d).val()}-${inputs.eq(d).attr('previousReading')}`)
+							let amountDueNow = eval(`${pricePerCubicMeter}*${usageNow}`);
+							let adminFeeNow = eval(`${amountDueNow}*${utilities.intAdminFeePercentage}`).toFixed(2)
+							bills.push({
+								contractId: inputs.eq(d).attr('contractId'),
+								previousMeterReading: inputs.eq(d).attr('previousReading'),
+								currentMeterReading: inputs.eq(d).val(),
+								totalUsage: usageNow,
+								amountDue: amountDueNow,
+								adminFee: adminFeeNow,
+								dueDate: $(this).attr('dueDate'),
+								mainBillId: $(this).attr('billId')
 							})
+							if(d == inputs.length-1){
+								$.post('/admin/encode-water-bill', {lesseeBills: bills})
+								.done(function(){
+									location.href='/admin/water-consumption'
+								})
+							}
 						}
 					}
-				}
-				else{
-					swal({
-						title: `Inputs do not tally`,
-						text: `The needed total cubic meter usage to be inputted must be ${$(this).attr('usage')}`,
-						type: 'error'
-					})
 				}
 			})
 			$('.generate').on('click', function (){

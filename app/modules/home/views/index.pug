@@ -32,7 +32,7 @@ block content
 												- else if(bill.type == 'R')
 													td Rental
 												td #{bill.intId}
-												td #{`${bill.type == 'E' || bill.type == 'W' ? `${bill.dblAmountDue+bill.dblAdminFee}`: `${bill.dblAmountDue}`}`}
+												td #{`${bill.type == 'E' || bill.type == 'W' ? `${eval(`${bill.dblAmountDue}+${bill.dblAdminFee}`).toFixed(2)}`: `${bill.dblAmountDue}`}`}
 												td #{bill.datDueDate}
 												- if(bill.strPaymentReferenceNo == null)
 													td 

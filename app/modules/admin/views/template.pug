@@ -123,6 +123,7 @@ block scriptAddOns
 		$(document).ready(function(){
 			const passedVar = !{JSON.stringify(url)}
 			const passedSession = !{JSON.stringify(session)}
+			const utilities = !{JSON.stringify(session.utilities)}
 			const url = passedVar.split('?');
 			if(url[0] == '/'){
 				$('#dashboard').addClass('active')
@@ -144,15 +145,19 @@ block scriptAddOns
 				$('#loginName').append(`${passedSession.staff.strFirstName}<b class='caret'></b>`)
 			}
 			$.post('/admin/check-bills-to-encode').done(function(data){
-				let notifString = `The following bills has no encoded consumptions:<br><br>`
-				for(let s = 0; s < data.length; s++){
-					notifString+=`${data[s].type} Bill for ${data[s].billDate}<br>`
-					if(s == data.length - 1){
-						swal({
-							type: 'info',
-							title: `It's time to encode bills!`,
-							html: notifString
-						})
+				const monthNow = moment().format('MM')
+				const yearNow = moment().format('YYYY')
+				if(moment(moment().format('YYYY-MM-DD')).isSameOrAfter(moment(`${yearNow}-${monthNow}-${utilities.intUtilitiesCutOffDay}`).subtract(7, 'days').format('YYYY-MM-DD'))){
+					let notifString = `The following bills has no encoded consumptions:<br><br>`
+					for(let s = 0; s < data.length; s++){
+						notifString+=`${data[s].type} Bill for ${data[s].billDate}<br>`
+						if(s == data.length - 1){
+							swal({
+								type: 'info',
+								title: `It's time to encode bills!`,
+								html: notifString
+							})
+						}
 					}
 				}
 			})

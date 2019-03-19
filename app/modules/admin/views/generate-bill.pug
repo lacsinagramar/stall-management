@@ -7,202 +7,116 @@ block content
 				.card-header
 					h4.card-title Generate Bills
 				.card-body
-					table#electricTable.table.table-bordered.table-striped(cellspacing='0')
+					table#billTable.table.table-bordered.table-striped(cellspacing='0')
 						thead
 							tr
-								th Bill Date
-								th Amount Due
-								th KwH Used
-								th Actions
+								th Lessee Name
+								th Stall ID
+								th Rental Bill
+								th Utility Bills
 						tbody
-							each bill in electric
+							each contract in contracts
 								tr
-									td #{bill.billDate}
-									td #{bill.dblTotalAmountDue}
-									td #{bill.intTotalKwhUsage}
+									td #{contract.strFirstName} #{contract.strMiddleName} #{contract.strLastName}
+									td #{contract.strStallId}
+									td 
+										button.btn.btn-info.btn-round.rental(contractId=`${contract.intId}` lesseeName=`${contract.strFirstName} ${contract.strMiddleName} ${contract.strLastName}` stallId=`${contract.strStallId}`) Generate Rental Bill
 									td
-										- if (bill.booStatus == 0)
-											button.encodeElectricOpen.btn.btn-primary.btn-round(billId=`${bill.intId}` totalKwh=`${bill.intTotalKwhUsage}` amountDue=`${bill.dblTotalAmountDue}` dueDate=`${bill.intDueYear}-${bill.intDueMonth}-${bill.intDueDay}`) Encode Consumption
-										- else if (bill.booStatus == 1)
-											button.btn.btn-warning.btn-round Pending
-										- else if (bill.booStatus == 2)
-											button.btn.btn-info.btn-round.generate(billId=`${bill.intId}`) Generate Bills
+										button.btn.btn-info.btn-round.utility(contractId=`${contract.intId}` lesseeName=`${contract.strFirstName} ${contract.strMiddleName} ${contract.strLastName}` stallId=`${contract.strStallId}`) Generate Utility Bill
 	//MODALS
-	#encodeElectricModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
-		.modal-dialog.modal-xl(role='document')
-			.modal-content
-				.modal-header
-					h5.modal-title Add Electric Bill
-					button.close(type='button', data-dismiss='modal', aria-label='Close')
-						span(aria-hidden='true') ×
-				form#encodeElectricForm
-					.modal-body
-						.table-responsive
-							table.table
-								thead
-									tr
-										th Stall ID
-										th Last Month Meter Reading
-										th Current Month Meter Reading
-								tbody#encodeElectricModalTableBody
-					.modal-footer
-						button#encodeElectricSave.btn.btn-primary(type='submit') Save
-	#generateModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
-		.modal-dialog.modal-xl(role='document')
-			.modal-content
-				.modal-header
-					h5.modal-title Generate Bill of Tenants
-					button.close(type='button', data-dismiss='modal', aria-label='Close')
-						span(aria-hidden='true') ×
-				.modal-body
-					.table-responsive
-						table.table
-							thead
-								tr
-									th Stall ID
-									th Meter Reading
-									th Consumption
-									th Amount Due
-									th Action
-							tbody#generateModalTableBody
 block contentScript
 	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
 	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
 	script.
 		$(document).ready(function(){
 			const utilities = !{JSON.stringify(session.utilities)}
-			$('#electricTable').dataTable();
-			$('.encodeElectricOpen').on('click', function(){
-				const monthNow = moment().format('MM')
-				const yearNow = moment().format('YYYY')
-				if(moment(moment().format('YYYY-MM-DD')).isSameOrAfter(moment(`${yearNow}-${monthNow}-${utilities.intUtilitiesCutOffDay}`).subtract(7, 'days').format('YYYY-MM-DD'))){
-					$.post('/admin/get-readings', {billId: $(this).attr('billId'), type:'electric'})
-					.done(function (data){
-						for(let i = 0; i< data.length; i++){
-							$('#encodeElectricModalTableBody').append(`
-								<tr>
-									<td><strong>${data[i].strStallId}</strong></td>
-									<td><input class="form-control" type="number" disabled="disabled" value="${data[i].intMeterReading}" /></td>
-									<td><input class="form-control input-kwh" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" type="number" min="${data[i].intMeterReading}" placeholder="Enter Current Meter Usage" /></td>
-								</tr>`
-							)
-						}
-					})
-					$('#encodeElectricSave').attr('usage', $(this).attr('totalKwh'))
-					$('#encodeElectricSave').attr('amountDue', $(this).attr('amountDue'))
-					$('#encodeElectricSave').attr('dueDate', $(this).attr('dueDate'))
-					$('#encodeElectricSave').attr('billId', $(this).attr('billId'))
-					$('#encodeElectricModal').modal('show')
-				}
-				else{
-					swal({
-						title: `It's not time to encode yet`,
-						text: `You can only encode if today is already a week before the cut off day`,
-						type: 'error'
-					})
-				}
-			})
-			$('#encodeElectricModal').on('hidden.bs.modal', function(){
-				$('#encodeElectricModalTableBody').empty()
-			})
-			$('#encodeElectricSave').on('click', function(e){
-				e.preventDefault()
-				const inputs = $('.input-kwh')
-				let totalInputted = 0;
-				let bills = []
-				for(let c=0; c<inputs.length; c++){
-					totalInputted = eval(totalInputted+'+'+eval(`${inputs.eq(c).val()}-${inputs.eq(c).attr('previousReading')}`))
-					if(c == inputs.length - 1){
-						const pricePerKwH = eval(`${$(this).attr('amountDue')}/${totalInputted}`).toFixed(2)
-						for(let d=0; d<inputs.length; d++){
-							let usageNow = eval(`${inputs.eq(d).val()}-${inputs.eq(d).attr('previousReading')}`)
-							let amountDueNow = eval(`${pricePerKwH}*${usageNow}`);
-							let adminFeeNow = eval(`${amountDueNow}*${utilities.intAdminFeePercentage}`).toFixed(2)
-							bills.push({
-								contractId: inputs.eq(d).attr('contractId'),
-								previousMeterReading: inputs.eq(d).attr('previousReading'),
-								currentMeterReading: inputs.eq(d).val(),
-								totalUsage: usageNow,
-								amountDue: amountDueNow,
-								adminFee: adminFeeNow,
-								dueDate: $(this).attr('dueDate'),
-								mainBillId: $(this).attr('billId')
-							})
-							if(d == inputs.length-1){
-								$.post('/admin/encode-electric-bill', {lesseeBills: bills})
-								.done(function(){
-									location.href='/admin/electric-consumption'
-								})
-							}
-						}
+			$('#billTable').dataTable();
+			$(document).on('click', '.rental', function(){
+				$.post('/admin/get-rental-bill', {
+					contractId: $(this).attr('contractId'),
+				}).done(function(data){
+					if(data.valid){
+						console.log('billHere')
 					}
-				}
-			})
-			$('.generate').on('click', function (){
-				$.post('/admin/get-encoded',{id: $(this).attr('billId'), type:'electric'})
-				.done(function(data){
-					for(let f=0; f < data.length; f++){
-						$('#generateModalTableBody').append(`
-							<tr>
-								<td><h6 class="text-primary">Stall ${data[f].strStallId}</h6></td>
-								<td>${data[f].intMeterReading}</td>
-								<td>${data[f].intTotalKwhUsage}KwH</td>
-								<td>P ${eval(`${data[f].dblAmountDue}+${data[f].dblAdminFee}`)}</td>
-								<td><button class="btn btn-info btn-round generateBill" lesseeBillId="${data[f].lesseeBillId}" amountDue="${eval(`${data[f].dblAmountDue}+${data[f].dblAdminFee}`)}" kwhUsage="${data[f].intTotalKwhUsage}" meterReading="${data[f].intMeterReading}" lesseeName="${data[f].strFirstName} ${data[f].strMiddleName} ${data[f].strLastName}" stallId="${data[f].strStallId}" dueDate='${data[f].datDueDate}'>Generate</button></td>
-							</tr>
-						`)
+					else{
+						return swal({
+							title: `Cannot Generate Bill`,
+							text: data.error,
+							type: 'error'
+						})
 					}
-					$('#generateModal').modal('show')
 				})
 			})
-			$('#generateModal').on('hidden.bs.modal', function() {
-				$('#generateModalTableBody').empty()
+			$(document).on('click', '.utility', function(){
+				const stallId = $(this).attr('stallId')
+				const lesseeName = $(this).attr('lesseeName')
+				$.post('/admin/get-utility-bills', {
+					contractId: $(this).attr('contractId'),
+				}).done(function(data){
+					if(data.valid){
+						const billTemplate = {
+							content: [
+								{text: '\n\nEXTRAORDINARY PROPERTY MANAGEMENT CORPORATION', style: 'header', bold: true, alignment: 'center'},
+								{text: 'Amvel Business Park, Brgy. San Dionisio Sucat, Paranaque', style: 'subheader', alignment: 'center'},
+								{text: `\n\n\n\n\nName of Lessee:   ${lesseeName}`, alignment: 'left'},
+								{text: `\nStall Number:   ${stallId}`},
+								{text: `\n\n\nUTILITY BILL\n\n`, style: 'header', bold: true, alignment: 'center'},
+								{text: `Due Date: ${moment(`${data.bills.electric.datDueDate}`).format('MM-DD-YYYY')}\n\n`, alignment: 'right'},
+								{text: `Period Covered: ${moment(`${data.bills.electric.datDueDate}`).subtract(1,'months').format('MMMM YYYY')} to ${moment(`${data.bills.electric.datDueDate}`).format('MMMM YYYY')}\n\n`, alignment: 'left'},
+								{
+									table: {
+										widths: ['16.6%', '16.6%', '16.6%', '16.6%', '16.6%', '16.6%'],
+										body: [
+											[
+												{text:'BILL FOR', bold:true, alignment: 'center'},
+												{text:'REFERENCE CODE', bold:true, alignment: 'center'},
+												{text:'PREVIOUS READING', bold:true, alignment: 'center'},
+												{text:'CURRENT READING', bold:true, alignment: 'center'},
+												{text:'CONSUMPTION', bold:true, alignment: 'center'},
+												{text:'AMOUNT DUE', bold:true, alignment: 'center'},
+											],
+											[
+												{text:`Electricity`, alignment: 'center'},
+												{text:`${data.bills.electric.intId}`, alignment: 'center'},
+												{text:`${data.bills.electric.intPreviousMeterReading}`, alignment: 'center'},
+												{text:`${data.bills.electric.intMeterReading}`, alignment: 'center'},
+												{text:`${data.bills.electric.intTotalKwhUsage}KwH`, alignment: 'center'},
+												{text:`P ${eval(`${data.bills.electric.dblAmountDue}+${data.bills.electric.dblAdminFee}`).toFixed(2)}`, alignment: 'center'},
+											],
+											[
+												{text:`Water`, alignment: 'center'},
+												{text:`${data.bills.water.intId}`, alignment: 'center'},
+												{text:`${data.bills.water.intPreviousMeterReading}`, alignment: 'center'},
+												{text:`${data.bills.water.intMeterReading}`, alignment: 'center'},
+												{text:`${data.bills.water.intTotalCubicMeterUsage} Cubic Meters`, alignment: 'center'},
+												{text:`P ${eval(`${data.bills.water.dblAmountDue}+${data.bills.water.dblAdminFee}`).toFixed(2)}`, alignment: 'center'},
+											],
+										]
+									}
+								},
+								{text: '\n\n\n\n\n\nNote: Please prepare your check payable to:', alignment: 'left', style: 'header', bold: true},
+								{text: '\nExtraOrdinary Property Management Corporation', alignment: 'center', bold: true},
+								{text: '\nReminder:', alignment: 'left', style: 'header', bold: true},
+								{text: 'Failure of the LESSEE to pay the these charges, 7 days after due date of billing statement, shall automatically lead to the disconnection of the supply. Reconnection of the supply shall be made once balance has been fully settled.', alignment: 'justify'},
+								{text: '\n\nNote: PLEASE DISREGARD THE NOTICE IF PAYMENT HAS ALREADY BEEN MADE.', alignment: 'center', style: 'header', bold: true},
+								{text: '\n\nPrepared by:\t\t\t\t\t\t\t\t\Checked & Verified by:\t\t\t\t\t\t\tApproved by:',bold: true, alignment: 'center'},
+								{text: '\n\n\t\tJoel Boriol\t\t\t\t\t\t\t\t\t\t\tRowena Olan\t\t\t\t\t\t\t\tSherry V. Yambao',bold: true, alignment: 'center'},
+								{text: 'Staff\t\t\t\t\t\t\t\t\t\t\tAccounting Officer\t\t\t\t\t\t\t\tVP Finance',bold: true, alignment: 'center'},
+								{text: '\n\n\n\nReceived by:   _________________\t\t\t\t\t\t\t\t\t Date Received: _____________________'},	
+							]		
+						}
+						pdfMake.createPdf(billTemplate).open();
+					}
+					else{
+						return swal({
+							title: `Cannot Generate Bill`,
+							text: data.error,
+							type: 'error'
+						})
+					}
+				})
 			})
-			$(document).on('click', '.generateBill', function(){
-				generateBill($(this).attr('lesseeName'), $(this).attr('stallId'), $(this).attr('meterReading'), $(this).attr('kwhUsage'), $(this).attr('amountDue'), $(this).attr('dueDate'), $(this).attr('lesseeBillId'))
-			})
-
 			// FUNCTIONS
 			function generateBill(lesseeName, stallId, meterReading, kwhUsage, amountDue, dueDate, lesseeBillId){
-				const billTemplate = {
-					content: [
-						{text: '\n\nEXTRAORDINARY PROPERTY MANAGEMENT CORPORATION', style: 'header', bold: true, alignment: 'center'},
-						{text: 'Amvel Business Park, Brgy. San Dionisio Sucat, Paranaque', style: 'subheader', alignment: 'center'},
-						{text: `\n\n\n\n\nName of Lessee:   ${lesseeName}`, alignment: 'left'},
-						{text: `\nStall Number:   ${stallId}`},
-						{text: `\n\n\nELECTRIC BILL Reference Code(${lesseeBillId})\n\n`, style: 'header', bold: true, alignment: 'center'},
-						{text: `Date: ${moment().format('MM-DD-YYYY')}\n\n`, alignment: 'right'},
-						{text: `Period Covered: ${moment(dueDate).subtract(1,'months').format('MMMM YYYY')} to ${moment(dueDate).format('MMMM YYYY')}\n\n`, alignment: 'left'},
-						{
-							table: {
-								widths: ['*', '*', '*', '*'],
-								body: [
-									[
-										{text:'METER READING', bold:true, alignment: 'center'},
-										{text:'TOTAL KWH USAGE', bold:true, alignment: 'center'},
-										{text:'AMOUNT DUE', bold:true, alignment: 'center'},
-										{text:'DUE DATE', bold:true, alignment: 'center'},
-									],
-									[
-										{text:`${meterReading}`, alignment: 'center'},
-										{text:`${kwhUsage}KwH`, alignment: 'center'},
-										{text:`P ${amountDue}`, alignment: 'center'},
-										{text:`${moment(dueDate).format('MM-DD-YYYY')}`, alignment: 'center'},
-									],
-								]
-							}
-						},
-						{text: '\n\n\n\n\n\nNote: Please prepare your check payable to:', alignment: 'left', style: 'header', bold: true},
-						{text: '\nExtraOrdinary Property Management Corporation', alignment: 'center', bold: true},
-						{text: '\nReminder:', alignment: 'left', style: 'header', bold: true},
-						{text: 'Failure of the LESSEE to pay the electricity charges, 7 days after due date of billing statement, shall automatically lead to the disconnection of the electricity supply. Reconnection of the electricity supply shall be made once balance has been fully settled.', alignment: 'justify'},
-						{text: '\n\nNote: PLEASE DISREGARD THE NOTICE IF PAYMENT HAS ALREADY BEEN MADE.', alignment: 'center', style: 'header', bold: true},
-						{text: '\n\nPrepared by:\t\t\t\t\t\t\t\t\Checked & Verified by:\t\t\t\t\t\t\tApproved by:',bold: true, alignment: 'center'},
-						{text: '\n\n\t\tJoel Boriol\t\t\t\t\t\t\t\t\t\t\tRowena Olan\t\t\t\t\t\t\t\tSherry V. Yambao',bold: true, alignment: 'center'},
-						{text: 'Staff\t\t\t\t\t\t\t\t\t\t\tAccounting Officer\t\t\t\t\t\t\t\tVP Finance',bold: true, alignment: 'center'},
-						{text: '\n\n\n\nReceived by:   _________________\t\t\t\t\t\t\t\t\t Date Received: _____________________'},	
-					]		
-				}
-				pdfMake.createPdf(billTemplate).open();
 			}
 		})

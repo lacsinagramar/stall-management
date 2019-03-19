@@ -83,7 +83,7 @@ block contentScript
 								<tr>
 									<td><strong>${data[i].strStallId}</strong></td>
 									<td><input class="form-control" type="number" disabled="disabled" value="${data[i].intMeterReading}" /></td>
-									<td><input class="form-control input-cubic" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" type="number" min="${data[i].intMeterReading}" placeholder="Enter Current Meter Reading" /></td>
+									<td><input class="form-control input-cubic" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" stallId="${data[i].strStallId}" type="number" min="${data[i].intMeterReading}" placeholder="Enter Current Meter Reading" /></td>
 								</tr>`
 							)
 						}
@@ -111,6 +111,20 @@ block contentScript
 				let totalInputted = 0;
 				let bills = []
 				for(let c=0; c<inputs.length; c++){
+					if(parseInt(inputs.eq(c).val()) < parseInt(inputs.eq(c).attr('previousReading'))){
+						return swal({
+							title: `Invalid input`,
+							text: `Meter Reading for ${inputs.eq(c).attr('stallId')} is less than the previous reading`,
+							type: 'error'
+						})
+					}
+					if(inputs.eq(c).val() == ''){
+						return swal({
+							title: `Invalid input`,
+							text: `Meter Reading for ${inputs.eq(c).attr('stallId')} has no value`,
+							type: 'error'
+						})
+					}
 					totalInputted = eval(totalInputted+'+'+eval(`${inputs.eq(c).val()}-${inputs.eq(c).attr('previousReading')}`))
 					if(c == inputs.length - 1){
 						const pricePerCubicMeter = eval(`${$(this).attr('amountDue')}/${totalInputted}`).toFixed(2)

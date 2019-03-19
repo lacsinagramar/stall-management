@@ -47,24 +47,6 @@ block content
 								tbody#encodeElectricModalTableBody
 					.modal-footer
 						button#encodeElectricSave.btn.btn-primary(type='submit') Save
-	#generateModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
-		.modal-dialog.modal-xl(role='document')
-			.modal-content
-				.modal-header
-					h5.modal-title Generate Bill of Tenants
-					button.close(type='button', data-dismiss='modal', aria-label='Close')
-						span(aria-hidden='true') ×
-				.modal-body
-					.table-responsive
-						table.table
-							thead
-								tr
-									th Stall ID
-									th Meter Reading
-									th Consumption
-									th Amount Due
-									th Action
-							tbody#generateModalTableBody
 block contentScript
 	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
 	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
@@ -83,7 +65,7 @@ block contentScript
 								<tr>
 									<td><strong>${data[i].strStallId}</strong></td>
 									<td><input class="form-control" type="number" disabled="disabled" value="${data[i].intMeterReading}" /></td>
-									<td><input class="form-control input-kwh" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" type="number" min="${data[i].intMeterReading}" placeholder="Enter Current Meter Usage" /></td>
+									<td><input class="form-control input-kwh" contractId="${data[i].intId}" previousReading="${data[i].intMeterReading}" stallId="${data[i].strStallId}" type="number" min="${data[i].intMeterReading}" placeholder="Enter Current Meter Usage" /></td>
 								</tr>`
 							)
 						}
@@ -111,6 +93,20 @@ block contentScript
 				let totalInputted = 0;
 				let bills = []
 				for(let c=0; c<inputs.length; c++){
+					if(parseInt(inputs.eq(c).val()) < parseInt(inputs.eq(c).attr('previousReading'))){
+						return swal({
+							title: `Invalid input`,
+							text: `Meter Reading for ${inputs.eq(c).attr('stallId')} is less than the previous reading`,
+							type: 'error'
+						})
+					}
+					if(inputs.eq(c).val() == ''){
+						return swal({
+							title: `Invalid input`,
+							text: `Meter Reading for ${inputs.eq(c).attr('stallId')} has no value`,
+							type: 'error'
+						})
+					}
 					totalInputted = eval(totalInputted+'+'+eval(`${inputs.eq(c).val()}-${inputs.eq(c).attr('previousReading')}`))
 					if(c == inputs.length - 1){
 						const pricePerKwH = eval(`${$(this).attr('amountDue')}/${totalInputted}`).toFixed(2)
@@ -138,71 +134,4 @@ block contentScript
 					}
 				}
 			})
-			$('.generate').on('click', function (){
-				$.post('/admin/get-encoded',{id: $(this).attr('billId'), type:'electric'})
-				.done(function(data){
-					for(let f=0; f < data.length; f++){
-						$('#generateModalTableBody').append(`
-							<tr>
-								<td><h6 class="text-primary">Stall ${data[f].strStallId}</h6></td>
-								<td>${data[f].intMeterReading}</td>
-								<td>${data[f].intTotalKwhUsage}KwH</td>
-								<td>P ${eval(`${data[f].dblAmountDue}+${data[f].dblAdminFee}`)}</td>
-								<td><button class="btn btn-info btn-round generateBill" lesseeBillId="${data[f].lesseeBillId}" amountDue="${eval(`${data[f].dblAmountDue}+${data[f].dblAdminFee}`)}" kwhUsage="${data[f].intTotalKwhUsage}" meterReading="${data[f].intMeterReading}" lesseeName="${data[f].strFirstName} ${data[f].strMiddleName} ${data[f].strLastName}" stallId="${data[f].strStallId}" dueDate='${data[f].datDueDate}'>Generate</button></td>
-							</tr>
-						`)
-					}
-					$('#generateModal').modal('show')
-				})
-			})
-			$('#generateModal').on('hidden.bs.modal', function() {
-				$('#generateModalTableBody').empty()
-			})
-			$(document).on('click', '.generateBill', function(){
-				generateBill($(this).attr('lesseeName'), $(this).attr('stallId'), $(this).attr('meterReading'), $(this).attr('kwhUsage'), $(this).attr('amountDue'), $(this).attr('dueDate'), $(this).attr('lesseeBillId'))
-			})
-
-			// FUNCTIONS
-			function generateBill(lesseeName, stallId, meterReading, kwhUsage, amountDue, dueDate, lesseeBillId){
-				const billTemplate = {
-					content: [
-						{text: '\n\nEXTRAORDINARY PROPERTY MANAGEMENT CORPORATION', style: 'header', bold: true, alignment: 'center'},
-						{text: 'Amvel Business Park, Brgy. San Dionisio Sucat, Paranaque', style: 'subheader', alignment: 'center'},
-						{text: `\n\n\n\n\nName of Lessee:   ${lesseeName}`, alignment: 'left'},
-						{text: `\nStall Number:   ${stallId}`},
-						{text: `\n\n\nELECTRIC BILL Reference Code(${lesseeBillId})\n\n`, style: 'header', bold: true, alignment: 'center'},
-						{text: `Date: ${moment().format('MM-DD-YYYY')}\n\n`, alignment: 'right'},
-						{text: `Period Covered: ${moment(dueDate).subtract(1,'months').format('MMMM YYYY')} to ${moment(dueDate).format('MMMM YYYY')}\n\n`, alignment: 'left'},
-						{
-							table: {
-								widths: ['*', '*', '*', '*'],
-								body: [
-									[
-										{text:'METER READING', bold:true, alignment: 'center'},
-										{text:'TOTAL KWH USAGE', bold:true, alignment: 'center'},
-										{text:'AMOUNT DUE', bold:true, alignment: 'center'},
-										{text:'DUE DATE', bold:true, alignment: 'center'},
-									],
-									[
-										{text:`${meterReading}`, alignment: 'center'},
-										{text:`${kwhUsage}KwH`, alignment: 'center'},
-										{text:`P ${amountDue}`, alignment: 'center'},
-										{text:`${moment(dueDate).format('MM-DD-YYYY')}`, alignment: 'center'},
-									],
-								]
-							}
-						},
-						{text: '\n\n\n\n\n\nNote: Please prepare your check payable to:', alignment: 'left', style: 'header', bold: true},
-						{text: '\nExtraOrdinary Property Management Corporation', alignment: 'center', bold: true},
-						{text: '\nReminder:', alignment: 'left', style: 'header', bold: true},
-						{text: 'Failure of the LESSEE to pay the electricity charges, 7 days after due date of billing statement, shall automatically lead to the disconnection of the electricity supply. Reconnection of the electricity supply shall be made once balance has been fully settled.', alignment: 'justify'},
-						{text: '\n\nNote: PLEASE DISREGARD THE NOTICE IF PAYMENT HAS ALREADY BEEN MADE.', alignment: 'center', style: 'header', bold: true},
-						{text: '\n\nPrepared by:\t\t\t\t\t\t\t\t\Checked & Verified by:\t\t\t\t\t\t\tApproved by:',bold: true, alignment: 'center'},
-						{text: '\n\n\t\tJoel Boriol\t\t\t\t\t\t\t\t\t\t\tRowena Olan\t\t\t\t\t\t\t\tSherry V. Yambao',bold: true, alignment: 'center'},
-						{text: 'Staff\t\t\t\t\t\t\t\t\t\t\tAccounting Officer\t\t\t\t\t\t\t\tVP Finance',bold: true, alignment: 'center'},
-						{text: '\n\n\n\nReceived by:   _________________\t\t\t\t\t\t\t\t\t Date Received: _____________________'},	
-					]		
-				}
-				pdfMake.createPdf(billTemplate).open();
-			}
 		})

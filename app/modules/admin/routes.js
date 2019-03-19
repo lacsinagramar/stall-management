@@ -244,6 +244,14 @@ router.get('/reports', middleware.hasAdmin, (req, res) => {
 router.get('/queries', (req, res) => {
 	return res.render('admin/views/queries', {url: req.url, session: req.session})
 })
+router.get('/generate-bill', (req, res) => {
+	db.query('SELECT * FROM tbl_contract JOIN tbl_lessee ON strLesseeId=strId WHERE booContractStatus = 0', (err, results) => {
+		if(err) console.log(err)
+
+
+		return res.render('admin/views/generate-bill', {url: req.url, session: req.session, contracts:results})
+	})
+})
 //END GET
 
 //POST
@@ -1215,6 +1223,76 @@ router.post('/queries/staff', (req, res) => {
 		if(err) console.log(err)
 
 		return res.send(results)
+	})
+})
+router.post('/get-utility-bills', (req, res) => {
+	function getBill(billType, contractId, finalBills){
+		return new Promise(function(resolve, reject){
+			let query
+			let query2
+			const yearNow = moment().format('YYYY')
+			const monthNow = moment().format('MM')
+			if(billType == 'E'){
+				query = `SELECT * FROM tbl_electric_lessee_bill WHERE intContractId = ? AND MONTH(datDueDate) = ? AND YEAR(datDueDate) = ?`
+				query2 = `SELECT * FROM tbl_electric_main_bill WHERE intId = ?`
+			}
+			else{
+				query = `SELECT * FROM tbl_water_lessee_bill WHERE intContractId = ? AND MONTH(datDueDate) = ? AND YEAR(datDueDate) = ?`
+				query2 = `SELECT * FROM tbl_water_main_bill WHERE intId = ?`
+			}
+			db.query(query, [contractId, monthNow, yearNow], (err, results) => {
+				if(err) console.log(err)
+
+				if(results.length == 0){
+					return res.send({valid:false, error:'Bill is not existing'})
+				}
+				else{
+					const billNow = results[0]
+					let mainId
+					if(billType == 'E'){
+						mainId = billNow.intElectricMainBillId
+					}
+					else{
+						mainId = billNow.intWaterMainBillId
+					}
+					db.query(query2, mainId, (err, results) => {
+						if(err) console.log(err)
+						
+						if(results[0].booStatus == 2){
+							if(billType == 'E'){
+								finalBills.electric = billNow
+							}
+							else{
+								finalBills.water = billNow
+							}
+							return resolve(finalBills)
+						}
+						else{
+							return res.send({valid:false, error:'Bill is not validated by admin yet'})
+						}
+					})
+				}
+			})
+		})
+	}
+
+	getBill('E', req.body.contractId, {}).then(bills => {
+		getBill('W', req.body.contractId, bills).then(bills => {
+			return res.send({valid:true, bills})
+		})
+	})
+})
+router.post('/get-rental-bill', (req, res) => {
+	const monthNow = moment().format('MM')
+	db.query('SELECT * FROM tbl_rental_bill WHERE intContractId = ? AND MONTH(datDueDate) = ?',[req.body.contractId, monthNow], (err, results) => {
+		if(err) console.log(err)
+
+		if(results.length == 0){
+			return res.send({valid: false, error: 'There is still no bill to generate'})
+		}
+		else{
+			return res.send({valid:true, bill:results[0]})
+		}
 	})
 })
 //END POST

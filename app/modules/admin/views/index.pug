@@ -87,11 +87,11 @@ block contentScript
 					let amountDue = 0
 					if(data[u].intTotalKwhUsage){
 						billType = 'Electric'
-						amountDue = data[u].dblAmountDue + data[u].dblAdminFee
+						amountDue = eval(`${data[u].dblAmountDue}+${data[u].dblAdminFee}`).toFixed(2)
 					}
 					else if(data[u].intTotalCubicMeterUsage){
 						billType = 'Water'
-						amountDue = data[u].dblAmountDue + data[u].dblAdminFee
+						amountDue = eval(`${data[u].dblAmountDue}+${data[u].dblAdminFee}`).toFixed(2)
 					}
 					else{
 						billType = 'Rental'

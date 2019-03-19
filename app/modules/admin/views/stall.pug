@@ -41,7 +41,16 @@ block content
 						.col-md-12
 							center
 								h3 Stall Map
-								img(src='/assets/images/stall-map.jpg')
+									br
+									button#rect Add
+									button#save Save
+									input#text(type='text')
+									br
+									canvas#c(width='400', height='400')
+									br
+									p.save
+
+								//- img(src='/assets/images/stall-map.jpg')
 	#addStallModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
@@ -99,6 +108,7 @@ block content
 					.modal-footer
 						button#editStallSave.btn.btn-primary(type='submit') Edit
 block contentScript
+	
 	script.
 		$(document).ready(function(){
 			$('#stallTable').dataTable()
@@ -200,4 +210,96 @@ block contentScript
 					}
 				})
 			})
+			var stalls = !{JSON.stringify(stalls)}
+			console.log(stalls)
+			var canvas = new fabric.Canvas('c');
+			//- canvas.setBackgroundImage('http://lorempixel.com/400/400/fashion', canvas.renderAll.bind(canvas));
+			//- $("#text").on("click", function(e) {
+			//- text = new fabric.Text($("#text").val(), { left: 100, top: 100 });
+			//- 	canvas.add(text);
+			//- });
+			$("#rect").on("click", function(e) {
+				swal({
+				title: 'Enter stall ID',
+				input: 'text',
+				inputAttributes: {
+					autocapitalize: 'off'
+				},
+				showCancelButton: true,
+				confirmButtonText: 'Confirm',
+				showLoaderOnConfirm: true,
+				}).then((results)=>{
+					console.log(results)
+					rect = new fabric.Rect({
+					left: 180,
+					top: 180,
+					width: 50,
+					height: 50,      
+					fill: 'green',
+					stroke: 'green',
+					strokeWidth: 5,
+					});  
+					var text = new fabric.Text(`${results}`, {
+					left: 208,
+					top: 205,
+					width: 50,
+					height: 50,  
+					fontSize: 15,
+					originX: 'center',
+					originY: 'center'
+					});
+					var group = new fabric.Group([ rect, text ], {
+					left: 180,
+					top: 180,
+					width: 50,
+					height: 50,  
+					angle: 0,
+					selectable: true
+					});
+					canvas.add(group);
+				})
+
+			});
+
+
+			
+			for(let i = 0 ; i < stalls.length ; i++){
+			let x = parseInt(stalls[i].int_x)
+			let y = parseInt(stalls[i].int_y)
+			rect = new fabric.Rect({
+				left: x,
+				top: y,
+				width: 50,
+				height: 50,      
+				fill: 'green',
+				stroke: 'green',
+				strokeWidth: 5,
+			}); 
+			var text = new fabric.Text(`${stalls[i].strId}`, {
+			left: x + 28,
+			top: y + 25,
+			width: 50,
+			height: 50,  
+			fontSize: 15,
+			originX: 'center',
+			originY: 'center'
+			});
+
+			var group = new fabric.Group([ rect, text ], {
+			left: x,
+			top: y,
+			width: 50,
+			height: 50,  
+			angle: 0,
+			selectable: true
+			});
+
+			canvas.add(group);
+			}
+
+
+			//- $("#save").on("click", function(e) {
+			//- 	$(".save").html(canvas.toSVG());
+			//- });
+
 		})

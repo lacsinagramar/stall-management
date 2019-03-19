@@ -284,7 +284,7 @@ router.post('/addstall', (req, res) => {
 	console.log(req.body)
 	db.query('INSERT INTO tbl_stall VALUES(?, ?, 0, 0, 0)', [req.body.stallId, req.body.stallType], (err, results) => {
 		if(err) console.log(err)
-
+		
 		return res.redirect('/admin/stall')
 	})
 });

@@ -225,7 +225,7 @@ router.get('/issue', middleware.hasAdmin, (req, res) => {
 router.get('/utilities', middleware.hasAdmin, (req, res) => {
 	return res.render('admin/views/utilities', {url: req.url, utilities: req.session.utilities, session: req.session})
 })
-router.get('/ticket', (req, res) => {
+router.get('/ticket', middleware.hasAdminOrStaff, (req, res) => {
 	db.query('SELECT * FROM tbl_ticket', (err, results) => {
 		if(err) console.log(err)
 
@@ -241,10 +241,10 @@ router.get('/ticket', (req, res) => {
 router.get('/reports', middleware.hasAdmin, (req, res) => {
 	return res.render('admin/views/reports', {url: req.url, session: req.session})
 })
-router.get('/queries', (req, res) => {
+router.get('/queries', middleware.hasAdmin, (req, res) => {
 	return res.render('admin/views/queries', {url: req.url, session: req.session})
 })
-router.get('/generate-bill', (req, res) => {
+router.get('/generate-bill', middleware.hasAdminOrStaff, (req, res) => {
 	db.query('SELECT * FROM tbl_contract JOIN tbl_lessee ON strLesseeId=strId WHERE booContractStatus = 0', (err, results) => {
 		if(err) console.log(err)
 
@@ -282,9 +282,9 @@ router.post('/login', (req, res) => {
 });
 router.post('/addstall', (req, res) => {
 	console.log(req.body)
-	db.query('INSERT INTO tbl_stall VALUES(?, ?, 0, 0, 0)', [req.body.stallId, req.body.stallType], (err, results) => {
+	db.query('INSERT INTO tbl_stall VALUES(?, ?, 0, 0, 0, 0, 0)', [req.body.stallId, req.body.stallType], (err, results) => {
 		if(err) console.log(err)
-
+		
 		return res.redirect('/admin/stall')
 	})
 });
@@ -1293,6 +1293,13 @@ router.post('/get-rental-bill', (req, res) => {
 		else{
 			return res.send({valid:true, bill:results[0]})
 		}
+	})
+})
+router.post('/relocate-stall', (req, res) => {
+	db.query('UPDATE tbl_stall SET dblX = ?, dblY = ? WHERE strId = ?', [req.body.x,req.body.y,req.body.id], (err, results) => {
+		if(err) console.log(err)
+
+		return res.send(true)
 	})
 })
 //END POST

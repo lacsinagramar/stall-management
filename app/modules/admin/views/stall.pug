@@ -1,5 +1,11 @@
 extends ./template.pug
 
+block contentStyle
+	style.
+		#c {
+			background-color: grey;
+		}
+
 block content
 	.row
 		.col-md-12
@@ -38,19 +44,17 @@ block content
 												i.now-ui-icons.ui-1_simple-remove
 					br
 					.row
-						.col-md-12
+						.col-md-2
+							h5 Legend
+							p.text-warning Yellow Fill - Food Stalls
+							p.text-success Green Fill - Dry Good Stalls
+							p Black Border - Available
+							p.text-danger Red Border - Occupied
+							h6 NOTE: Occupied Stalls are not editable
+						.col-md-10
 							center
 								h3 Stall Map
-									br
-									button#rect Add
-									button#save Save
-									input#text(type='text')
-									br
-									canvas#c(width='400', height='400')
-									br
-									p.save
-
-								//- img(src='/assets/images/stall-map.jpg')
+								canvas#c(width='1000', height='600')
 	#addStallModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
@@ -111,7 +115,7 @@ block contentScript
 	
 	script.
 		$(document).ready(function(){
-			$('#stallTable').dataTable()
+			$('#stallTable').fadeOut(500)
 			$('input[name="stallId"]').mask('A-Z000',{
 				translation:{
 					'A':{
@@ -210,96 +214,256 @@ block contentScript
 					}
 				})
 			})
-			var stalls = !{JSON.stringify(stalls)}
+
+			// STALL MAP
+			function findNewPos(distX, distY, target, obj) {
+				if(Math.abs(distX) > Math.abs(distY)) {
+					if (distX > 0) {
+						target.left = obj.left - target.width;
+					} else {
+						target.left = obj.left + obj.width;
+					}
+				} else {
+					if (distY > 0) {
+						target.top = obj.top - target.height;
+					} else {
+						target.top = obj.top + obj.height;
+					}
+				}
+			}
+			const stalls = !{JSON.stringify(stalls)}
 			console.log(stalls)
-			var canvas = new fabric.Canvas('c');
-			//- canvas.setBackgroundImage('http://lorempixel.com/400/400/fashion', canvas.renderAll.bind(canvas));
-			//- $("#text").on("click", function(e) {
-			//- text = new fabric.Text($("#text").val(), { left: 100, top: 100 });
-			//- 	canvas.add(text);
-			//- });
-			$("#rect").on("click", function(e) {
-				swal({
-				title: 'Enter stall ID',
-				input: 'text',
-				inputAttributes: {
-					autocapitalize: 'off'
-				},
-				showCancelButton: true,
-				confirmButtonText: 'Confirm',
-				showLoaderOnConfirm: true,
-				}).then((results)=>{
-					console.log(results)
-					rect = new fabric.Rect({
-					left: 180,
-					top: 180,
-					width: 50,
-					height: 50,      
-					fill: 'green',
-					stroke: 'green',
-					strokeWidth: 5,
-					});  
-					var text = new fabric.Text(`${results}`, {
-					left: 208,
-					top: 205,
-					width: 50,
-					height: 50,  
-					fontSize: 15,
+			let canvas = new fabric.Canvas('c');
+			for(let i = 0 ; i < stalls.length ; i++){
+				let x = parseInt(stalls[i].dblX)
+				let y = parseInt(stalls[i].dblY)
+				const rect = new fabric.Rect({
+					left: x,
+					top: y,
+					width: 70,
+					height: 70,      
+					fill: `${stalls[i].booStallType == 0 ? 'yellow': 'green'}`,
+					stroke: `${stalls[i].booIsAvailable == 0 ? 'black': 'red'}`,
+					strokeWidth: 2,
+				}); 
+				const text = new fabric.Text(`${stalls[i].strId}`, {
+					left: x + 38,
+					top: y + 35,
+					width: 70,
+					height: 70,  
+					fontSize: 20,
 					originX: 'center',
 					originY: 'center'
-					});
-					var group = new fabric.Group([ rect, text ], {
-					left: 180,
-					top: 180,
-					width: 50,
-					height: 50,  
+				});
+				const group = new fabric.Group([ rect, text ], {
+					left: x,
+					top: y,
+					width: 70,
+					height: 70,  
 					angle: 0,
-					selectable: true
-					});
-					canvas.add(group);
-				})
-
-			});
-
-
-			
-			for(let i = 0 ; i < stalls.length ; i++){
-			let x = parseInt(stalls[i].int_x)
-			let y = parseInt(stalls[i].int_y)
-			rect = new fabric.Rect({
-				left: x,
-				top: y,
-				width: 50,
-				height: 50,      
-				fill: 'green',
-				stroke: 'green',
-				strokeWidth: 5,
-			}); 
-			var text = new fabric.Text(`${stalls[i].strId}`, {
-			left: x + 28,
-			top: y + 25,
-			width: 50,
-			height: 50,  
-			fontSize: 15,
-			originX: 'center',
-			originY: 'center'
-			});
-
-			var group = new fabric.Group([ rect, text ], {
-			left: x,
-			top: y,
-			width: 50,
-			height: 50,  
-			angle: 0,
-			selectable: true
-			});
-
-			canvas.add(group);
+					selectable: true,
+					hasControls: false,
+					hasBorders: false,
+					hasRotatingPoint: false,
+					evented: true,
+					id: `${stalls[i].strId}`
+				});
+				canvas.add(group);
 			}
+			canvas.on('object:moving', function (options) {
+				const snap = 20
+				const canvasWidth = 1000
+				const canvasHeight = 600
+				// Sets corner position coordinates based on current angle, width and height
+				options.target.setCoords();
 
+				// Don't allow objects off the canvas
+				if(options.target.left < snap) {
+					options.target.left = 0;
+				}
 
-			//- $("#save").on("click", function(e) {
-			//- 	$(".save").html(canvas.toSVG());
-			//- });
+				if(options.target.top < snap) {
+					options.target.top = 0;
+				}
 
+				if((options.target.width + options.target.left) > (canvasWidth - snap)) {
+					options.target.left = canvasWidth - options.target.width;
+				}
+
+				if((options.target.height + options.target.top) > (canvasHeight - snap)) {
+					options.target.top = canvasHeight - options.target.height;
+				}
+
+				// Loop through objects
+				canvas.forEachObject(function (obj) {
+					if (obj === options.target) return;
+
+					// If objects intersect
+					if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {
+
+						var distX = ((obj.left + obj.width) / 2) - ((options.target.left + options.target.width) / 2);
+						var distY = ((obj.top + obj.height) / 2) - ((options.target.top + options.target.height) / 2);
+
+						// Set new position
+						findNewPos(distX, distY, options.target, obj);
+					}
+
+					// Snap objects to each other horizontally
+
+					// If bottom points are on same Y axis
+					if(Math.abs((options.target.top + options.target.height) - (obj.top + obj.height)) < snap) {
+						// Snap target BL to object BR
+						if(Math.abs(options.target.left - (obj.left + obj.width)) < snap) {
+							options.target.left = obj.left + obj.width;
+							options.target.top = obj.top + obj.height - options.target.height;
+						}
+
+						// Snap target BR to object BL
+						if(Math.abs((options.target.left + options.target.width) - obj.left) < snap) {
+							options.target.left = obj.left - options.target.width;
+							options.target.top = obj.top + obj.height - options.target.height;
+						}
+					}
+
+					// If top points are on same Y axis
+					if(Math.abs(options.target.top - obj.top) < snap) {
+						// Snap target TL to object TR
+						if(Math.abs(options.target.left - (obj.left + obj.width)) < snap) {
+							options.target.left = obj.left + obj.width;
+							options.target.top = obj.top;
+						}
+
+						// Snap target TR to object TL
+						if(Math.abs((options.target.left + options.target.width) - obj.left) < snap) {
+							options.target.left = obj.left - options.target.width;
+							options.target.top = obj.top;
+						}
+					}
+
+					// Snap objects to each other vertically
+
+					// If right points are on same X axis
+					if(Math.abs((options.target.left + options.target.width) - (obj.left + obj.width)) < snap) {
+						// Snap target TR to object BR
+						if(Math.abs(options.target.top - (obj.top + obj.height)) < snap) {
+							options.target.left = obj.left + obj.width - options.target.width;
+							options.target.top = obj.top + obj.height;
+						}
+
+						// Snap target BR to object TR
+						if(Math.abs((options.target.top + options.target.height) - obj.top) < snap) {
+							options.target.left = obj.left + obj.width - options.target.width;
+							options.target.top = obj.top - options.target.height;
+						}
+					}
+
+					// If left points are on same X axis
+					if(Math.abs(options.target.left - obj.left) < snap) {
+						// Snap target TL to object BL
+						if(Math.abs(options.target.top - (obj.top + obj.height)) < snap) {
+							options.target.left = obj.left;
+							options.target.top = obj.top + obj.height;
+						}
+
+						// Snap target BL to object TL
+						if(Math.abs((options.target.top + options.target.height) - obj.top) < snap) {
+							options.target.left = obj.left;
+							options.target.top = obj.top - options.target.height;
+						}
+					}
+				});
+				options.target.setCoords();
+
+				// If objects still overlap
+
+				var outerAreaLeft = null,
+				outerAreaTop = null,
+				outerAreaRight = null,
+				outerAreaBottom = null;
+
+				canvas.forEachObject(function (obj) {
+					if (obj === options.target) return;
+
+					if (options.target.isContainedWithinObject(obj) || options.target.intersectsWithObject(obj) || obj.isContainedWithinObject(options.target)) {
+
+						var intersectLeft = null,
+						intersectTop = null,
+						intersectWidth = null,
+						intersectHeight = null,
+						intersectSize = null,
+						targetLeft = options.target.left,
+						targetRight = targetLeft + options.target.width,
+						targetTop = options.target.top,
+						targetBottom = targetTop + options.target.height,
+						objectLeft = obj.left,
+						objectRight = objectLeft + obj.width,
+						objectTop = obj.top,
+						objectBottom = objectTop + obj.height;
+
+						// Find intersect information for X axis
+						if(targetLeft >= objectLeft && targetLeft <= objectRight) {
+							intersectLeft = targetLeft;
+							intersectWidth = obj.width - (intersectLeft - objectLeft);
+
+						} else if(objectLeft >= targetLeft && objectLeft <= targetRight) {
+							intersectLeft = objectLeft;
+							intersectWidth = options.target.width - (intersectLeft - targetLeft);
+						}
+
+						// Find intersect information for Y axis
+						if(targetTop >= objectTop && targetTop <= objectBottom) {
+							intersectTop = targetTop;
+							intersectHeight = obj.height - (intersectTop - objectTop);
+
+						} else if(objectTop >= targetTop && objectTop <= targetBottom) {
+							intersectTop = objectTop;
+							intersectHeight = options.target.height - (intersectTop - targetTop);
+						}
+
+						// Find intersect size (this will be 0 if objects are touching but not overlapping)
+						if(intersectWidth > 0 && intersectHeight > 0) {
+							intersectSize = intersectWidth * intersectHeight;
+						}
+
+						// Set outer snapping area
+						if(obj.left < outerAreaLeft || outerAreaLeft == null) {
+							outerAreaLeft = obj.left;
+						}
+
+						if(obj.top < outerAreaTop || outerAreaTop == null) {
+							outerAreaTop = obj.top;
+						}
+
+						if((obj.left + obj.width) > outerAreaRight || outerAreaRight == null) {
+							outerAreaRight = obj.left + obj.width;
+						}
+
+						if((obj.top + obj.height) > outerAreaBottom || outerAreaBottom == null) {
+							outerAreaBottom = obj.top + obj.height;
+						}
+
+						// If objects are intersecting, reposition outside all shapes which touch
+						if(intersectSize) {
+							var distX = (outerAreaRight / 2) - ((options.target.left + options.target.width) / 2);
+							var distY = (outerAreaBottom / 2) - ((options.target.top + options.target.height) / 2);
+
+							// Set new position
+							findNewPos(distX, distY, options.target, obj);
+						}
+					}
+				});
+			})
+
+			canvas.on('mouse:up', function(options) {
+				const idNow = options.target.id
+				if(options.target){
+					$.post('/admin/relocate-stall', {
+						x: options.target.left,
+						y: options.target.top,
+						id: options.target.id
+					}).done(function(){
+						$(`.edit[stallId='${idNow}']`).trigger('click')
+					})
+				}
+			});
 		})

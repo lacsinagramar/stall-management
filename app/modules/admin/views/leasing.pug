@@ -25,20 +25,21 @@ block content
 									- if(contract.booContractStatus == 0)
 										td.text-success On-going
 										td
-											a.btn.btn-round.btn-info.btn-icon.view(href='javascript:void(0)' contractId=`${contract.intId}`)
-												i.now-ui-icons.ui-1_zoom-bold
-											a.btn.btn-round.btn-danger.btn-icon.terminate(href='javascript:void(0)' contractId=`${contract.intId}`)
-												i.now-ui-icons.ui-1_simple-remove
+											a.badge.badge-info.text-white.view(href='javascript:void(0)' contractId=`${contract.intId}`) View
+												
+											a.badge.badge-warning.text-white.terminate(href='javascript:void(0)' contractId=`${contract.intId}`) Terminate
+
+											a.badge.badge-danger.text-white.delete(href='javascript:void(0)' contractId=`${contract.intId}`) Delete	
 									- else if(contract.booContractStatus == 1)
 										td.text-info Done
 										td
-											a.btn.btn-round.btn-info.btn-icon.view(href='javascript:void(0)' contractId=`${contract.intId}`)
-												i.now-ui-icons.ui-1_zoom-bold
+											a.badge.badge-info.view.text-white.view(href='javascript:void(0)' contractId=`${contract.intId}`) View
+												
 									- else if(contract.booContractStatus == 2)
 										td.text-danger Terminated
 										td
-											a.btn.btn-round.btn-info.btn-icon.view(href='javascript:void(0)' contractId=`${contract.intId}`)
-												i.now-ui-icons.ui-1_zoom-bold
+											a.badge.badge-info.view.text-white.view(href='javascript:void(0)' contractId=`${contract.intId}`) View
+												
 	#addLeasingModal.modal.fade(tabindex='false', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
@@ -453,6 +454,14 @@ block contentScript
 					contractId: $(this).attr('contractId')
 				}).done(function(){
 					location.href='/admin/rental'
+				})
+			})
+			$(document).on('click', '.delete', function(){
+				$.post('/admin/delete-contract', {
+					contractId: $(this).attr('contractId')
+				}).done(function(){
+					
+					location.reload()
 				})
 			})
 		})

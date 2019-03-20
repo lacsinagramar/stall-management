@@ -111,6 +111,7 @@ block content
 										span.form-check-sign
 					.modal-footer
 						button#editStallSave.btn.btn-primary(type='submit') Edit
+						button#deleteStallSave.btn.btn-danger(type='submit') Delete
 block contentScript
 	
 	script.
@@ -163,7 +164,12 @@ block contentScript
 				}
 				$('#editStallForm').prop('action', `/admin/edit-stall?stallId=${$(this).attr('stallId')}`)
 				$('#editStallForm').attr('stallId', `${$(this).attr('stallId')}`)
+				$('#deleteStallSave').attr('stallId', $(this).attr('stallId'))
 				$('#editStallModal').modal('show');
+			})
+			$('#deleteStallSave').on('click', function(e){
+				e.preventDefault()
+				$(`.remove[stallId="${$(this).attr('stallId')}"]`).trigger('click')
 			})
 			$('#editStallForm').validate({
 				rules:{

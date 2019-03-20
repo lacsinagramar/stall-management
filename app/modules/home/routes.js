@@ -82,34 +82,39 @@ router.get('/logout', (req, res) => {
 router.get('/my-issues', middleware.hasLessee, (req, res) => {
     const query = `SELECT * FROM tbl_issue_report WHERE intContractId = ?`
     const myIssues = []
+    function getIssues(contractId){
+        return new Promise(function(resolve, reject){
+            db.query(query, contractId, (err, issues) => {
+                if(err) console.log(err)
+        
+                if(issues.length > 0){
+                    for(let p = 0; p < issues.length; p++){
+                        myIssues.push(issues[p]);
+
+                        if(p == issues.length - 1){
+                            resolve()
+                        }
+                    }   
+                }
+                else{
+                    resolve()
+                }
+            })
+        })
+    }
     db.query('SELECT * FROM tbl_contract WHERE strLesseeId = ? AND booContractStatus = 0',[req.session.lessee.strId], (err, results) => {
         if(err) console.log(err)
-
+        
         if(results.length > 0){
             for(let o = 0; o < results.length; o++){
-                db.query(query, results[o].intId, (err, issues) => {
-                    if(err) console.log(err)
-
-                    console.log(issues)
-            
-                    if(issues.length > 0){
-                        for(let p = 0; p < issues.length; p++){
-                            myIssues.push(issues[p]);
-
-                            if(p == issues.length - 1){
-                                if(o == results.length - 1){
-                                    return res.render('home/views/my-issues', {issues: myIssues, session: req.session.lessee})
-                                }
-                            }
-                        }   
-                    }
-                    else if (o == results.length - 1){
-                        return res.render('home/views/my-issues', {issues: []})
+                getIssues(results[o].intId).then(() => {
+                    if (o == results.length - 1){
+                        return res.render('home/views/my-issues', {issues: myIssues, session: req.session.lessee})
                     }
                 })
             }
         }
-        else return res.render('home/views/my-issues', {issues: []})
+        else return res.render('home/views/my-issues', {issues: myIssues, session: req.session.lessee})
 
     })
 })
@@ -195,6 +200,18 @@ router.post('/update-account', (req, res) => {
             return res.send(true)
         })
     }
+    else{
+        return res.send(true)
+    }
+})
+router.post('/update-login', (req, res) => {
+    db.query('UPDATE tbl_lessee SET booFirstLogin = 1 WHERE strId = ?', req.body.id, (err, results) => {
+        if(err) console.log(err)
+
+        return res.send(true)
+    })
+    req.session.lessee.booFirstLogin = 1;
+    console.log(req.session.lessee)
 })
 //END POST
 

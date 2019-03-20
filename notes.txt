@@ -36,9 +36,9 @@
 - Notification for bills to be encoded /
 - Change Username and Password of Lessee and Staffs /
 - Start Dashboard /
-- Start Queries
-- Start Reports
-- Stall Map
+- Start Queries /
+- Start Reports /
+- Stall Map /
 
 ** Queries
 - Lessee /
@@ -50,6 +50,19 @@
 - Paid and Unpaid Tenants /
 - Expiring Contracts /
 - Revenue /
+
+REVISIONS
+- Delete Stall /
+- Edit Account Staff Side /
+- Prompt edit username and password upon logging in lessee /
+- Account ID for applying leasing /
+- Email Validation /
+- Max file size dropify /
+- Add Lessee Business Permit, Mayor's Permit /
+- Remove Generate Bills on E/W Consumption /
+- Ticket Details /
+- Remove Delete Payment /
+- Delete Leasing
 
 SQL DUMP EXAMPLE
 mysqldump -u root -p -d -B stallv3>stallv3-2.sql

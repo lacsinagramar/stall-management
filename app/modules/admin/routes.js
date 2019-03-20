@@ -226,7 +226,7 @@ router.get('/utilities', middleware.hasAdmin, (req, res) => {
 	return res.render('admin/views/utilities', {url: req.url, utilities: req.session.utilities, session: req.session})
 })
 router.get('/ticket', middleware.hasAdminOrStaff, (req, res) => {
-	db.query('SELECT * FROM tbl_ticket', (err, results) => {
+	db.query('SELECT *, tbl_ticket.booStatus AS booTicketStatus, tbl_ticket.intId AS intTicketId FROM tbl_ticket JOIN tbl_issue_report ON tbl_ticket.intIssueId = tbl_issue_report.intId', (err, results) => {
 		if(err) console.log(err)
 
 		if(results.length > 0){
@@ -372,29 +372,45 @@ router.post('/addaccount', upload.any(), (req, res) => {
 		})
 	})
 })
-router.post('/add-company', (req, res) => {
+router.post('/add-company', upload.any(), (req, res) => {
+	function findFilename(fieldName){
+		const found = req.files.find(file => {
+			if(file.fieldname == fieldName) return file
+		})
+		return found.filename;
+	}
+
 	console.log(req.body)
-	const queryString = `INSERT INTO tbl_company_lessee VALUES(?, ?, ?, ?)`;
-	db.query(queryString, [req.body.id, req.body.companyName, req.body.companyAddress, req.body.repPosition], (err, results) => {
+	const queryString = `INSERT INTO tbl_company_lessee VALUES(?, ?, ?, ?, ?, ?)`;
+	db.query(queryString, [req.body.id, req.body.companyName, req.body.companyAddress, req.body.repPosition, findFilename('business'), findFilename('mayor')], (err, results) => {
 		if(err) console.log(err)
 
 		return res.send({valid:true});
 	})
 });
 router.post('/lessee-user-check', (req, res) => {
-	db.query('SELECT * FROM tbl_lessee WHERE strUsername = ?', [req.body.lesseeUsername], (err, results) => {
-		if(err) console.log(err)
-
-		if(req.body.getDetails){
-			console.log(results[0]);
-			return res.send(results[0])
-		}
-
-		if(req.body.leasing){
-			if(results.length>0) return res.send('true');
-			else return res.send('false')
-		}
-	})
+	if(req.body.leasing){
+		db.query('SELECT * FROM tbl_lessee WHERE strId = ?', [req.body.lesseeId], (err, results) => {
+			if(err) console.log(err)
+	
+			if(req.body.getDetails){
+				console.log(results[0]);
+				return res.send(results[0])
+			}
+			else{
+				if(results.length>0) return res.send('true');
+				else return res.send('false')
+			}
+		})
+	}
+	else{
+		db.query('SELECT * FROM tbl_lessee WHERE strUsername = ?', [req.body.lesseeUsername], (err, results) => {
+			if(err) console.log(err)
+	
+				console.log(results[0]);
+				return res.send(results[0])
+		})
+	}
 });
 router.post('/delete-lessee', (req, res) => {
 	console.log(req.body)
@@ -919,7 +935,7 @@ router.post('/edit-staff', (req, res) => {
 	db.query(query, values, (err, results) => {
 		if(err) console.log(err)
 
-		return res.redirect('/admin/staff')
+		return res.redirect('/admin')
 	})
 })
 router.post('/delete-staff', (req, res) => {
@@ -1300,6 +1316,18 @@ router.post('/relocate-stall', (req, res) => {
 		if(err) console.log(err)
 
 		return res.send(true)
+	})
+})
+router.post('/check-email-validity', (req, res) => {
+	db.query('SELECT * FROM tbl_lessee WHERE strEmail = ?', [req.body.email], (err, results) => {
+		if(err) console.log(err)
+
+		if(results.length == 0){
+			return res.send('true')
+		}
+		else{
+			return res.send('false')
+		}
 	})
 })
 //END POST

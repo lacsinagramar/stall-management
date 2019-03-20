@@ -89,15 +89,15 @@ block content
 								.col-md-6
 									label Valid ID 1
 										small.text-danger  *
-									input.form-control.dropify(type='file' name='validId1' accept='image/*' data-height='200' data-allowed-file-extensions="jpeg jpg png")
+									input.form-control.dropify(type='file' name='validId1' accept='image/*' data-height='200' data-allowed-file-extensions="jpeg jpg png" data-max-file-size='1M')
 								.col-md-6
 									label Valid ID 2
 										small.text-danger  *
-									input.form-control.dropify(type='file' name='validId2' accept='image/*' data-height='200' data-allowed-file-extensions="jpeg jpg png")
+									input.form-control.dropify(type='file' name='validId2' accept='image/*' data-height='200' data-allowed-file-extensions="jpeg jpg png" data-max-file-size='1M')
 						.form-group
 							label Baranggay Permit
 								small.text-danger  *
-							input.form-control.dropify(type='file' name='baranggayPermit' accept='image/*' data-height='200' data-allowed-file-extensions="jpeg jpg png")
+							input.form-control.dropify(type='file' name='baranggayPermit' accept='image/*' data-height='200' data-allowed-file-extensions="jpeg jpg png" data-max-file-size='1M')
 					.modal-footer
 						button#addAccountSave.btn.btn-primary(type='submit') Save
 	#editAccountModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
@@ -224,7 +224,16 @@ block contentScript
 					},
 					email:{
 						required:true,
-						email: true
+						email: true,
+						remote: {
+							url: '/admin/check-email-validity',
+							type: 'POST',
+							data: {
+								email: function(){
+									return $('#addAccountForm input[name="email"]').val()
+								}
+							}
+						}
 					},
 					phoneNumber:{
 						required:true,
@@ -234,6 +243,9 @@ block contentScript
 				messages:{
 					phoneNumber:{
 						minlength: 'Please enter a valid Philippine mobile number'
+					},
+					email:{
+						remote: 'This email already exists'
 					}
 				}
 			})
@@ -253,6 +265,18 @@ block contentScript
 							<input class="form-control" type="text" name="repPosition" placeholder="Enter Representative Position" />
 							<small style="font-style: italic">NOTE: Lessee will act as the representative of the company</small>
 						</div>
+						<div class="form-group">
+							<div class='row'>
+								<div class="col-md-6">
+									<label>Business Permit<small class="text-danger"> *</small></label>
+									<input class="form-control dropifyCompany" type="file" name="business" accept="image/*" data-height="200" data-allowed-file-extensions="jpeg jpg png" data-max-file-size="1M" />
+								</div>
+								<div class="col-md-6">
+									<label>Mayor's Permit<small class="text-danger"> *</small></label>
+									<input class="form-control dropifyCompany" type="file" name="mayor" accept="image/*" data-height="200" data-allowed-file-extensions="jpeg jpg png" data-max-file-size="1M" />
+								</div>
+							</div>
+						</div>
 					</form>`
 				)
 				$('#companyFields').fadeIn(500).promise().done(function(){
@@ -266,10 +290,29 @@ block contentScript
 							},
 							repPosition:{
 								required:true
+							},
+							business:{
+								required:true
+							},
+							mayor:{
+								required:true
 							}
 						}
 					})
 				});
+				$('.dropifyCompany').dropify({
+					allowedFiles: ['png', 'jpg', 'jpeg', 'gif', 'bmp'],
+					messages: {
+						'default': 'Drag and drop an image here or click',
+						'replace': 'Drag and drop or click to replace',
+						'remove': 'Remove',
+						'error': 'Ooops, you can only upload JPG, JPEG, and PNG files.'
+					},
+					error: {
+						'fileSize': 'The file size is too big (1M max).',
+						'fileFormat': 'The file format is not allowed ({{ value }} only).'
+					}
+				})
 				$('#accountTypeToggle').val(1)
 			})
 			$('#individual').on('click', function(){
@@ -302,19 +345,28 @@ block contentScript
 							contentType: false,
 							success: function(data){
 								const saveData = data;
-								$.post('/admin/add-company', {
-									companyName: $('#companyForm input[name="companyName"]').val(),
-									companyAddress: $('#companyForm input[name="companyAddress"]').val(),
-									repPosition: $('#companyForm input[name="repPosition"]').val(),
-									id: data.id
-								}).done(function(data){
-									swal({
-										title: `You have successfully created an account`,
-										text: `Account username is ${saveData.user} and password is ${saveData.pass}`,
-										type: 'success'
-									}).then(()=>{
-										location.href='/admin/lessee'
-									})
+								const companyFormData = new FormData()
+								companyFormData.append('companyName', $('#companyForm input[name="companyName"]').val())
+								companyFormData.append('companyAddress', $('#companyForm input[name="companyAddress"]').val())
+								companyFormData.append('repPosition', $('#companyForm input[name="repPosition"]').val())
+								companyFormData.append('id', data.id)
+								companyFormData.append('business', $('#companyForm input[name="business"]')[0].files[0])
+								companyFormData.append('mayor', $('#companyForm input[name="mayor"]')[0].files[0])
+								$.ajax({
+									type: 'POST',
+									url: '/admin/add-company',
+									data: companyFormData,
+									processData: false,
+									contentType: false,
+									success: function(data){
+										swal({
+											title: `You have successfully created an account`,
+											text: `Account username is ${saveData.user} and password is ${saveData.pass}`,
+											type: 'success'
+										}).then(()=>{
+											location.href='/admin/lessee'
+										})
+									}
 								})
 							}
 						})

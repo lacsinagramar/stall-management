@@ -76,6 +76,25 @@ block body
 block scriptAddOns
 	script.
 		$(document).ready(function(){
+			const session = !{JSON.stringify(session)}
+			if(session.booFirstLogin == 0){
+				swal({
+					title: `It's your first login, do you want to change your username?`,
+					type: 'question',
+					showCancelButton: true,
+					confirmButtonText: 'Yes',
+					cancelButtonText: 'No',
+					confirmButtonColor: '#4fbf41',
+					cancelButtonColor: '#bf4141'
+				}).then(value => {
+					$.post('/update-login', {
+						id: session.strId
+					})
+					if(value){
+						$('#changeModal').modal('show')
+					}
+				})
+			}
 			$('#reportIssue').on('click', function(){
 				$.post('/get-user-stalls',{
 					id: $(this).attr('lesseeId')

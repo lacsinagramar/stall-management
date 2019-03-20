@@ -26,7 +26,7 @@ block content
 										- else if (bill.booStatus == 1)
 											button.btn.btn-warning.btn-round Pending
 										- else if (bill.booStatus == 2)
-											button.btn.btn-info.btn-round.generate(billId=`${bill.intId}`) Generate Bills
+											button.btn.btn-info.btn-round.generate(billId=`${bill.intId}`) View Consumptions
 	//MODALS
 	#encodeWaterModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog.modal-xl(role='document')
@@ -60,10 +60,10 @@ block content
 							thead
 								tr
 									th Stall ID
-									th Meter Reading
+									th Previous Meter Reading
+									th Current Meter Reading
 									th Consumption
 									th Amount Due
-									th Action
 							tbody#generateModalTableBody
 block contentScript
 	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
@@ -159,10 +159,10 @@ block contentScript
 						$('#generateModalTableBody').append(`
 							<tr>
 								<td><h6 class="text-primary">Stall ${data[f].strStallId}</h6></td>
+								<td>${data[f].intPreviousMeterReading}</td>
 								<td>${data[f].intMeterReading}</td>
-								<td>${data[f].intTotalCubicMeterUsage} Cubic Meter</td>
-								<td>P ${eval(`${data[f].dblAmountDue}+${data[f].dblAdminFee}`)}</td>
-								<td><button class="btn btn-info btn-round generateBill" lesseeBillId="${data[f].lesseeBillId}" amountDue="${eval(`${data[f].dblAmountDue}+${data[f].dblAdminFee}`)}" cubicMeterUsage="${data[f].intTotalCubicMeterUsage}" meterReading="${data[f].intMeterReading}" lesseeName="${data[f].strFirstName} ${data[f].strMiddleName} ${data[f].strLastName}" stallId="${data[f].strStallId}" dueDate='${data[f].datDueDate}'>Generate</button></td>
+								<td>${data[f].intTotalCubicMeterUsage} Cubic Meter/s</td>
+								<td>P ${eval(`${data[f].dblAmountDue}+${data[f].dblAdminFee}`).toFixed(2)}</td>
 							</tr>
 						`)
 					}
@@ -172,51 +172,4 @@ block contentScript
 			$('#generateModal').on('hidden.bs.modal', function() {
 				$('#generateModalTableBody').empty()
 			})
-			$(document).on('click', '.generateBill', function(){
-				generateBill($(this).attr('lesseeName'), $(this).attr('stallId'), $(this).attr('meterReading'), $(this).attr('cubicMeterUsage'), $(this).attr('amountDue'), $(this).attr('dueDate'), $(this).attr('lesseeBillId'))
-			})
-
-			// FUNCTIONS
-			function generateBill(lesseeName, stallId, meterReading, cubicMeterUsage, amountDue, dueDate, lesseeBillId){
-				const billTemplate = {
-					content: [
-						{text: '\n\nEXTRAORDINARY PROPERTY MANAGEMENT CORPORATION', style: 'header', bold: true, alignment: 'center'},
-						{text: 'Amvel Business Park, Brgy. San Dionisio Sucat, Paranaque', style: 'subheader', alignment: 'center'},
-						{text: `\n\n\n\n\nName of Lessee:   ${lesseeName}`, alignment: 'left'},
-						{text: `\nStall Number:   ${stallId}`},
-						{text: `\n\n\nWATER BILL Reference Code(${lesseeBillId})\n\n`, style: 'header', bold: true, alignment: 'center'},
-						{text: `Date: ${moment().format('MM-DD-YYYY')}\n\n`, alignment: 'right'},
-						{text: `Period Covered: ${moment(dueDate).subtract(1,'months').format('MMMM YYYY')} to ${moment(dueDate).format('MMMM YYYY')}\n\n`, alignment: 'left'},
-						{
-							table: {
-								widths: ['*', '*', '*', '*'],
-								body: [
-									[
-										{text:'METER READING', bold:true, alignment: 'center'},
-										{text:'TOTAL CUBIC METER USAGE', bold:true, alignment: 'center'},
-										{text:'AMOUNT DUE', bold:true, alignment: 'center'},
-										{text:'DUE DATE', bold:true, alignment: 'center'},
-									],
-									[
-										{text:`${meterReading}`, alignment: 'center'},
-										{text:`${cubicMeterUsage}`, alignment: 'center'},
-										{text:`${amountDue}`, alignment: 'center'},
-										{text:`${moment(dueDate).format('MM-DD-YYYY')}`, alignment: 'center'},
-									],
-								]
-							}
-						},
-						{text: '\n\n\n\n\n\nNote: Please prepare your check payable to:', alignment: 'left', style: 'header', bold: true},
-						{text: '\nExtraOrdinary Property Management Corporation', alignment: 'center', bold: true},
-						{text: '\nReminder:', alignment: 'left', style: 'header', bold: true},
-						{text: 'Failure of the LESSEE to pay the electricity charges, 7 days after due date of billing statement, shall automatically lead to the disconnection of the electricity supply. Reconnection of the electricity supply shall be made once balance has been fully settled.', alignment: 'justify'},
-						{text: '\n\nNote: PLEASE DISREGARD THE NOTICE IF PAYMENT HAS ALREADY BEEN MADE.', alignment: 'center', style: 'header', bold: true},
-						{text: '\n\nPrepared by:\t\t\t\t\t\t\t\t\Checked & Verified by:\t\t\t\t\t\t\tApproved by:',bold: true, alignment: 'center'},
-						{text: '\n\n\t\tJoel Boriol\t\t\t\t\t\t\t\t\t\t\tRowena Olan\t\t\t\t\t\t\t\tSherry V. Yambao',bold: true, alignment: 'center'},
-						{text: 'Staff\t\t\t\t\t\t\t\t\t\t\tAccounting Officer\t\t\t\t\t\t\t\tVP Finance',bold: true, alignment: 'center'},
-						{text: '\n\n\n\nReceived by:   _________________\t\t\t\t\t\t\t\t\t Date Received: _____________________'},	
-					]		
-				}
-				pdfMake.createPdf(billTemplate).open();
-			}
 		})

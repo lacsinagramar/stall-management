@@ -56,9 +56,9 @@ block content
 								each stall in stalls
 									option(value=`${stall.strId}` stallType=`${stall.booStallType}`) #{stall.strId}
 						.form-group
-							label Username of Lessee
+							label Account ID of Lessee
 								small.text-danger  *
-							input.form-control(type='text' name='lesseeUsername' placeholder='Enter Username')
+							input.form-control(type='text' name='lesseeUsername' placeholder='Enter Account ID')
 						.form-group
 							label Stall Description
 								small.text-danger  *
@@ -145,7 +145,7 @@ block contentScript
 				const dateNow = moment().format('MMMM Do YYYY');
 				if($('#addLeasingForm').valid()){
 					$.post('/admin/stall-id-check', {stallId: $('#addLeasingForm .select2[name="stallId"]').val(), getDetails: true}).done(function(stallData){
-						$.post('/admin//lessee-user-check', {lesseeUsername: $('#addLeasingForm input[name="lesseeUsername"]').val(), getDetails: true}).done(function(lesseeData){
+						$.post('/admin/lessee-user-check', {lesseeId: $('#addLeasingForm input[name="lesseeUsername"]').val(), getDetails: true, leasing:true}).done(function(lesseeData){
 							const receipt = {
 								content: [
 									{
@@ -424,7 +424,7 @@ block contentScript
 							url: '/admin/lessee-user-check',
 							type: 'POST',
 							data: {
-								lesseeUsername: function(){
+								lesseeId: function(){
 									return $('#addLeasingForm input[name="lesseeUsername"]').val()
 								},
 								leasing: true

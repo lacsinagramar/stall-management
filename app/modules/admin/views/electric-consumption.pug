@@ -26,7 +26,7 @@ block content
 										- else if (bill.booStatus == 1)
 											button.btn.btn-warning.btn-round Pending
 										- else if (bill.booStatus == 2)
-											button.btn.btn-info.btn-round.generate(billId=`${bill.intId}`) Generate Bills
+											button.btn.btn-info.btn-round.generate(billId=`${bill.intId}`) View Consumptions
 	//MODALS
 	#encodeElectricModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog.modal-xl(role='document')
@@ -47,6 +47,24 @@ block content
 								tbody#encodeElectricModalTableBody
 					.modal-footer
 						button#encodeElectricSave.btn.btn-primary(type='submit') Save
+	#generateModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
+		.modal-dialog.modal-xl(role='document')
+			.modal-content
+				.modal-header
+					h5.modal-title Generate Bill of Tenants
+					button.close(type='button', data-dismiss='modal', aria-label='Close')
+						span(aria-hidden='true') ×
+				.modal-body
+					.table-responsive
+						table.table
+							thead
+								tr
+									th Stall ID
+									th Previous Meter Reading
+									th Current Meter Reading
+									th Consumption
+									th Amount Due
+							tbody#generateModalTableBody
 block contentScript
 	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
 	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
@@ -133,5 +151,25 @@ block contentScript
 						}
 					}
 				}
+			})
+			$('.generate').on('click', function (){
+				$.post('/admin/get-encoded',{id: $(this).attr('billId'), type:'electric'})
+				.done(function(data){
+					for(let f=0; f < data.length; f++){
+						$('#generateModalTableBody').append(`
+							<tr>
+								<td><h6 class="text-primary">Stall ${data[f].strStallId}</h6></td>
+								<td>${data[f].intPreviousMeterReading}</td>
+								<td>${data[f].intMeterReading}</td>
+								<td>${data[f].intTotalKwhUsage} KwH</td>
+								<td>P ${eval(`${data[f].dblAmountDue}+${data[f].dblAdminFee}`).toFixed(2)}</td>
+							</tr>
+						`)
+					}
+					$('#generateModal').modal('show')
+				})
+			})
+			$('#generateModal').on('hidden.bs.modal', function() {
+				$('#generateModalTableBody').empty()
 			})
 		})

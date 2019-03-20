@@ -842,6 +842,17 @@ router.post('/terminate-contract', (req, res) => {
 		return res.send(true)
 	})
 })
+router.post('/delete-contract', (req, res) => {
+	var queryString =`DELETE tbl_contract,tbl_rental_bill,tbl_payment_child,tbl_payment FROM tbl_contract 
+	JOIN tbl_rental_bill ON tbl_rental_bill.intContractId = tbl_contract.intId
+	JOIN tbl_payment_child ON tbl_payment_child.intBillId = tbl_rental_bill.intId
+	JOIN tbl_payment ON tbl_payment.strReferenceNo = tbl_payment_child.strPaymentReferenceNo
+	WHERE tbl_contract.intId = ${req.body.contractId}`
+	db.query(queryString,(err,results)=>{
+		if(err) console.log(err)
+		return res.send(true);
+	})
+})
 router.post('/get-staffs', (req, res) => {
 	db.query('SELECT * FROM tbl_staff WHERE booStatus = 1', (err, results) => {
 		if(err) console.log(err)

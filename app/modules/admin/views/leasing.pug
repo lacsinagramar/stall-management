@@ -33,13 +33,12 @@ block content
 									- else if(contract.booContractStatus == 1)
 										td.text-info Done
 										td
-											a.badge.badge-info.view.text-white.view(href='javascript:void(0)' contractId=`${contract.intId}`) View
+											a.badge.badge-info.text-white.view(href='javascript:void(0)' contractId=`${contract.intId}`) View
 												
 									- else if(contract.booContractStatus == 2)
 										td.text-danger Terminated
 										td
-											a.badge.badge-info.view.text-white.view(href='javascript:void(0)' contractId=`${contract.intId}`) View
-												
+											a.badge.badge-info.text-white.view(href='javascript:void(0)' contractId=`${contract.intId}`) View	
 	#addLeasingModal.modal.fade(tabindex='false', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content

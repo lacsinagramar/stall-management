@@ -12,17 +12,14 @@ block content
 							tr
 								th Lessee Name
 								th Stall ID
-								th Rental Bill
-								th Utility Bills
+								th Generate Bill
 						tbody
 							each contract in contracts
 								tr
 									td #{contract.strFirstName} #{contract.strMiddleName} #{contract.strLastName}
 									td #{contract.strStallId}
-									td 
-										button.btn.btn-info.btn-round.rental(contractId=`${contract.intId}` lesseeName=`${contract.strFirstName} ${contract.strMiddleName} ${contract.strLastName}` stallId=`${contract.strStallId}`) Generate Rental Bill
 									td
-										button.btn.btn-info.btn-round.utility(contractId=`${contract.intId}` lesseeName=`${contract.strFirstName} ${contract.strMiddleName} ${contract.strLastName}` stallId=`${contract.strStallId}`) Generate Utility Bill
+										button.btn.btn-info.btn-round.utility(contractId=`${contract.intId}` lesseeName=`${contract.strFirstName} ${contract.strMiddleName} ${contract.strLastName}` stallId=`${contract.strStallId}`) Generate Month Bill
 	//MODALS
 block contentScript
 	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
@@ -50,62 +47,85 @@ block contentScript
 			$(document).on('click', '.utility', function(){
 				const stallId = $(this).attr('stallId')
 				const lesseeName = $(this).attr('lesseeName')
+				const contract = $(this).attr('contractId')
 				$.post('/admin/get-utility-bills', {
-					contractId: $(this).attr('contractId'),
+					contractId: contract,
 				}).done(function(data){
+					const utilityData = data
 					if(data.valid){
-						const billTemplate = {
-							content: [
-								{text: '\n\nEXTRAORDINARY PROPERTY MANAGEMENT CORPORATION', style: 'header', bold: true, alignment: 'center'},
-								{text: 'Amvel Business Park, Brgy. San Dionisio Sucat, Paranaque', style: 'subheader', alignment: 'center'},
-								{text: `\n\n\n\n\nName of Lessee:   ${lesseeName}`, alignment: 'left'},
-								{text: `\nStall Number:   ${stallId}`},
-								{text: `\n\n\nUTILITY BILL\n\n`, style: 'header', bold: true, alignment: 'center'},
-								{text: `Due Date: ${moment(`${data.bills.electric.datDueDate}`).format('MM-DD-YYYY')}\n\n`, alignment: 'right'},
-								{text: `Period Covered: ${moment(`${data.bills.electric.datDueDate}`).subtract(1,'months').format('MMMM YYYY')} to ${moment(`${data.bills.electric.datDueDate}`).format('MMMM YYYY')}\n\n`, alignment: 'left'},
-								{
-									table: {
-										widths: ['16.6%', '16.6%', '16.6%', '16.6%', '16.6%', '16.6%'],
-										body: [
-											[
-												{text:'BILL FOR', bold:true, alignment: 'center'},
-												{text:'REFERENCE CODE', bold:true, alignment: 'center'},
-												{text:'PREVIOUS READING', bold:true, alignment: 'center'},
-												{text:'CURRENT READING', bold:true, alignment: 'center'},
-												{text:'CONSUMPTION', bold:true, alignment: 'center'},
-												{text:'AMOUNT DUE', bold:true, alignment: 'center'},
-											],
-											[
-												{text:`Electricity`, alignment: 'center'},
-												{text:`${data.bills.electric.intId}`, alignment: 'center'},
-												{text:`${data.bills.electric.intPreviousMeterReading}`, alignment: 'center'},
-												{text:`${data.bills.electric.intMeterReading}`, alignment: 'center'},
-												{text:`${data.bills.electric.intTotalKwhUsage}KwH`, alignment: 'center'},
-												{text:`P ${eval(`${data.bills.electric.dblAmountDue}+${data.bills.electric.dblAdminFee}`).toFixed(2)}`, alignment: 'center'},
-											],
-											[
-												{text:`Water`, alignment: 'center'},
-												{text:`${data.bills.water.intId}`, alignment: 'center'},
-												{text:`${data.bills.water.intPreviousMeterReading}`, alignment: 'center'},
-												{text:`${data.bills.water.intMeterReading}`, alignment: 'center'},
-												{text:`${data.bills.water.intTotalCubicMeterUsage} Cubic Meters`, alignment: 'center'},
-												{text:`P ${eval(`${data.bills.water.dblAmountDue}+${data.bills.water.dblAdminFee}`).toFixed(2)}`, alignment: 'center'},
-											],
-										]
-									}
-								},
-								{text: '\n\n\n\n\n\nNote: Please prepare your check payable to:', alignment: 'left', style: 'header', bold: true},
-								{text: '\nExtraOrdinary Property Management Corporation', alignment: 'center', bold: true},
-								{text: '\nReminder:', alignment: 'left', style: 'header', bold: true},
-								{text: 'Failure of the LESSEE to pay the these charges, 7 days after due date of billing statement, shall automatically lead to the disconnection of the supply. Reconnection of the supply shall be made once balance has been fully settled.', alignment: 'justify'},
-								{text: '\n\nNote: PLEASE DISREGARD THE NOTICE IF PAYMENT HAS ALREADY BEEN MADE.', alignment: 'center', style: 'header', bold: true},
-								{text: '\n\nPrepared by:\t\t\t\t\t\t\t\t\Checked & Verified by:\t\t\t\t\t\t\tApproved by:',bold: true, alignment: 'center'},
-								{text: '\n\n\t\tJoel Boriol\t\t\t\t\t\t\t\t\t\t\tRowena Olan\t\t\t\t\t\t\t\tSherry V. Yambao',bold: true, alignment: 'center'},
-								{text: 'Staff\t\t\t\t\t\t\t\t\t\t\tAccounting Officer\t\t\t\t\t\t\t\tVP Finance',bold: true, alignment: 'center'},
-								{text: '\n\n\n\nReceived by:   _________________\t\t\t\t\t\t\t\t\t Date Received: _____________________'},	
-							]		
-						}
-						pdfMake.createPdf(billTemplate).open();
+						$.post('/admin/get-rental-bill', {
+							contractId: contract
+						}).done(function(rental){
+							const billTemplate = {
+								content: [
+									{text: '\n\nEXTRAORDINARY PROPERTY MANAGEMENT CORPORATION', style: 'header', bold: true, alignment: 'center'},
+									{text: 'Amvel Business Park, Brgy. San Dionisio Sucat, Paranaque', style: 'subheader', alignment: 'center'},
+									{text: `\n\n\nName of Lessee:   ${lesseeName}`, alignment: 'left'},
+									{text: `\nStall Number:   ${stallId}`},
+									{text: `\nBILL OF THE MONTH\n\n`, style: 'header', bold: true, alignment: 'center'},
+									{text: `Due Date: ${moment(`${utilityData.bills.electric.datDueDate}`).format('MM-DD-YYYY')}\n\n`, alignment: 'right'},
+									{text: `Period Covered: ${moment(`${utilityData.bills.electric.datDueDate}`).subtract(1,'months').format('MMMM YYYY')} to ${moment(`${utilityData.bills.electric.datDueDate}`).format('MMMM YYYY')}\n\n`, alignment: 'left'},
+									{
+										table: {
+											widths: ['16.6%', '16.6%', '16.6%', '16.6%', '16.6%', '16.6%'],
+											body: [
+												[
+													{text:'BILL FOR', bold:true, alignment: 'center'},
+													{text:'REFERENCE CODE', bold:true, alignment: 'center'},
+													{text:'PREVIOUS READING', bold:true, alignment: 'center'},
+													{text:'CURRENT READING', bold:true, alignment: 'center'},
+													{text:'CONSUMPTION', bold:true, alignment: 'center'},
+													{text:'AMOUNT DUE', bold:true, alignment: 'center'},
+												],
+												[
+													{text:`Electricity`, alignment: 'center'},
+													{text:`${utilityData.bills.electric.intId}`, alignment: 'center'},
+													{text:`${utilityData.bills.electric.intPreviousMeterReading}`, alignment: 'center'},
+													{text:`${utilityData.bills.electric.intMeterReading}`, alignment: 'center'},
+													{text:`${utilityData.bills.electric.intTotalKwhUsage}KwH`, alignment: 'center'},
+													{text:`P ${eval(`${utilityData.bills.electric.dblAmountDue}+${utilityData.bills.electric.dblAdminFee}`).toFixed(2)}`, alignment: 'center'},
+												],
+												[
+													{text:`Water`, alignment: 'center'},
+													{text:`${utilityData.bills.water.intId}`, alignment: 'center'},
+													{text:`${utilityData.bills.water.intPreviousMeterReading}`, alignment: 'center'},
+													{text:`${utilityData.bills.water.intMeterReading}`, alignment: 'center'},
+													{text:`${utilityData.bills.water.intTotalCubicMeterUsage} Cubic Meters`, alignment: 'center'},
+													{text:`P ${eval(`${utilityData.bills.water.dblAmountDue}+${utilityData.bills.water.dblAdminFee}`).toFixed(2)}`, alignment: 'center'},
+												],
+											]
+										}
+									},
+									{
+										table: {
+											widths: ['*', '*', '*'],
+											body: [
+												[
+													{text:'BILL FOR', bold:true, alignment: 'center'},
+													{text:'REFERENCE CODE', bold:true, alignment: 'center'},
+													{text:'AMOUNT DUE', bold:true, alignment: 'center'},
+												],
+												[
+													{text:`Rental`, alignment: 'center'},
+													{text:`${rental.refCode}`, alignment: 'center'},
+													{text:`${rental.amountDue}`, alignment: 'center'},
+												],
+											]
+										}
+									},
+									{text: '\n\nNote: Please prepare your check payable to:', alignment: 'left', style: 'header', bold: true},
+									{text: '\nExtraOrdinary Property Management Corporation', alignment: 'center', bold: true},
+									{text: '\nReminder:', alignment: 'left', style: 'header', bold: true},
+									{text: 'Failure of the LESSEE to pay the these charges, 7 days after due date of billing statement, shall automatically lead to the disconnection of the supply. Reconnection of the supply shall be made once balance has been fully settled.', alignment: 'justify'},
+									{text: '\n\nNote: PLEASE DISREGARD THE NOTICE IF PAYMENT HAS ALREADY BEEN MADE.', alignment: 'center', style: 'header', bold: true},
+									{text: '\n\nPrepared by:\t\t\t\t\t\t\t\t\Checked & Verified by:\t\t\t\t\t\t\tApproved by:',bold: true, alignment: 'center'},
+									{text: '\n\n\t\tJoel Boriol\t\t\t\t\t\t\t\t\t\t\tRowena Olan\t\t\t\t\t\t\t\tSherry V. Yambao',bold: true, alignment: 'center'},
+									{text: 'Staff\t\t\t\t\t\t\t\t\t\t\tAccounting Officer\t\t\t\t\t\t\t\tVP Finance',bold: true, alignment: 'center'},
+									{text: '\n\n\n\nReceived by:   _________________\t\t\t\t\t\t\t\t\t Date Received: _____________________'},	
+								]		
+							}
+							pdfMake.createPdf(billTemplate).open();
+						})
 					}
 					else{
 						return swal({

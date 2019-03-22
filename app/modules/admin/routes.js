@@ -226,7 +226,10 @@ router.get('/utilities', middleware.hasAdmin, (req, res) => {
 	return res.render('admin/views/utilities', {url: req.url, utilities: req.session.utilities, session: req.session})
 })
 router.get('/ticket', middleware.hasAdminOrStaff, (req, res) => {
-	db.query('SELECT *, tbl_ticket.booStatus AS booTicketStatus, tbl_ticket.intId AS intTicketId FROM tbl_ticket JOIN tbl_issue_report ON tbl_ticket.intIssueId = tbl_issue_report.intId', (err, results) => {
+	const query = `SELECT *, tbl_ticket.booStatus AS booTicketStatus, tbl_ticket.intId AS intTicketId FROM tbl_ticket 
+	JOIN tbl_issue_report ON tbl_ticket.intIssueId = tbl_issue_report.intId
+	JOIN tbl_contract ON tbl_contract.intId = intContractId`
+	db.query(query, (err, results) => {
 		if(err) console.log(err)
 
 		if(results.length > 0){
@@ -1311,14 +1314,32 @@ router.post('/get-utility-bills', (req, res) => {
 })
 router.post('/get-rental-bill', (req, res) => {
 	const monthNow = moment().format('MM')
+	const yearNow = moment().format('YYYY')
 	db.query('SELECT * FROM tbl_rental_bill WHERE intContractId = ? AND MONTH(datDueDate) = ?',[req.body.contractId, monthNow], (err, results) => {
 		if(err) console.log(err)
 
 		if(results.length == 0){
-			return res.send({valid: false, error: 'There is still no bill to generate'})
+			db.query('SELECT * FROM tbl_contract WHERE intId = ?', (err, results) => {
+				if(err) console.log(err)
+
+				const contractDetails = results[0]
+				const dueDate = moment(`${yearNow}-${monthNow}-${req.session.intUtilitiesCutOffDay}`).format('YYYY-MM-DD')
+
+				db.query('INSERT INTO tbl_rental_bill (intContractId, datDueDate, dblAmountDue) VALUES (?, ?, ?)', [req.body.contractId, dueDate, contractDetails.dblRentPrice], (err, results) => {
+					if(err) console.log(err)
+
+					return res.send({
+						refCode: results.insertId,
+						amountDue: contractDetails.dblRentPrice
+					})
+				})
+			})
 		}
 		else{
-			return res.send({valid:true, bill:results[0]})
+			return res.send({
+				refCode: results[0].intId,
+				amountDue: results[0].dblAmountDue
+			})
 		}
 	})
 })

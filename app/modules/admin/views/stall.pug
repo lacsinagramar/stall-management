@@ -14,7 +14,6 @@ block content
 					h4.card-title Stalls
 				.card-body
 					.toolbar
-						button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addStallModal') + Add Stall
 					br
 					table#stallTable.table.table-bordered.table-striped(cellspacing='0')
 						thead
@@ -45,16 +44,18 @@ block content
 					br
 					.row
 						.col-md-2
-							h5 Legend
+							h5 Stall Map Legend
 							p.text-warning Yellow Fill - Food Stalls
 							p.text-success Green Fill - Dry Good Stalls
 							p Black Border - Available
 							p.text-danger Red Border - Occupied
+						.col-md-2
 							h6 NOTE: Occupied Stalls are not editable
+							button.btn.btn-round.btn-success(data-toggle='modal' data-target='#addStallModal') + Add Stall
+					.row
 						.col-md-10
 							center
-								h3 Stall Map
-								canvas#c(width='1000', height='600')
+								canvas#c(width='1330', height='1000')
 	#addStallModal.modal.fade(tabindex='-1', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
@@ -250,7 +251,7 @@ block contentScript
 					height: 70,      
 					fill: `${stalls[i].booStallType == 0 ? 'yellow': 'green'}`,
 					stroke: `${stalls[i].booIsAvailable == 0 ? 'black': 'red'}`,
-					strokeWidth: 2,
+					strokeWidth: 4,
 				}); 
 				const text = new fabric.Text(`${stalls[i].strId}`, {
 					left: x + 38,

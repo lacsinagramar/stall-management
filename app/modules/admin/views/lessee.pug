@@ -109,7 +109,6 @@ block content
 						span(aria-hidden='true') ×
 				form#editAccountForm(enctype="multipart/form-data" method='POST' action='/admin/editaccount')
 					.modal-body#editAccountModalBody
-						input#editLesseeId(type='hidden' name='editLesseeId')
 					.modal-footer
 						button#editAccountSave.btn.btn-warning(type='submit') Edit
 block contentScript
@@ -121,7 +120,8 @@ block contentScript
 				})
 			})
 			$(document).on('click', '.viewLessee', function(){
-				$('#editAccountModalBody').append(`<h6>Lessee Details</h6>
+				$('#editAccountModalBody').append(`<input id='editLesseeId' type="hidden" name="editLesseeId">
+					<h6>Lessee Details</h6>
 					<div class="form-group">
 						<label>Address</label>
 						<input class="form-control" type="text" name="editAddress" placeholder="Enter Address" value="${$(this).attr('address')}" />
@@ -186,6 +186,9 @@ block contentScript
 				})
 				$('#editLesseeId').val($(this).attr('lesseeId'))
 				$('#editAccountModal').modal('show')
+			})
+			$('#editAccountModal').on('hidden.bs.modal', function(){
+				$('#editAccountModalBody').empty()
 			})
 			$('.dropify').dropify({
 				allowedFiles: ['png', 'jpg', 'jpeg', 'gif', 'bmp'],

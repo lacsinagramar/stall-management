@@ -62,7 +62,22 @@ REVISIONS
 - Remove Generate Bills on E/W Consumption /
 - Ticket Details /
 - Remove Delete Payment /
-- Delete Leasing
+- Delete Leasing /
+
+FINAL REVISIONS
+- Stall Map /
+  1. Increase Stroke /
+  2. Increase Width and Height /
+- Ticket Details /
+  1. Lessee Name /
+  2. Stall ID /
+- Edit Lessee Empty Modal /
+- Sweetalert when Deleting/Terminating Contract /
+- Sample Contract Preview /
+- Dropdown of IDs + NOTE
+- One Bill only /
+- Pending Leasing
+- Reports pdf
 
 SQL DUMP EXAMPLE
 mysqldump -u root -p -d -B stallv3>stallv3-2.sql

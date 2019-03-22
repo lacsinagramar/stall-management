@@ -31,12 +31,12 @@ block content
 										td
 											span.badge.badge-success.text-white Resolved
 										td 
-											a.view.badge.badge-info.text-white(href='javascript:' subject=`${ticket.strSubject}` message=`${ticket.strMessage}`) View Ticket
+											a.view.badge.badge-info.text-white(href='javascript:' subject=`${ticket.strSubject}` message=`${ticket.strMessage}` lessee=`${ticket.strLesseeId}` stall=`${ticket.strStallId}`) View Ticket
 									- else if (ticket.booTicketStatus == 2)
 										td
 											span.badge.badge-danger.text-white Closed/Unresolved
 										td 
-											a.view.badge.badge-info.text-white(href='javascript:' subject=`${ticket.strSubject}` message=`${ticket.strMessage}`) View Ticket
+											a.view.badge.badge-info.text-white(href='javascript:' subject=`${ticket.strSubject}` message=`${ticket.strMessage}` lessee=`${ticket.strLesseeId}` stall=`${ticket.strStallId}`) View Ticket
 block contentScript
 	script.
 		$(document).ready(function(){
@@ -61,7 +61,7 @@ block contentScript
 				swal({
 					type: 'info',
 					title: `${$(this).attr('subject')}`,
-					text: `${$(this).attr('message')}`
+					html: `Lessee: ${$(this).attr('lessee')}<br>Stall: ${$(this).attr('stall')}<br>Message: ${$(this).attr('message')}`
 				})
 			})
 		})

@@ -86,11 +86,20 @@ block content
 						h6 Lessee Validation Credentials
 						.form-group
 							.row
+								p(style='margin-left:12px') NOTE: Any other ID not included in the list shall not be accepted
 								.col-md-6
+									select.form-control.selectpicker(data-style='select-with-transition btn-primary btn-round' title='Select' name='idType1')
+										option(value='SSS') SSS ID
+										option(value='Voter') Voter's ID
+										option(value='BIR') BIR ID
 									label Valid ID 1
 										small.text-danger  *
 									input.form-control.dropify(type='file' name='validId1' accept='image/*' data-height='200' data-allowed-file-extensions="jpeg jpg png" data-max-file-size='1M')
 								.col-md-6
+									select.form-control.selectpicker(data-style='select-with-transition btn-primary btn-round' title='Select' name='idType2')
+										option(value='SSS') SSS ID
+										option(value='Voter') Voter's ID
+										option(value='BIR') BIR ID
 									label Valid ID 2
 										small.text-danger  *
 									input.form-control.dropify(type='file' name='validId2' accept='image/*' data-height='200' data-allowed-file-extensions="jpeg jpg png" data-max-file-size='1M')
@@ -241,6 +250,12 @@ block contentScript
 					phoneNumber:{
 						required:true,
 						minlength: 18
+					},
+					idType1: {
+						required: true
+					},
+					idType2: {
+						required: true
 					}
 				},
 				messages:{
@@ -249,6 +264,12 @@ block contentScript
 					},
 					email:{
 						remote: 'This email already exists'
+					},
+					idType1: {
+						required: 'Please select an ID Type'
+					},
+					idType2: {
+						required: 'Please select an ID Type'
 					}
 				}
 			})
@@ -279,6 +300,12 @@ block contentScript
 									<input class="form-control dropifyCompany" type="file" name="mayor" accept="image/*" data-height="200" data-allowed-file-extensions="jpeg jpg png" data-max-file-size="1M" />
 								</div>
 							</div>
+							<div class='row'>
+								<div class="col-md-12">
+									<label>DTI Permit<small class="text-danger"> *</small></label>
+									<input class="form-control dropifyCompany" type="file" name="dti" accept="image/*" data-height="200" data-allowed-file-extensions="jpeg jpg png" data-max-file-size="1M" />
+								</div>
+							</div>
 						</div>
 					</form>`
 				)
@@ -298,6 +325,9 @@ block contentScript
 								required:true
 							},
 							mayor:{
+								required:true
+							},
+							dti:{
 								required:true
 							}
 						}
@@ -340,6 +370,8 @@ block contentScript
 						formData.append('address' ,$('#addAccountForm input[name="address"]').val())
 						formData.append('email' ,$('#addAccountForm input[name="email"]').val())
 						formData.append('phoneNumber' ,$('#addAccountForm input[name="phoneNumber"]').val())
+						formData.append('idType1', $('#addAccountForm select[name="idType1"]').val())
+						formData.append('idType2', $('#addAccountForm select[name="idType1"]').val())
 						$.ajax({
 							type: 'POST',
 							url: '/admin/addaccount',
@@ -355,6 +387,7 @@ block contentScript
 								companyFormData.append('id', data.id)
 								companyFormData.append('business', $('#companyForm input[name="business"]')[0].files[0])
 								companyFormData.append('mayor', $('#companyForm input[name="mayor"]')[0].files[0])
+								companyFormData.append('dti', $('#companyForm input[name="dti"]')[0].files[0])
 								$.ajax({
 									type: 'POST',
 									url: '/admin/add-company',
@@ -388,6 +421,8 @@ block contentScript
 						formData.append('address' ,$('#addAccountForm input[name="address"]').val())
 						formData.append('email' ,$('#addAccountForm input[name="email"]').val())
 						formData.append('phoneNumber' ,$('#addAccountForm input[name="phoneNumber"]').val())
+						formData.append('idType1', $('#addAccountForm select[name="idType1"]').val())
+						formData.append('idType2', $('#addAccountForm select[name="idType2"]').val())
 						$.ajax({
 							type: 'POST',
 							url: '/admin/addaccount',

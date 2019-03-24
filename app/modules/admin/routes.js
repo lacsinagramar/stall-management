@@ -336,7 +336,21 @@ router.post('/addaccount', upload.any(), (req, res) => {
 		const found = req.files.find(file => {
 			if(file.fieldname == fieldName) return file
 		})
-		return found.filename;
+		if(fieldName == 'validId1'){
+			return JSON.stringify({
+				idType: req.body.idType1,
+				scannedId: found.filename
+			})
+		}
+		else if(fieldName == 'validId2'){
+			return JSON.stringify({
+				idType: req.body.idType2,
+				scannedId: found.filename
+			})
+		}
+		else{
+			return found.filename
+		}
 	}
 
 	function generateUsername(){
@@ -384,8 +398,8 @@ router.post('/add-company', upload.any(), (req, res) => {
 	}
 
 	console.log(req.body)
-	const queryString = `INSERT INTO tbl_company_lessee VALUES(?, ?, ?, ?, ?, ?)`;
-	db.query(queryString, [req.body.id, req.body.companyName, req.body.companyAddress, req.body.repPosition, findFilename('business'), findFilename('mayor')], (err, results) => {
+	const queryString = `INSERT INTO tbl_company_lessee VALUES(?, ?, ?, ?, ?, ?, ?)`;
+	db.query(queryString, [req.body.id, req.body.companyName, req.body.companyAddress, req.body.repPosition, findFilename('business'), findFilename('mayor'), findFilename('dti')], (err, results) => {
 		if(err) console.log(err)
 
 		return res.send({valid:true});
@@ -424,42 +438,18 @@ router.post('/delete-lessee', (req, res) => {
 	});
 })
 router.post('/add-contract', (req, res) => {
-	function generateReferenceNumber(){
-		const choice = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
-		let refCode = '';
-		for(let i=0; i<=15; i++){
-			refCode += `${choice[Math.floor(Math.random() * Math.floor(choice.length))]}`
-		}
-		return refCode;
-	}
-	const refCode = generateReferenceNumber();
 	console.log("ADD CONTRACT ROUTE",req.body)
 	const queryString = `INSERT INTO tbl_contract 
-	(strLesseeId, strStallId, strContractStallDescription, intContractMonth, intContractDay, intContractYear, intContractDuration, dblRentPrice)
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-	const datePaid = `${req.body.dateNow.year}-${req.body.dateNow.month}-${req.body.dateNow.day}`
-	const amountPaid = req.body.stallData.booStallType == 0? `${req.session.utilities.dblFoodStallPrice*2}`: `${req.session.utilities.dblDryGoodsStallPrice*2}`
+	(strLesseeId, strStallId, strContractStallDescription, intContractMonth, intContractDay, intContractYear, intContractDuration, dblRentPrice, booContractStatus)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 	const rentPrice = req.body.stallData.booStallType == 0? `${req.session.utilities.dblFoodStallPrice}`: `${req.session.utilities.dblDryGoodsStallPrice}`
-	db.query(queryString, [req.body.lesseeData.strId, req.body.stallData.strId, req.body.stallDescription, req.body.dateNow.month, req.body.dateNow.day, req.body.dateNow.year, 6, rentPrice], (err, results) => {
+	db.query(queryString, [req.body.lesseeData.strId, req.body.stallData.strId, req.body.stallDescription, req.body.dateNow.month, req.body.dateNow.day, req.body.dateNow.year, 6, rentPrice, 3], (err, results) => {
 		if(err) console.log(err)
-
-		const contractIdNow = results.insertId
 
 		db.query('UPDATE tbl_stall SET booIsAvailable = 1 WHERE strId =?', req.body.stallData.strId, (err, results) => {
 			if(err) console.log(err)
 
-			db.query('INSERT INTO tbl_payment VALUES(?, ?, ?)',[refCode, datePaid, amountPaid], (err, results) =>{
-				if(err) console.log(err)
-				db.query('INSERT INTO tbl_rental_bill (intContractId, datDueDate, dblAmountDue, strPaymentReferenceNo) VALUES(?, ?, ?, ?)', [contractIdNow, datePaid, amountPaid, refCode], (err, resultsBill) =>{
-					if(err) console.log(err)
-					db.query('INSERT INTO tbl_payment_child(strPaymentReferenceNo, intBillId, strBillType) VALUES(?, ?, ?)', [refCode, resultsBill.insertId, 'R'], (err, results) => {
-						if(err) console.log(err)
-
-						return res.send(true);
-					})
-				})
-			})
-
+			return res.send(true)
 		})
 
 	})
@@ -850,10 +840,24 @@ router.post('/delete-contract', (req, res) => {
 	JOIN tbl_rental_bill ON tbl_rental_bill.intContractId = tbl_contract.intId
 	JOIN tbl_payment_child ON tbl_payment_child.intBillId = tbl_rental_bill.intId
 	JOIN tbl_payment ON tbl_payment.strReferenceNo = tbl_payment_child.strPaymentReferenceNo
-	WHERE tbl_contract.intId = ${req.body.contractId}`
-	db.query(queryString,(err,results)=>{
+	WHERE tbl_contract.intId = ?`
+	db.query(queryString, req.body.contractId, (err,results)=>{
 		if(err) console.log(err)
-		return res.send(true);
+		if(results.affectedRows == 0){
+			db.query('DELETE FROM tbl_contract WHERE intId = ?', req.body.contractId, (err, results) => {
+				if(err) console.log(err)
+				db.query('UPDATE tbl_stall SET booIsAvailable = 0 WHERE strId = ?', req.body.stallId, (err, results) => {
+					if(err) console.log(err)
+					return res.send(true);
+				})
+			})
+		}
+		else{
+			db.query('UPDATE tbl_stall SET booIsAvailable = 0 WHERE strId = ?', req.body.stallId, (err, results) => {
+				if(err) console.log(err)
+				return res.send(true);
+			})
+		}
 	})
 })
 router.post('/get-staffs', (req, res) => {
@@ -1360,6 +1364,36 @@ router.post('/check-email-validity', (req, res) => {
 		else{
 			return res.send('false')
 		}
+	})
+})
+router.post('/start-contract', (req, res) => {
+	function generateReferenceNumber(){
+		const choice = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890';
+		let refCode = '';
+		for(let i=0; i<=15; i++){
+			refCode += `${choice[Math.floor(Math.random() * Math.floor(choice.length))]}`
+		}
+		return refCode;
+	}
+	const refCode = generateReferenceNumber();
+	const datePaid = moment().format('YYYY-MM-DD')
+	db.query('SELECT * FROM tbl_contract JOIN tbl_stall ON strStallId = strId WHERE intId = ?', req.body.contractId, (err, results) => {
+		if(err) console.log(err)
+
+		const amountPaid = results[0].booStallType == 0? `${req.session.utilities.dblFoodStallPrice*2}`: `${req.session.utilities.dblDryGoodsStallPrice*2}`
+		db.query('INSERT INTO tbl_payment VALUES(?, ?, ?)',[refCode, datePaid, amountPaid], (err, results) =>{
+			if(err) console.log(err)
+			db.query('INSERT INTO tbl_rental_bill (intContractId, datDueDate, dblAmountDue, strPaymentReferenceNo) VALUES(?, ?, ?, ?)', [req.body.contractId, datePaid, amountPaid, refCode], (err, resultsBill) =>{
+				if(err) console.log(err)
+				db.query('INSERT INTO tbl_payment_child(strPaymentReferenceNo, intBillId, strBillType) VALUES(?, ?, ?)', [refCode, resultsBill.insertId, 'R'], (err, results) => {
+					if(err) console.log(err)
+					db.query('UPDATE tbl_contract SET booContractStatus = 0 WHERE intId = ?', req.body.contractId, (err, results) => {
+						if(err) console.log(err)
+						return res.send(true);
+					})
+				})
+			})
+		})
 	})
 })
 //END POST

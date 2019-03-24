@@ -74,7 +74,8 @@ FINAL REVISIONS
 - Edit Lessee Empty Modal /
 - Sweetalert when Deleting/Terminating Contract /
 - Sample Contract Preview /
-- Dropdown of IDs + NOTE
+- Dropdown of IDs + NOTE /
+- Company Requirements add DTI Permit /
 - One Bill only /
 - Pending Leasing
 - Reports pdf

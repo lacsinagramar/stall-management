@@ -27,19 +27,22 @@ block content
 										td.text-success On-going
 										td
 											a.badge.badge-info.text-white.view(href='javascript:void(0)' contractId=`${contract.intId}`) View
-												
 											a.badge.badge-warning.text-white.terminate(href='javascript:void(0)' contractId=`${contract.intId}`) Terminate
-
-											a.badge.badge-danger.text-white.delete(href='javascript:void(0)' contractId=`${contract.intId}`) Delete	
+											a.badge.badge-danger.text-white.delete(href='javascript:void(0)' contractId=`${contract.intId}` stallId=`${contract.strStallId}`) Delete	
 									- else if(contract.booContractStatus == 1)
 										td.text-info Done
 										td
 											a.badge.badge-info.text-white.view(href='javascript:void(0)' contractId=`${contract.intId}`) View
-												
 									- else if(contract.booContractStatus == 2)
 										td.text-danger Terminated
 										td
 											a.badge.badge-info.text-white.view(href='javascript:void(0)' contractId=`${contract.intId}`) View	
+									- else if(contract.booContractStatus == 3)
+										td.text-warning Pending
+										td
+											a.badge.badge-info.text-white.view(href='javascript:void(0)' contractId=`${contract.intId}`) View
+											a.badge.badge-success.text-white.start(href='javascript:void(0)' contractId=`${contract.intId}`) Start Contract
+											a.badge.badge-danger.text-white.delete(href='javascript:void(0)' contractId=`${contract.intId}` stallId=`${contract.strStallId}`) Delete	
 	#addLeasingModal.modal.fade(tabindex='false', role='dialog', aria-hidden='true')
 		.modal-dialog(role='document')
 			.modal-content
@@ -81,6 +84,51 @@ block contentScript
 	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
 	script.
 		$(document).ready(function(){
+			$(document).on('click', '.start', function(){
+				$.post('/admin/start-contract',{
+					contractId: $(this).attr('contractId')
+				}).done(function(){
+					const receipt = {
+						content: [
+							{
+								text: 'ACKNOWLEDGEMENT RECEIPT\n\n\n', bold:true, alignment: 'center'
+							},
+							{
+								text:[
+									{text:'Date:', alignment: 'right'},
+									{text:`${dateNow}\n\n\n`, alignment: 'right', decoration: 'underline'},
+								]
+							},
+							{
+								text:[
+									{text:'RECEIVED from: '},
+									{text:`${lesseeData.strFirstName} ${lesseeData.strMiddleName} ${lesseeData.strLastName}\n\n`, decoration: 'underline'},
+								]
+							},
+							{
+								text:[
+									{text:'the amount of: '},
+									{text:`${stallData.booStallType == 0 ? `${wordValues.foodStall.double} ( P ${convertToString(passedSession.dblFoodStallPrice*2)}.00 )` : `${wordValues.dryGoodsStall.double} ( P ${convertToString(passedSession.dblDryGoodsStallPrice*2)}.00 )`}\n\n`, decoration: 'underline'},
+								]
+							},
+							{
+								text: [
+									{text:'as partial/full payment for '},
+									{text: `Advance payment for rental on stall ${stallData.strId}(${stallData.booStallType == 0 ? 'Food Stall' : 'Dry-Goods Stall'})\n\n`, decoration: 'underline'}
+								]
+							},
+							{
+								text:'__________________________\n\n', alignment: 'right'
+							},
+							{
+								text:'Authorized   Signature\n\n', alignment: 'right'
+							},
+						]
+					}
+					pdfmake.createPdf(receipt).open()
+					location.href='/admin/rental'
+				})
+			})
 			$('#previewContract').on('click', function(){
 				const contract = {
 					content: [
@@ -315,43 +363,6 @@ block contentScript
 				if($('#addLeasingForm').valid()){
 					$.post('/admin/stall-id-check', {stallId: $('#addLeasingForm .select2[name="stallId"]').val(), getDetails: true}).done(function(stallData){
 						$.post('/admin/lessee-user-check', {lesseeId: $('#addLeasingForm input[name="lesseeUsername"]').val(), getDetails: true, leasing:true}).done(function(lesseeData){
-							const receipt = {
-								content: [
-									{
-										text: 'ACKNOWLEDGEMENT RECEIPT\n\n\n', bold:true, alignment: 'center'
-									},
-									{
-										text:[
-											{text:'Date:', alignment: 'right'},
-											{text:`${dateNow}\n\n\n`, alignment: 'right', decoration: 'underline'},
-										]
-									},
-									{
-										text:[
-											{text:'RECEIVED from: '},
-											{text:`${lesseeData.strFirstName} ${lesseeData.strMiddleName} ${lesseeData.strLastName}\n\n`, decoration: 'underline'},
-										]
-									},
-									{
-										text:[
-											{text:'the amount of: '},
-											{text:`${stallData.booStallType == 0 ? `${wordValues.foodStall.double} ( P ${convertToString(passedSession.dblFoodStallPrice*2)}.00 )` : `${wordValues.dryGoodsStall.double} ( P ${convertToString(passedSession.dblDryGoodsStallPrice*2)}.00 )`}\n\n`, decoration: 'underline'},
-										]
-									},
-									{
-										text: [
-											{text:'as partial/full payment for '},
-											{text: `Advance payment for rental on stall ${stallData.strId}(${stallData.booStallType == 0 ? 'Food Stall' : 'Dry-Goods Stall'})\n\n`, decoration: 'underline'}
-										]
-									},
-									{
-										text:'__________________________\n\n', alignment: 'right'
-									},
-									{
-										text:'Authorized   Signature\n\n', alignment: 'right'
-									},
-								]
-							}
 							//START CONTRACT
 							const contract = {
 								content: [
@@ -530,7 +541,7 @@ block contentScript
 									normal: 'Times-new-roman-Regular.ttf'
 								}
 							}
-							const docArray = [{type:'contract', doc:contract}, {type:'receipt', doc:receipt}]
+							const docArray = [{type:'contract', doc:contract}]
 							swal({
 								title: `Documents Generated`,
 								text: `Receipt and Contract already generated please click okay`,
@@ -639,6 +650,7 @@ block contentScript
 			})
 			$(document).on('click', '.delete', function(){
 				const clicked = $(this).attr('contractId')
+				const clickedStall = $(this).attr('stallId')
 				swal({
 					title: 'Are you sure?',
 					type: 'question',
@@ -650,7 +662,8 @@ block contentScript
 				}).then(value => {
 					if(value){
 						$.post('/admin/delete-contract', {
-							contractId: clicked
+							contractId: clicked,
+							stallId: clickedStall
 						}).done(function(){
 							location.href='/admin/rental'
 						})

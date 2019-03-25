@@ -9,6 +9,7 @@ block content
 				.card-body
 					.toolbar
 						button#export.btn.btn-round.btn-success(disabled='true') Save as Excel File
+						button#pdf.btn.btn-round.btn-danger(disabled='true') Save as PDF File
 						button#generate.btn.btn-round.btn-info(disabled='true') Generate Report
 					br
 					center
@@ -36,8 +37,59 @@ block content
 block contentScript
 	script(src='/assets/plugins/SheetJS/FileSaver.js')
 	script(src='/assets/plugins/SheetJS/xlsx.full.min.js')
+	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
+	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
 	script.
 		$(document).ready(function(){
+			$('#pdf').on('click', function(){
+				let pdfBody = []
+				let pdfWidth = []
+				let pdfHead = []
+				const widthPerCol = eval(`100/${$('#reportsTable').children('thead').find('th').length}`).toFixed(2)
+				for(let i = 0; i < $('#reportsTable').children('thead').find('th').length; i++){
+					pdfWidth.push(`${widthPerCol}%`)
+					pdfHead.push({
+						text: $('#reportsTable').children('thead').find('th').eq(i)[0].innerText, 
+						bold:true, 
+						alignment: 'center'
+					})
+					if(i == $('#reportsTable').children('thead').find('th').length - 1){
+						pdfBody.push(pdfHead)
+						for(let j = 0; j < $('#reportsTable').children('tbody').children('tr').length; j++){
+							let rowNow = []
+							for(let k = 0; k < $('#reportsTable').children('tbody').children('tr').eq(j).find('td').length; k++){
+								rowNow.push({
+									text: $('#reportsTable').children('tbody').children('tr').eq(j).find('td').eq(k)[0].innerText, 
+									alignment: 'center'
+								})
+								if(k == $('#reportsTable').children('tbody').children('tr').eq(j).find('td').length - 1){
+									pdfBody.push(rowNow)
+								}
+							}
+							if(j == $('#reportsTable').children('tbody').children('tr').length - 1){
+								const exportPdf = {	
+									content: [
+										{text: '\n\nEXTRAORDINARY PROPERTY MANAGEMENT CORPORATION', style: 'header', bold: true, alignment: 'center'},
+										{text: 'Amvel Business Park, Brgy. San Dionisio Sucat, Paranaque', style: 'subheader', alignment: 'center'},
+										{text: '\n\n\n\n\nREPORTS\n\n', style: 'header', bold: true, alignment: 'center'},
+										{
+											table:{
+												widths: pdfWidth,
+												body:pdfBody
+											}
+										},
+										{text: '\n\n\n\n\nPrepared by:\t\t\t\t\t\t\t\t\Checked & Verified by:\t\t\t\t\t\t\tApproved by:',bold: true, alignment: 'center'},
+										{text: '\n\nRowena Olan\t\t\t\t\t\t\t\t\tSherry V. Yambao\t\t\t\t\t\t\t\tBelen Velarde',bold: true, alignment: 'center'},
+										{text: '\nAccounting Officer\t\t\t\t\t\t\t\t\tVP Finance\t\t\t\t\t\t\t\t\tAccounting Head\n\n\n',bold: true, alignment: 'center'},
+									]
+								}
+								pdfMake.createPdf(exportPdf).open()
+								pdfMake.createPdf(exportPdf).download(`reports-${Date.now()}.pdf`)
+							}
+						}
+					}
+				}
+			})
 			$('.selectpicker').selectpicker()
 			$('#generateReport').on('change', function(){
 				$('#generate').prop('disabled', true)
@@ -64,6 +116,7 @@ block contentScript
 			})
 			$('#generate').on('click', function(){
 				$('#export').prop('disabled', false)
+				$('#pdf').prop('disabled', false)
 				$('#reportsTable').fadeOut(1000).promise().then(function(){
 					$('#reportsTable').empty()
 					if($('#generateReport').val() == 0){
@@ -171,8 +224,8 @@ block contentScript
 							$('#reportsTable').append(`
 								<thead>
 									<tr>
-										<td>${$('#filter').val() == 'monthly' ? 'Month': 'Year'}</td>
-										<td>Revenue</td>
+										<th>${$('#filter').val() == 'monthly' ? 'Month': 'Year'}</th>
+										<th>Revenue</th>
 									</tr>
 								</thead>
 								<tbody id='reportsTableBody'>

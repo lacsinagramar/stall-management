@@ -1377,9 +1377,13 @@ router.post('/start-contract', (req, res) => {
 	}
 	const refCode = generateReferenceNumber();
 	const datePaid = moment().format('YYYY-MM-DD')
-	db.query('SELECT * FROM tbl_contract JOIN tbl_stall ON strStallId = strId WHERE intId = ?', req.body.contractId, (err, results) => {
+	const queryString = `SELECT *, tbl_stall.strId AS stallId FROM tbl_contract 
+	JOIN tbl_stall ON strStallId = tbl_stall.strId
+	JOIN tbl_lessee ON strLesseeId = tbl_lessee.strId
+	WHERE intId = ?`
+	db.query(queryString, req.body.contractId, (err, results) => {
 		if(err) console.log(err)
-
+		const details = results[0]
 		const amountPaid = results[0].booStallType == 0? `${req.session.utilities.dblFoodStallPrice*2}`: `${req.session.utilities.dblDryGoodsStallPrice*2}`
 		db.query('INSERT INTO tbl_payment VALUES(?, ?, ?)',[refCode, datePaid, amountPaid], (err, results) =>{
 			if(err) console.log(err)
@@ -1389,7 +1393,7 @@ router.post('/start-contract', (req, res) => {
 					if(err) console.log(err)
 					db.query('UPDATE tbl_contract SET booContractStatus = 0 WHERE intId = ?', req.body.contractId, (err, results) => {
 						if(err) console.log(err)
-						return res.send(true);
+						return res.send(details);
 					})
 				})
 			})

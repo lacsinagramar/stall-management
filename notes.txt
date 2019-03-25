@@ -77,7 +77,7 @@ FINAL REVISIONS
 - Dropdown of IDs + NOTE /
 - Company Requirements add DTI Permit /
 - One Bill only /
-- Pending Leasing
+- Pending Leasing /
 - Reports pdf
 
 SQL DUMP EXAMPLE

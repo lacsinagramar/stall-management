@@ -92,6 +92,8 @@ block content
 									th Bill Reference Code
 							tbody#viewPaymentModalTableBody
 block contentScript
+	script(src='/assets/plugins/pdfmake/pdfmake.min.js')
+	script(src='/assets/plugins/pdfmake/vfs_fonts.js')
 	script.
 		$(document).ready(function(){
 			$('#stallTable').dataTable()
@@ -186,20 +188,79 @@ block contentScript
 						if(parseInt($('#amountPaid').val()) >= parseInt($('#totalAmountDue').val())){
 							$.post('/admin/add-payment', {data: finalInfo, amountPaid: $('#totalAmountDue').val()})
 							.done(function(){
-								if(parseInt($('#amountPaid').val()) > parseInt($('#totalAmountDue').val())){
-									swal({
-										title: `Change Amount`,
-										text: `Change amount is ${eval($('#amountPaid').val()+'-'+$('#totalAmountDue').val())}`,
-										type: 'info'
-									}).then(value => {
-										if(value){
-											location.href = '/admin/payment'
+								$.post('/admin/get-word-value', {
+									number: $('#totalAmountDue').val()
+								}).done(function(data){
+									let paymentArray = [
+										{text:'as partial/full payment for '}
+									]
+									for(let i = 0; i < finalInfo.length; i ++){
+										let billFor
+										if(finalInfo[i].billType == 'R'){
+											billFor = 'Rental'
 										}
-									})
-								}
-								else{
-									location.href = '/admin/payment'
-								}
+										else if(finalInfo[i].billType == 'W'){
+											billFor = 'Water'
+										}
+										else if(finalInfo[i].billType == 'E'){
+											billFor = 'Electricity'
+										}
+										if(i == finalInfo.length - 1){
+											paymentArray.push({
+												text: `${billFor} Bill No. ${finalInfo[i].billCode}`
+											})
+										}
+										else{
+											paymentArray.push({
+												text: `${billFor} Bill No. ${finalInfo[i].billCode} and `
+											})
+										}
+									}
+									const receipt = {
+										content: [
+											{
+												text: 'ACKNOWLEDGEMENT RECEIPT\n\n\n', bold:true, alignment: 'center'
+											},
+											{
+												text:[
+													{text:'Date:', alignment: 'right'},
+													{text:`${moment().format('YYYY-MM-DD')}\n\n\n`, alignment: 'right', decoration: 'underline'},
+												]
+											},
+											{
+												text:[
+													{text:'The amount of: '},
+													{text:`${data.wordValue} ( P ${parseFloat($('#totalAmountDue').val()).toFixed(2)} )\n\n`, decoration: 'underline'},
+												]
+											},
+											{
+												text: paymentArray
+											},
+											{
+												text:'__________________________\n\n', alignment: 'right'
+											},
+											{
+												text:'Authorized   Signature\n\n', alignment: 'right'
+											},
+										]
+									}
+									if(parseInt($('#amountPaid').val()) > parseInt($('#totalAmountDue').val())){
+										swal({
+											title: `Change Amount`,
+											text: `Change amount is ${eval($('#amountPaid').val()+'-'+$('#totalAmountDue').val())}`,
+											type: 'info'
+										}).then(value => {
+											if(value){
+												pdfMake.createPdf(receipt).open()
+												location.href = '/admin/payment'
+											}
+										})
+									}
+									else{
+										pdfMake.createPdf(receipt).open()
+										location.href = '/admin/payment'
+									}
+								})
 							})
 						}
 						else{

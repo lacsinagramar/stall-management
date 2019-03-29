@@ -1400,6 +1400,22 @@ router.post('/start-contract', (req, res) => {
 		})
 	})
 })
+router.post('/get-word-value', (req, res) => {
+	function convertToUpperCase(word){
+		const splittedWords = word.split(' ');
+		let finalWord = '';
+		for(let r = 0; r < splittedWords.length; r++){
+			splittedWords[r] = `${splittedWords[r].charAt(0).toUpperCase()}${splittedWords[r].slice(1)}`
+			finalWord+= ` ${splittedWords[r]}`
+			if(r == splittedWords.length - 1){
+				return finalWord.slice(1)
+			}
+		}
+	}
+	return res.send({
+		wordValue: convertToUpperCase(numberToWords.toWords(req.body.number))
+	})
+})
 //END POST
 
 exports.admin = router;

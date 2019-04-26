@@ -1323,11 +1323,11 @@ router.post('/get-rental-bill', (req, res) => {
 		if(err) console.log(err)
 
 		if(results.length == 0){
-			db.query('SELECT * FROM tbl_contract WHERE intId = ?', (err, results) => {
+			db.query('SELECT * FROM tbl_contract WHERE intId = ?',req.body.contractId, (err, results) => {
 				if(err) console.log(err)
 
 				const contractDetails = results[0]
-				const dueDate = moment(`${yearNow}-${monthNow}-${req.session.intUtilitiesCutOffDay}`).format('YYYY-MM-DD')
+				const dueDate = moment(`${yearNow}-${monthNow}-${req.session.utilities.intUtilitiesCutOffDay}`).format('YYYY-MM-DD')
 
 				db.query('INSERT INTO tbl_rental_bill (intContractId, datDueDate, dblAmountDue) VALUES (?, ?, ?)', [req.body.contractId, dueDate, contractDetails.dblRentPrice], (err, results) => {
 					if(err) console.log(err)
